@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>std::ref和std::cref - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="std::ref和std::cref"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>std::ref和std::cref</h2>
+            <div class="post-meta">
+                <time class="date">2023.08.08</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h1 id="std-ref和std-cref"><a href="#std-ref和std-cref" class="headerlink" title="std::ref和std::cref"></a>std::ref和std::cref</h1><h3 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h3><p>std::ref 用于包装按引用传递的值。<br>std::cref 用于包装按const引用传递的值。</p>
+<p>为什么需要std::ref和std::cref,<br>bind()是一个函数模板，它的原理是根据已有的模板，生成一个函数，但是由于bind()不知道生成的函数执行的时候，传递进来的参数是否还有效。所以它选择参数值传递而不是引用传递。如果想引用传递，std::ref和std::cref就派上用场了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(<span class="type">int</span>&amp; n1, <span class="type">int</span>&amp; n2, <span class="type">const</span> <span class="type">int</span>&amp; n3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;In function: &quot;</span> &lt;&lt; n1 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n2 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n3 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    ++n1; <span class="comment">// 增加存储于函数对象的 n1 副本</span></span><br><span class="line">    ++n2; <span class="comment">// 增加 main() 的 n2</span></span><br><span class="line">    <span class="comment">// ++n3; // 编译错误</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> n1 = <span class="number">1</span>, n2 = <span class="number">2</span>, n3 = <span class="number">3</span>;</span><br><span class="line">    std::function&lt;<span class="type">void</span>()&gt; bound_f = std::<span class="built_in">bind</span>(f, n1, std::<span class="built_in">ref</span>(n2), std::<span class="built_in">cref</span>(n3));</span><br><span class="line">    n1 = <span class="number">10</span>;</span><br><span class="line">    n2 = <span class="number">11</span>;</span><br><span class="line">    n3 = <span class="number">12</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Before function: &quot;</span> &lt;&lt; n1 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n2 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n3 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="built_in">bound_f</span>();</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;After function: &quot;</span> &lt;&lt; n1 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n2 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; n3 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//输出</span></span><br><span class="line">Before function: <span class="number">10</span> <span class="number">11</span> <span class="number">12</span></span><br><span class="line">In function: <span class="number">1</span> <span class="number">11</span> <span class="number">12</span></span><br><span class="line">After function: <span class="number">10</span> <span class="number">12</span> <span class="number">12</span></span><br></pre></td></tr></table></figure>
+
+
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/08/08/std-move/">std::move</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/08/08/std-ref%E5%92%8Cstd-cref/">std::ref和std::cref</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/08/08/std-move/">std::move</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/08/07/test/">test</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c-11/" style="font-size: 20px;">c++11</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
