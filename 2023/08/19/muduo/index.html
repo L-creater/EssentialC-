@@ -65,7 +65,7 @@
 <li><p>整个建立连接的流程</p>
 </li>
 <li><p>如何保证一个线程只有一个EventLoop对象</p>
-<p><img src="/./muduo/image-20230811105311147.png" alt="image-20230811105311147"></p>
+<p><img src="image-20230811105311147.png" alt="image-20230811105311147"></p>
 </li>
 <li><p>__thread变量是每个线程有一份独立实体，各个线程的变量值互不干扰。除了这个主要的用途，他还可以修饰那些”值可能会变，带有全局性，但是又不值得用全局锁保护”的变量。</p>
 <ul>
@@ -81,10 +81,10 @@
 </li>
 </ol>
 <p>epoll + threadPool</p>
-<p><img src="/./muduo/image-20230811110816183.png" alt="image-20230811110816183"></p>
+<p><img src="image-20230811110816183.png" alt="image-20230811110816183"></p>
 <p>main Reactor + sub Reactor</p>
-<p><img src="/./muduo/image-20230811111003090.png" alt="image-20230811111003090"></p>
-<p>main Reactor + sub Reactor + theadPool<br><img src="/./muduo/image-20230811110513867.png" alt="image-20230811110513867"></p>
+<p><img src="image-20230811111003090.png" alt="image-20230811111003090"></p>
+<p>main Reactor + sub Reactor + theadPool<br><img src="image-20230811110513867.png" alt="image-20230811110513867"></p>
 <h1 id="连接建立的流程"><a href="#连接建立的流程" class="headerlink" title="连接建立的流程"></a>连接建立的流程</h1><ol>
 <li>网络库是怎样bind、listen和accept的</li>
 <li>epoll模型被封装成啥样了，是怎样调度读写事件的</li>
@@ -379,7 +379,7 @@
             <span class="token operator">&lt;&lt;</span> <span class="token string">" fd="</span> <span class="token operator">&lt;&lt;</span> sockfd<span class="token punctuation">;</span>
   socket_<span class="token operator">-></span><span class="token function">setKeepAlive</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>依赖都是单向的，TcpServer会用到Acceptor，但Acceptor不知道TcpServer的存在。TcpServer会用到TcpConnection，但TcpConnection不知道TcpServer的存在。<br><img src="/./muduo/image.png" alt="Alt text"></p>
+<p>依赖都是单向的，TcpServer会用到Acceptor，但Acceptor不知道TcpServer的存在。TcpServer会用到TcpConnection，但TcpConnection不知道TcpServer的存在。<br><img src="image.png" alt="Alt text"></p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">EventLoop</span><span class="token double-colon punctuation">::</span><span class="token function">runInLoop</span><span class="token punctuation">(</span>Functor cb<span class="token punctuation">)</span>
 <span class="token punctuation">&#123;</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isInLoopThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
