@@ -3,7 +3,7 @@
   <head>
      
     <meta charset="UTF-8">
-    <title>std::move - 木偶人</title>
+    <title>error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’ - 木偶人</title>
     <link rel="shortcut icon" href="/static/img/icon.png">
     <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
     
@@ -15,7 +15,7 @@
 
     <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
     <meta property="og:site_name" content="木偶人">
-    <meta property="og:title" content="std::move"/>
+    <meta property="og:title" content="error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’"/>
     
     <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
     
@@ -53,35 +53,44 @@
     <main>
     <div class="wrap min">
         <section class="post-title">
-            <h2>std::move</h2>
+            <h2>error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’</h2>
             <div class="post-meta">
-                <time class="date">2023.08.08</time>
+                <time class="date">2023.09.29</time>
             
             </div>
         </section>
         <article class="post-content">
         
-            <blockquote>
-<p>move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。</p>
-</blockquote>
+            <p>意思是无法将一个非 const 左值引用类型的 int&amp; 绑定到一个右值类型的 int 上。</p>
+<ul>
+<li><p>在 C++ 中，左值是指可以取地址的、有标识符的表达式，如变量、数组、函数等；而右值是指不能取地址的、没有标识符的表达式，如字面量（如 1、”hello”）和表达式（如 a + b）。在一个函数中，如果参数是左值引用类型，那么这个函数可以修改传入的参数，因为它可以通过引用访问参数的地址。如果参数是右值引用类型，那么这个函数不能修改传入的参数，因为它只能访问到参数的值，而不能访问到它的地址。</p>
+</li>
+<li><p>现在回到这个错误信息。它的意思是，在某个地方有一个函数或者语句试图将一个右值类型的 int 绑定到一个非 const 左值引用类型的 int&amp; 上，这是不允许的。这是因为右值是临时的、不可修改的，不能被引用进行修改操作。</p>
+</li>
+</ul>
 <blockquote>
-<p>这里要注意对move语义的<strong>误解</strong>,move只是转移了资源的控制权，本质上是将左值强制转换为右值引用，以用于move语义，避免含有资源的对象发生无所谓的拷贝。<strong>move对于拥有形如对内存、文件句柄等资源的成员的对象有效。如果是一些基本类型，比如int和char[10]数组等，如果使用move仍然会发生拷贝(因为没有对应的移动构造函数)，所以说对含有资源的对象来说更有意义</strong></p>
+<p>要解决这个问题，一种方法是将左值引用类型改为 const 左值引用类型，这样就可以接受右值参数了。另一种方法是将参数改为值传递方式，也就是将参数拷贝一份传递给函数，这样就不存在左值引用和右值引用的问题了。</p>
 </blockquote>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">setValue</span><span class="token punctuation">(</span> T <span class="token operator">&amp;</span>val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> m_val <span class="token operator">=</span> val<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+<span class="token comment">// 改为</span>
+<span class="token keyword">void</span> <span class="token function">setValue</span><span class="token punctuation">(</span><span class="token keyword">const</span> T <span class="token operator">&amp;</span>val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> m_val <span class="token operator">=</span> val<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+<span class="token comment">// 或者</span>
+<span class="token keyword">void</span> <span class="token function">setValue</span><span class="token punctuation">(</span> T val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> m_val <span class="token operator">=</span> val<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
         </article>
         <section class="post-near">
             <ul>
                 
-                    <li>上一篇: <a href="/2023/08/08/std-ref%E5%92%8Cstd-cref/">std::ref和std::cref</a></li>
+                    <li>上一篇: 看完啦 (つд⊂)</li>
                 
                 
-                    <li>下一篇: <a href="/2023/08/07/test/">test</a></li>
+                    <li>下一篇: <a href="/2023/09/27/sylar/sstream/">sstream</a></li>
                 
             </ul>
         </section>
         
             <section class="post-tags">
-            <a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a>
+            <a class="-none-link" href="/tags/error/" rel="tag">error</a>
             </section>
         
     
