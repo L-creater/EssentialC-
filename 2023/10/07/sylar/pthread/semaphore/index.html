@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>semaphore - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="semaphore"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>semaphore</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.07</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h1 id="semaphore"><a href="#semaphore" class="headerlink" title="semaphore"></a>semaphore</h1><h2 id="sem-init"><a href="#sem-init" class="headerlink" title="sem_init"></a>sem_init</h2><p>信号量的数据类型为结构<code>sem_t</code>，它本质上是一个长整型的数。函数<code>sem_init（）</code>用来初始化一个信号量。它的原型为：　　<br><code>extern int sem_init __P ((sem_t *__sem, int __pshared, unsigned int __value));</code>　　</p>
+<ul>
+<li>sem为指向信号量结构的一个指针；</li>
+<li>pshared不为０时此信号量在进程间共享，否则只能为当前进程的所有线程共享；</li>
+<li>value给出了信号量的初始值。</li>
+</ul>
+<h2 id="sem-post"><a href="#sem-post" class="headerlink" title="sem_post"></a>sem_post</h2><p>函数<code>sem_post( sem_t *sem )</code>用来增加信号量的值。当有线程阻塞在这个信号量上时，调用这个函数会使其中的一个线程不在阻塞，选择机制同样是由线程的调度策略决定的。</p>
+<h2 id="sem-wait"><a href="#sem-wait" class="headerlink" title="sem_wait"></a>sem_wait</h2><p>函数<code>sem_wait( sem_t *sem )</code>递减（锁定）sem 指向的信号量。如果信号量的值大于零，则继续递减，并且函数立即返回。如果信号量当前的值为零，则调用将阻塞，直到可以执行递减（即信号量值上升到零以上），或者信号处理程序中断调用。</p>
+<h2 id="sem-trywait"><a href="#sem-trywait" class="headerlink" title="sem_trywait"></a>sem_trywait</h2><p><code>sem_trywait ( sem_t*sem )</code>与 sem_wait() 相同，只不过如果不能立即执行递减，则调用返回错误（errno 设置为 EAGAIN）而不是阻塞。</p>
+<h2 id="sem-timedwait"><a href="#sem-timedwait" class="headerlink" title="sem_timedwait"></a>sem_timedwait</h2><p><code> int sem_timedwait(sem_t *restrict sem,                          const struct timespec*restrict abs_timeout);</code></p>
+<p>与sem_wait() 相同，不同之处在于，abs_timeout 指定了如果不能立即执行递减，则调用应阻塞的时间量限制。 abs_timeout 参数指向 timespec(3) 结构，该结构指定自纪元 1970-01-01 00:00:00 +0000 (UTC) 以来的绝对超时（以秒和纳秒为单位）。<br>如果调用时超时已经过期，并且信号量无法立即锁定，则 sem_timedwait() 将失败并出现超时错误（errno 设置为 ETIMEDOUT）。<br>如果操作可以立即执行，则无论abs_timeout 的值如何，sem_timedwait() 都不会因超时错误而失败。此外，在这种情况下，不检查abs_timeout的有效性。</p>
+<h2 id="sem-destroy"><a href="#sem-destroy" class="headerlink" title="sem_destroy"></a>sem_destroy</h2><p><code>int sem_destroy(sem_t *sem);</code></p>
+<p>销毁 sem 指向的地址处的未命名信号量。</p>
+<p>仅应使用 sem_destroy() 销毁已由 sem_init(3) 初始化的信号量。</p>
+<p>销毁其他进程或线程当前被阻塞的信号量（在 sem_wait(3) 中）会产生未定义的行为。</p>
+<p>使用已被破坏的信号量会产生未定义的结果，直到使用 sem_init(3) 重新初始化该信号量。</p>
+<hr>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// thread.h</span>
+<span class="token keyword">class</span> <span class="token class-name">Semaphore</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> count <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token operator">~</span><span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">void</span> <span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">void</span> <span class="token function">notify</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token keyword">const</span> Semaphore <span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">delete</span><span class="token punctuation">;</span>
+  <span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token keyword">const</span> Semaphore <span class="token operator">&amp;&amp;</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">delete</span><span class="token punctuation">;</span>
+  Semaphore <span class="token operator">&amp;</span><span class="token keyword">operator</span><span class="token operator">=</span><span class="token punctuation">(</span><span class="token keyword">const</span> Semaphore <span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">delete</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  sem_t m_semaphore<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// thread.cc</span>
+<span class="token class-name">Semaphore</span><span class="token double-colon punctuation">::</span><span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> count<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">sem_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_semaphore<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> count<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">logic_error</span><span class="token punctuation">(</span><span class="token string">"sem_init error"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token class-name">Semaphore</span><span class="token double-colon punctuation">::</span><span class="token operator">~</span><span class="token function">Semaphore</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">sem_destroy</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_semaphore<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+<span class="token keyword">void</span> <span class="token class-name">Semaphore</span><span class="token double-colon punctuation">::</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">sem_wait</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_semaphore<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">logic_error</span><span class="token punctuation">(</span><span class="token string">"sem_wait error"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">void</span> <span class="token class-name">Semaphore</span><span class="token double-colon punctuation">::</span><span class="token function">notify</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">sem_post</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_semaphore<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">logic_error</span><span class="token punctuation">(</span><span class="token string">"sem_post error"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>记录学习sylar过程中，学到的知识。</p>
+</blockquote>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-%E2%80%98std-vector-int-%E2%80%99-to-an-rvalue-of-type-%E2%80%98std-vector-int-%E2%80%99/">error: cannot bind non-const lvalue reference of type ‘std::vector<int>&’ to an rvalue of type ‘std::vector<int>’</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/27/sylar/sstream/">sstream</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/24/schedule/schedule/">schedule</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/08/20/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88/">智能指针</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c-11/" style="font-size: 20px;">c++11</a> <a href="/tags/error/" style="font-size: 15px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 15px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
