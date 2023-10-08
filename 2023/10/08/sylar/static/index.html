@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>static - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="static"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>static</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.08</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h1 id="static"><a href="#static" class="headerlink" title="static"></a>static</h1><h2 id="声明静态成员"><a href="#声明静态成员" class="headerlink" title="声明静态成员"></a>声明静态成员</h2><p>静态成员的类型可以是常量、引用、指针、类类型等等。</p>
+  <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">Account</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">void</span> <span class="token function">Calculate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>amount <span class="token operator">+=</span> interes_trate_<span class="token punctuation">&#125;</span>
+  <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> interes_trate_<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+  <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token keyword">double</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">private</span><span class="token operator">:</span>
+  std<span class="token double-colon punctuation">::</span>string owner_<span class="token punctuation">;</span>
+  <span class="token keyword">double</span> amount_<span class="token punctuation">;</span>
+  <span class="token keyword">static</span> <span class="token keyword">double</span> interes_trate_<span class="token punctuation">;</span>
+  <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">initRate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>静态对象存在于任何对象之外，对象中不包含任何与静态数据成员有关的数据。因此每个Account对象将包含两个数据成员：owner和amount。<br>只存在一个interestRate对象而且它被所有Account对象共享。</p>
+<p>静态成员函数也不与任何对象绑定在一起，他们不包含this指针，作为结果，<strong>静态成员函数不能声明为const的</strong>，而且我们也不能在static函数体内使用this指针。这一限制既适用于this显示调用，也对非静态成员的隐式使用有效。</p>
+<h2 id="使用类的静态成员"><a href="#使用类的静态成员" class="headerlink" title="使用类的静态成员"></a>使用类的静态成员</h2><ol>
+<li><p>使用作用域运算符直接访问静态成员</p>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">double</span> r<span class="token punctuation">;</span>
+r <span class="token operator">=</span> <span class="token class-name">Account</span><span class="token double-colon punctuation">::</span><span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+</li>
+<li><p>使用类的对象、引用或者指针来访问静态成员</p>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Account ac1<span class="token punctuation">;</span>
+Account <span class="token operator">*</span>ac2 <span class="token operator">=</span> <span class="token operator">&amp;</span>ac1<span class="token punctuation">;</span>
+
+r <span class="token operator">=</span> ac1<span class="token punctuation">.</span><span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+r <span class="token operator">=</span> ac2<span class="token operator">-></span><span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+<li><p>成员函数不用通过作用域运算符就能直接访问静态成员：</p>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">Account</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">void</span> <span class="token function">Calculate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>amount <span class="token operator">+=</span> interes_trate_<span class="token punctuation">&#125;</span>
+  <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> interes_trate_<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+<h2 id="定义静态成员"><a href="#定义静态成员" class="headerlink" title="定义静态成员"></a>定义静态成员</h2><p>和其他成员函数一样，我们既可以在类内部定义也可以在类外部定义静态成员函数。当在类的外部定义定义静态成员函数时，<strong>不能重复static关键字，该关键字只能出现在类内部的声明语句。</strong></p>
+<p>一般来说不能在类的内部初始化静态函数成员。相反的必须在类的外部定义和初始化每个静态成员。和其他对象一样，每个静态成员只能定义一次。</p>
+<h2 id="静态成员的类内初始化"><a href="#静态成员的类内初始化" class="headerlink" title="静态成员的类内初始化"></a>静态成员的类内初始化</h2><p>通常情况下类的静态成员不应该在类的内部初始化，然而我们可以为静态成员提供const整数类型的类内初始值，不过要求静态成员必须是字面值常量类型的constexpr。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">Account</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">void</span> <span class="token function">Calculate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>amount <span class="token operator">+=</span> interes_trate_<span class="token punctuation">&#125;</span>
+  <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> interes_trate_<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+  <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">rate</span><span class="token punctuation">(</span><span class="token keyword">double</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token keyword">static</span> <span class="token keyword">constexpr</span> <span class="token keyword">int</span> period <span class="token operator">=</span> <span class="token number">30</span><span class="token punctuation">;</span> <span class="token comment">// period 是常量表达式</span>
+  <span class="token keyword">double</span> daily_tbl<span class="token punctuation">[</span>period<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token comment">// 一个不带初始值的静态成员定义</span>
+<span class="token keyword">constexpr</span> <span class="token keyword">int</span> Account<span class="token double-colon punctuation">::</span>period<span class="token punctuation">;</span> <span class="token comment">// 初始值在类的定义内提供</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>即使一个常量静态成员在类的内部被初始化了，通常情况下，也应该在类的外部定义一下该成员。</li>
+</ul>
+<h2 id="静态成员能用于某些场景，而普通成员不能"><a href="#静态成员能用于某些场景，而普通成员不能" class="headerlink" title="静态成员能用于某些场景，而普通成员不能"></a>静态成员能用于某些场景，而普通成员不能</h2><ul>
+<li><p>静态成员可以作为默认实参，非静态数据成员不能作为默认实参。</p>
+</li>
+<li><p>静态数据成员可以是不完全类型，特别的静态数据成员的类型可以就是他所属的类类型，而非静态成员数据成员则受到限制，只能声明他所属类的指针或引用。</p>
+</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">Bar</span><span class="token punctuation">&#123;</span>
+<span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token comment">//...</span>
+<span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token keyword">static</span> Bar mem1<span class="token punctuation">;</span>  <span class="token comment">// 正确，静态成员可以是不完全类型</span>
+  Bar <span class="token operator">*</span>mem2<span class="token punctuation">;</span>        <span class="token comment">// 正确，指针成员可以是不完全类型</span>
+  Bar mem3<span class="token punctuation">;</span>         <span class="token comment">// 错误，数据成员必须是完全类型</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="静态成员变量"><a href="#静态成员变量" class="headerlink" title="静态成员变量"></a>静态成员变量</h2><p>在类内成员变量的声明前加上关键字static，该数据成员就是类内的静态数据成员。</p>
+<p><strong>静态成员变量有以下特点：</strong></p>
+<ol>
+<li><p><strong>静态成员变量是该类的所有对象所共有的。</strong>  对于普通成员变量，每个类对象都有自己的一份拷贝。而<strong>静态成员变量一共就一份，无论这个类的对象被定义了多少个，静态成员变量只分配一次内存，由该类的所有对象共享访问</strong>。所以，静态数据成员的值对每个对象都是一样的，它的值可以更新；</p>
+</li>
+<li><p>因为静态数据成员在全局数据区分配内存，由本类的所有对象共享，所以，它不属于特定的类对象，不占用对象的内存，而是在所有对象之外开辟内存，在没有产生类对象时其作用域就可见。因此，在没有类的实例存在时，静态成员变量就已经存在，我们就可以操作它；</p>
+</li>
+<li><p>静态成员变量存储在全局数据区。static 成员变量的内存空间既不是在声明类时分配，也不是在创建对象时分配，而是在初始化时分配。静态成员变量必须初始化，而且只能在类体外进行。否则，编译能通过，链接不能通过。初始化时可以赋初值，也可以不赋值。如果不赋值，那么会被默认初始化，一般是 0。静态数据区的变量都有默认的初始值，而动态数据区（堆区、栈区）的变量默认是垃圾值。</p>
+</li>
+<li><p>static 成员变量和普通 static 变量一样，编译时在静态数据区分配内存，到程序结束时才释放。这就意味着，static 成员变量不随对象的创建而分配内存，也不随对象的销毁而释放内存。而普通成员变量在对象创建时分配内存，在对象销毁时释放内存。</p>
+</li>
+<li><p>sizeof 运算符不会计算 静态成员变量。</p>
+</li>
+</ol>
+<p><strong>何时采用静态数据成员？</strong></p>
+<p>设置静态成员（变量和函数）这种机制的目的是将某些和类紧密相关的全局变量和函数写到类里面，看上去像一个整体，易于理解和维护。如果想在同类的多个对象之间实现数据共享，又不要用全局变量，那么就可以使用静态成员变量。也即，静态数据成员主要用在各个对象都有相同的某项属性的时候。比如对于一个存款类，每个实例的利息都是相同的。所以，应该把利息设为存款类的静态数据成员。这有两个好处：</p>
+<ol>
+<li>不管定义多少个存款类对象，利息数据成员都共享分配在全局数据区的内存，节省存储空间。</li>
+<li>一旦利息需要改变时，只要改变一次，则所有存款类对象的利息全改变过来了。</li>
+</ol>
+<p>你也许会问，用全局变量不是也可以达到这个效果吗？</p>
+<p><strong>同全局变量相比，使用静态数据成员有两个优势:</strong></p>
+<ol>
+<li>静态成员变量没有进入程序的全局命名空间，因此不存在与程序中其它全局命名冲突的可能。</li>
+<li>可以实现信息隐藏。静态成员变量可以是private成员，而全局变量不能。</li>
+</ol>
+<blockquote>
+<p>静态变量的一句话总结：静态变量具有全局变量的生命周期，但只能作用于自己的作用域。</p>
+</blockquote>
+<h2 id="静态成员函数"><a href="#静态成员函数" class="headerlink" title="静态成员函数"></a>静态成员函数</h2><p>与普通函数相比，静态成员函数属于类本身，而不作用于对象，因此它不具有this指针。正因为它没有指向某一个对象，所以它无法访问属于类对象的非静态成员变量和非静态成员函数，它只能调用其余的静态成员函数和静态成员变量。从另一个角度来看，由于静态成员函数和静态成员变量在类实例化之前就已经存在可以访问，而此时非静态成员还是不存在的，因此静态成员不能访问非静态成员。</p>
+<p>静态成员函数的特点：</p>
+<ol>
+<li><p><strong>出现在类体外的函数定义不能指定关键字static；</strong><br><code>error ---&gt;&#39;static&#39; can only be specified inside the class definition (fix available)clang(static_out_of_line)</code></p>
+</li>
+<li><p>静态成员之间可以相互访问，即静态成员函数（仅）可以访问静态成员变量、静态成员函数；</p>
+</li>
+<li><p>静态成员函数不能访问非静态成员函数和非静态成员变量；</p>
+</li>
+<li><p>非静态成员函数可以任意地访问静态成员函数和静态数据成员；</p>
+</li>
+<li><p>由于没有this指针的额外开销，静态成员函数与类的成员函数相比速度上会稍快；</p>
+</li>
+<li><p>调用静态成员函数，两种方式：</p>
+<ul>
+<li>通过成员访问操作符(.)和(-&gt;)，也即通过类对象或指向类对象的指针调用静态成员函数。</li>
+<li>直接通过类来调用静态成员函数。＜类名＞::＜静态成员函数名＞（＜参数表＞）。也即，静态成员不需要通过对象就能访问。</li>
+</ul>
+</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">Config</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">using</span> ConfigVarMap <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> ConfigVarBase<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span><span class="token punctuation">;</span>
+  <span class="token keyword">typedef</span> RWMutex RWMutexType<span class="token punctuation">;</span>
+  <span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+  <span class="token keyword">static</span> <span class="token keyword">typename</span> <span class="token class-name">ConfigVar</span><span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token double-colon punctuation">::</span>ptr <span class="token function">Lookup</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>name<span class="token punctuation">,</span> <span class="token keyword">const</span> T <span class="token operator">&amp;</span>default_value<span class="token punctuation">,</span>
+                                           <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>description<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span><span class="token function">GetMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">auto</span> it <span class="token operator">=</span> <span class="token function">GetDatas</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>it <span class="token operator">!=</span> <span class="token function">GetDatas</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                            <span class="token comment">// ...</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">sylar<span class="token double-colon punctuation">::</span>ConfigVar<span class="token operator">&lt;</span>Person<span class="token operator">></span><span class="token double-colon punctuation">::</span>ptr g_person <span class="token operator">=</span>
+    sylar<span class="token double-colon punctuation">::</span><span class="token class-name">Config</span><span class="token double-colon punctuation">::</span><span class="token function">Lookup</span><span class="token punctuation">(</span><span class="token string">"class.person"</span><span class="token punctuation">,</span> <span class="token function">Person</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"system person"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h2 id="静态全局变量"><a href="#静态全局变量" class="headerlink" title="静态全局变量"></a>静态全局变量</h2><p>在全局变量前，加上关键字static，该变量就被定义成为一个静态全局变量。</p>
+<p><strong>静态全局变量有以下特点：</strong></p>
+<ol>
+<li>该变量在全局数据区分配内存；</li>
+<li>未经初始化的静态全局变量会被程序自动初始化为0（自动变量的自动初始化值是随机的）；</li>
+<li>静态全局变量在声明它的整个文件都是可见的，而在文件之外是不可见的； 　<br>静态变量都在全局数据区分配内存，包括后面将要提到的静态局部变量。对于一个完整的程序，在内存中的分布情况如下：【代码区】【全局数据区】【堆区】【栈区】，一般程序的由new产生的动态数据存放在堆区，函数内部的自动变量存放在栈区，静态数据（即使是函数内部的静态局部变量）存放在全局数据区。自动变量一般会随着函数的退出而释放空间，而全局数据区的数据并不会因为函数的退出而释放空间</li>
+</ol>
+<p><strong>定义全局变量就可以实现变量在文件中的共享，但定义静态全局变量还有以下好处：</strong></p>
+<ol>
+<li>静态全局变量不能被其它文件所用；</li>
+<li>其它文件中可以定义相同名字的变量，不会发生冲突；</li>
+</ol>
+<h2 id="静态局部变量"><a href="#静态局部变量" class="headerlink" title="静态局部变量"></a>静态局部变量</h2><p>在局部变量前，加上关键字static，该变量就被定义成为一个静态局部变量。</p>
+<p>通常，在函数体内定义了一个变量，每当程序运行到该语句时都会给该局部变量分配栈内存。但随着程序退出函数体，系统就会收回栈内存，局部变量也相应失效。</p>
+<p>但有时候我们需要在两次调用之间对变量的值进行保存。通常的想法是定义一个全局变量来实现。但这样一来，变量已经不再属于函数本身了，不再仅受函数的控制，这给程序的维护带来不便。</p>
+<p>静态局部变量正好可以解决这个问题。静态局部变量保存在全局数据区，而不是保存在栈中，每次的值保持到下一次调用，直到下次赋新值。</p>
+<p><strong>静态局部变量有以下特点：</strong></p>
+<ol>
+<li>静态局部变量在全局数据区分配内存；</li>
+<li>静态局部变量在程序执行到该对象的声明处时被首次初始化，即以后的函数调用不再进行初始化；</li>
+<li>静态局部变量一般在声明处初始化，如果没有显式初始化，会被程序自动初始化为0；</li>
+<li>静态局部变量始终驻留在全局数据区，直到程序运行结束。但其作用域为局部作用域，当定义它的函数或语句块结束时，其作用域随之结束；</li>
+</ol>
+<h2 id="静态函数"><a href="#静态函数" class="headerlink" title="静态函数"></a>静态函数</h2><p>在函数的返回类型前加上static关键字,函数即被定义为静态函数。静态函数与普通函数不同，<strong>它只能在声明它的文件当中可见，不能被其它文件使用。</strong></p>
+<p><strong>定义静态函数的好处：</strong></p>
+<ol>
+<li>静态函数不能被其它文件所用；</li>
+<li>其它文件中可以定义相同名字的函数，不会发生冲突；</li>
+</ol>
+<p>参考:</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/37439983">https://zhuanlan.zhihu.com/p/37439983</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/08/sylar/static/">static</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-%E2%80%98std-vector-int-%E2%80%99-to-an-rvalue-of-type-%E2%80%98std-vector-int-%E2%80%99/">error: cannot bind non-const lvalue reference of type ‘std::vector<int>&’ to an rvalue of type ‘std::vector<int>’</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/27/sylar/sstream/">sstream</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/24/schedule/schedule/">schedule</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c-11/" style="font-size: 20px;">c++11</a> <a href="/tags/error/" style="font-size: 13.33px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 16.67px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
