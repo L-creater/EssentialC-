@@ -154,7 +154,8 @@ std<span class="token double-colon punctuation">::</span>function<span class="to
 <p>这两个线程局部变量保存的协程上下文对协程的实现至关重要，它们的用途如下：</p>
 <p>t_fiber：保存当前正在运行的协程指针，必须时刻指向当前正在运行的协程对象。协程模块初始化时，t_fiber指向线程主协程对象。</p>
 <p>t_thread_fiber：保存线程主协程指针，智能指针形式。协程模块初始化时，t_thread_fiber指向线程主协程对象。当子协程resume时，通过swapcontext将主协程的上下文保存到t_thread_fiber的ucontext_t成员中，同时激活子协程的ucontext_t上下文。当子协程yield时，从t_thread_fiber中取得主协程的上下文并恢复运行。</p>
-<p><strong>协程类Fiber的成员方法</strong><br>首先是协程的构建函数。Fiber类提供了两个构造函数，带参数的构造函数用于构造子协程，初始化子协程的ucontext_t上下文和栈空间，要求必须传入协程的入口函数，以及可选的协程栈大小。不带参的构造函数用于初始化当前线程的协程功能，构造线程主协程对象，以及对t_fiber和t_thread_fiber进行赋值。这个构造函数被定义成私有方法，不允许在类外部调用，只能通过GetThis()方法，在返回当前正在运行的协程时，如果发现当前线程的主协程未被初始化，那就用不带参的构造函数初始化线程主协程。因为GetThis()兼具初始化主协程的功能，在使用协程之前必须显式调用一次GetThis()。</p>
+<p><strong>协程类Fiber的成员方法</strong><br>首先是协程的构建函数。Fiber类提供了两个构造函数，带参数的构造函数用于构造子协程，初始化子协程的ucontext_t上下文协和栈空间，要求必须传入协程的入口函数，以及可选的协程栈大小。不带参的构造函数用于初始化当前线程的协程功能，构造线程主协程对象，以及对t_fiber和t_thread_fiber进行赋值。</p>
+<p>这个构造函数被定义成私有方法，不允许在类外部调用，只能通过GetThis()方法，在返回当前正在运行的协程时，如果发现当前线程的主程未被初始化，那就用不带参的构造函数初始化线程主协程。<br>因为GetThis()兼具初始化主协程的功能，在使用协程之前必须显式调用一次GetThis()。</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
  * @brief 构造函数
  * @attention 无参构造函数只用于创建线程的第一个协程，也就是线程主函数对应的协程，
@@ -352,7 +353,7 @@ Fiber<span class="token double-colon punctuation">::</span>ptr <span class="toke
         <section class="post-near">
             <ul>
                 
-                    <li>上一篇: 看完啦 (つд⊂)</li>
+                    <li>上一篇: <a href="/2023/10/17/sylar/scheduler/">协程调度模块</a></li>
                 
                 
                     <li>下一篇: <a href="/2023/10/14/sylar/backtrace/">backtrace</a></li>
@@ -389,7 +390,7 @@ Fiber<span class="token double-colon punctuation">::</span>ptr <span class="toke
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/16/sylar/%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97/">协程模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/14/sylar/backtrace/">backtrace</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/08/sylar/static/">static</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-%E2%80%98std-vector-int-%E2%80%99-to-an-rvalue-of-type-%E2%80%98std-vector-int-%E2%80%99/">error: cannot bind non-const lvalue reference of type ‘std::vector<int>&’ to an rvalue of type ‘std::vector<int>’</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/17/sylar/scheduler/">协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/16/sylar/%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97/">协程模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/14/sylar/backtrace/">backtrace</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/08/sylar/static/">static</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
