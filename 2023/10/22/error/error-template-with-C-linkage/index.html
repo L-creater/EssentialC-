@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>error: template with C linkage - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="error: template with C linkage"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>error: template with C linkage</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.22</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>在sylar项目中涉及到了编译C&#x2F;C++混用</p>
+<ol>
+<li>某个头文件中extern “C”的使用存在问题，如果包含这个有问题的头文件之后，又包含<map>,<vector>等就会出现这个问题。</vector></map></li>
+<li>不要在extern “C”的中引用C++ STL库的头文件，如<map>, <vector>等具有template的头文件。标准库文件，尽量不要放到extern “C” 中。</vector></map></li>
+</ol>
+<p>出现错误的代码</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// #include"endian.h"</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifndef</span> <span class="token expression">SYLAR_ENDIAN_H_</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_ENDIAN_H_</span></span>
+<span class="token comment">// todo</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_LITTLE_ENDIAN</span> <span class="token expression"><span class="token number">1</span>  </span><span class="token comment">// 小端</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BIG_ENDIAN</span> <span class="token expression"><span class="token number">2</span>     </span><span class="token comment">//大端</span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;byteswap.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;cstdint></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;type_traits></span></span>
+<span class="token keyword">namespace</span> sylar <span class="token punctuation">&#123;</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_64</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_32</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint16_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_16</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint16_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">BYTE_ORDER <span class="token operator">==</span> BIG_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BYTE_ORDER</span> <span class="token expression">SYLAR_BIG_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BYTE_ORDER</span> <span class="token expression">SYLAR_LITTLE_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">SYLAR_BYTE_ORDER <span class="token operator">==</span> SYLAR_BIG_ENDIAN</span></span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnLittleEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> t<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// todo</span>
+  <span class="token keyword">return</span> <span class="token function">byteswap</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnLittleEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token function">byteswap</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> t<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+<span class="token punctuation">&#125;</span>  <span class="token comment">// namespace sylar</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span>  <span class="token comment">// SYLAR_ENDIAN_H_</span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>error:</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token operator">/</span>usr<span class="token operator">/</span>include<span class="token operator">/</span>c<span class="token operator">++</span><span class="token operator">/</span><span class="token number">11</span><span class="token operator">/</span>type_traits<span class="token operator">:</span><span class="token number">2958</span><span class="token operator">:</span><span class="token number">3</span><span class="token operator">:</span> error<span class="token operator">:</span> <span class="token keyword">template</span> with C linkage
+ <span class="token number">2958</span> <span class="token operator">|</span>   <span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">_Fn</span><span class="token punctuation">,</span> <span class="token keyword">typename</span> <span class="token class-name">_Tp</span><span class="token operator">></span>
+      <span class="token operator">|</span>   <span class="token operator">^</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span>
+In file included from <span class="token operator">/</span>usr<span class="token operator">/</span>include<span class="token operator">/</span>features<span class="token punctuation">.</span>h<span class="token operator">:</span><span class="token number">486</span><span class="token punctuation">,</span>
+                 from <span class="token operator">/</span>usr<span class="token operator">/</span>include<span class="token operator">/</span>x86_64<span class="token operator">-</span>linux<span class="token operator">-</span>gnu<span class="token operator">/</span>sys<span class="token operator">/</span>types<span class="token punctuation">.</span>h<span class="token operator">:</span><span class="token number">25</span><span class="token punctuation">,</span>
+                 from <span class="token operator">/</span>home<span class="token operator">/</span>lyt<span class="token operator">/</span>my_sylar<span class="token operator">/</span>sylar<span class="token operator">/</span>fiber<span class="token punctuation">.</span>h<span class="token operator">:</span><span class="token number">4</span><span class="token punctuation">,</span>
+                 from <span class="token operator">/</span>home<span class="token operator">/</span>lyt<span class="token operator">/</span>my_sylar<span class="token operator">/</span>sylar<span class="token operator">/</span>fiber<span class="token punctuation">.</span>cc<span class="token operator">:</span><span class="token number">1</span><span class="token operator">:</span>
+<span class="token operator">/</span>usr<span class="token operator">/</span>include<span class="token operator">/</span>x86_64<span class="token operator">-</span>linux<span class="token operator">-</span>gnu<span class="token operator">/</span>sys<span class="token operator">/</span>types<span class="token punctuation">.</span>h<span class="token operator">:</span><span class="token number">27</span><span class="token operator">:</span><span class="token number">1</span><span class="token operator">:</span> note<span class="token operator">:</span> ‘<span class="token keyword">extern</span> <span class="token string">"C"</span>’ linkage started here
+   <span class="token number">27</span> <span class="token operator">|</span> __BEGIN_DECLS
+      <span class="token operator">|</span> <span class="token operator">^</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>解决方案</strong></p>
+<ol>
+<li>在原文件添加<code>extern &quot;C++&quot;</code></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifndef</span> <span class="token expression">SYLAR_ENDIAN_H_</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_ENDIAN_H_</span></span>
+<span class="token comment">// todo</span>
+
+<span class="token keyword">extern</span> <span class="token string">"C++"</span> <span class="token punctuation">&#123;</span>  <span class="token comment">// add</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_LITTLE_ENDIAN</span> <span class="token expression"><span class="token number">1</span>  </span><span class="token comment">// 小端</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BIG_ENDIAN</span> <span class="token expression"><span class="token number">2</span>     </span><span class="token comment">//大端</span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;byteswap.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;cstdint></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;type_traits></span></span>
+<span class="token keyword">namespace</span> sylar <span class="token punctuation">&#123;</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_64</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_32</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>enable_if<span class="token operator">&lt;</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">uint16_t</span><span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">byteswap</span><span class="token punctuation">(</span>T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token function">bswap_16</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">uint16_t</span><span class="token punctuation">)</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">BYTE_ORDER <span class="token operator">==</span> BIG_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BYTE_ORDER</span> <span class="token expression">SYLAR_BIG_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SYLAR_BYTE_ORDER</span> <span class="token expression">SYLAR_LITTLE_ENDIAN</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">SYLAR_BYTE_ORDER <span class="token operator">==</span> SYLAR_BIG_ENDIAN</span></span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnLittleEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> t<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// todo</span>
+  <span class="token keyword">return</span> <span class="token function">byteswap</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnLittleEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token function">byteswap</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+T <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>T t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> t<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+<span class="token punctuation">&#125;</span>  <span class="token comment">// namespace sylar</span>
+
+<span class="token punctuation">&#125;</span> <span class="token comment">// add 解决error</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span>  <span class="token comment">// SYLAR_ENDIAN_H_</span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>第二种方法</strong><br>2. 将 <code>endian.h</code> 改为<code>endian.hpp</code> 错误解决。why??</p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/20/sylar/%E5%85%B3%E4%BA%8E-C-%E4%B8%AD%E7%9A%84-extern-C/">关于 C++ 中的 extern &#34;C&#34;</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/error/" rel="tag">error</a><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/20/sylar/%E5%85%B3%E4%BA%8E-C-%E4%B8%AD%E7%9A%84-extern-C/">关于 C++ 中的 extern "C"</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/19/sylar/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/17/sylar/scheduler/">协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/16/sylar/%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97/">协程模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/14/sylar/backtrace/">backtrace</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c-11/" style="font-size: 16.67px;">c++11</a> <a href="/tags/error/" style="font-size: 13.33px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

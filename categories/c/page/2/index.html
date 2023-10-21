@@ -3,7 +3,7 @@
   <head>
      
     <meta charset="UTF-8">
-    <title>error - 木偶人</title>
+    <title>c++ - 木偶人</title>
     <link rel="shortcut icon" href="/static/img/icon.png">
     <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
     
@@ -54,61 +54,28 @@
     <div class="wrap min">
         <section class="home-title">
             
-            <h1>“error”</h1>
+            <h1>“c++”</h1>
         </section>
         <section class="home-posts">
     
     <div class="post-item">
         <h2>
-            <a href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a>
+            <a href="/2023/08/08/cpp/std-move/">std::move</a>
         </h2>
     
-        <p>在sylar项目中涉及到了编译C&amp;#x2F;C++混用
+        <p>
+move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。
 
-某个头文件中extern “C”的使用存在问题，如果包含这个有问题的头文件之后，又包含,等就会出现这个问题。
-不要在extern “C”...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.22</time>
-            
-                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a>
-        </h2>
-    
-        <p>错误报告/usr/include/c++/11/bits/stl_pair.h:467:51: error: no match for ‘operator==’ (operand types a...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.02</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-%E2%80%98std-vector-int-%E2%80%99-to-an-rvalue-of-type-%E2%80%98std-vector-int-%E2%80%99/">error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’</a>
-        </h2>
-    
-        <p>意思是无法将一个非 const 左值引用类型的 int&amp;amp; 绑定到一个右值类型的 int 上。
 
-在 C++ 中，左值是指可以取地址的、有标识符的表达式，如变量、数组、函数等；而右值是指不...</p>
+这里要注意对move语义的误解,move只是转移了资源的控制权...</p>
     
         <div class="post-meta">
-            <time class="date">2023.09.29</time>
+            <time class="date">2023.08.08</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
             
             
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
+                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
             
         </div>
     </div>
@@ -116,7 +83,7 @@
 </section>
 
         <section class="page-navigator">
-            <span class="page-number current">1</span>
+            <a class="extend prev" rel="prev" href="/categories/c/">«</a><a class="page-number" href="/categories/c/">1</a><span class="page-number current">2</span>
         </section>
     </div>
 </main>

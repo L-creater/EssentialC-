@@ -3,7 +3,7 @@
   <head>
      
     <meta charset="UTF-8">
-    <title>2023 年 - 木偶人</title>
+    <title>c++ - 木偶人</title>
     <link rel="shortcut icon" href="/static/img/icon.png">
     <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
     
@@ -54,9 +54,106 @@
     <div class="wrap min">
         <section class="home-title">
             
-            <h1>“2023 年”</h1>
+            <h1>“c++”</h1>
         </section>
         <section class="home-posts">
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/20/sylar/%E5%85%B3%E4%BA%8E-C-%E4%B8%AD%E7%9A%84-extern-C/">关于 C++ 中的 extern &#34;C&#34;</a>
+        </h2>
+    
+        <p> C++为了支持函数重载，函数在被C++编译后在符号库中的名字与C语言的不同。假如某个函数的原型为void foo(int x, int y);该函数被C编译器编译后在符号库中的名字为_foo，...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.20</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/19/sylar/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a>
+        </h2>
+    
+        <p>使用insert()将元素插入到集合中去的时候，集合会根据设定的比较函数将该元素放到该放的节点上去。在定义集合的时候，如果没有指定比较函数，那么采用默认的比较函数(按键值由小到大的顺序插入元素)...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.19</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/14/sylar/backtrace/">backtrace</a>
+        </h2>
+    
+        <p>backtrace头 文 件
+#include &amp;lt;execinfo.h&amp;gt;
+
+#include &amp;lt;execinfo.h&amp;gt;
+       int backtrace(void...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.14</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/08/sylar/static/">static</a>
+        </h2>
+    
+        <p>static声明静态成员静态成员的类型可以是常量、引用、指针、类类型等等。
+  class Account &amp;#123;
+public:
+  void Calculate() &amp;#123;amo...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.08</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a>
+        </h2>
+    
+        <p>semaphoresem_init信号量的数据类型为结构sem_t，它本质上是一个长整型的数。函数sem_init（）用来初始化一个信号量。它的原型为：　　extern int sem_init...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.07</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
     
     <div class="post-item">
         <h2>
@@ -72,33 +169,6 @@
             
             
                 <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/09/24/schedule/schedule/">schedule</a>
-        </h2>
-    
-        <p>总体计划sylar 截止日期 10.21
-10.1-10.7 实现b+树
-
-todo
-
-
-redis
-mysql
-leveldb
-程序员的自我修养
-
-</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.09.24</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/plan/" rel="tag">plan</a></span>
             
         </div>
     </div>
@@ -184,51 +254,10 @@ __thread变量是每个线程有一份独立实体，各个线程的变量值互
         </div>
     </div>
     
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/08/cpp/std-move/">std::move</a>
-        </h2>
-    
-        <p>
-move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。
-
-
-这里要注意对move语义的误解,move只是转移了资源的控制权...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.08</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/07/test/">test</a>
-        </h2>
-    
-        <p>
-测试
-
-</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.07</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag">测试</a></span>
-            
-        </div>
-    </div>
-    
 </section>
 
         <section class="page-navigator">
-            <a class="extend prev" rel="prev" href="/archives/2023/">«</a><a class="page-number" href="/archives/2023/">1</a><span class="page-number current">2</span>
+            <span class="page-number current">1</span><a class="page-number" href="/categories/c/page/2/">2</a><a class="extend next" rel="next" href="/categories/c/page/2/">»</a>
         </section>
     </div>
 </main>
