@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>尽量使用make_shared初始化 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="尽量使用make_shared初始化"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>尽量使用make_shared初始化</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.23</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p><strong>为什么尽可能使用 make_shared，这几乎总是如此？</strong><br>主要原因有两个：简单和高效。</p>
+<ol>
+<li><p>使用 make_shared 代码更简单。首先要确保清晰和正确。</p>
+</li>
+<li><p>使用 make_shared 效率更高。</p>
+</li>
+</ol>
+<p>Shared_ptr 实现必须在由引用给定对象的所有shared_ptr 和weak_ptr 共享的控制块中维护内务信息。特别是，内务信息必须不仅包括一个引用计数，还必须包括两个引用计数：</p>
+<ul>
+<li><p>强引用, 用来记录当前有多少个存活的 shared_ptrs 正持有该对象. 共享的对象会在最后一个强引用离开的时候销毁( 也可能释放).</p>
+</li>
+<li><p>用于跟踪当前观察对象的weak_ptr数量的“弱引用”计数。当最后一个弱引用消失时，共享内务管理控制块将被销毁并释放（如果尚未释放共享对象，则将其释放）。</p>
+</li>
+</ul>
+<h2 id="原始new-和-make-shared的区别"><a href="#原始new-和-make-shared的区别" class="headerlink" title="原始new 和 make_shared的区别"></a>原始new 和 make_shared的区别</h2><ul>
+<li>如果你通过使用原始的 new 表达式分配对象, 然后传递给 shared_ptr (也就是使用 shared_ptr 的构造函数) 的话, shared_ptr 的实现没有办法选择, 而只能单独的分配控制块:如示例2(a) 和图2(a) 所示。</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// Example 2(a): Separate allocation</span>
+<span class="token keyword">auto</span> sp1 <span class="token operator">=</span> shared_ptr<span class="token operator">&lt;</span>widget<span class="token operator">></span><span class="token punctuation">&#123;</span> <span class="token keyword">new</span> widget<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token keyword">auto</span> sp2 <span class="token operator">=</span> sp1<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p><img src="/../../images/new_shared.png" alt="Alt text"></p>
+<ul>
+<li>我们希望避免在这里进行两次单独的分配。如果您使用 make_shared 一次性分配对象和共享指针，那么实现可以将它们折叠在一次分配中，如示例 2(b) 和图 2(b) 所示。</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// Example 2(b): Single allocation</span>
+<span class="token keyword">auto</span> sp1 <span class="token operator">=</span> <span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>widget<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">auto</span> sp2 <span class="token operator">=</span> sp1<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p><img src="/../../images/make_shared.png" alt="Alt text"></p>
+<p><strong>组合分配有两个主要优点：</strong></p>
+<ul>
+<li><p>它减少了分配开销，包括内存碎片。首先，最明显的方法是减少分配请求的数量，这通常是更昂贵的操作。这也有助于减少分配器的争用（某些分配器不能很好地扩展）。其次，仅使用一块内存而不是两块可以减少每次分配的开销。每当您请求一块内存时，系统必须至少为您提供那么多字节，并且由于使用固定大小的池或在每次分配时添加内务信息，通常会为您提供更多字节。因此，通过使用单个内存块，我们倾向于减少总的额外开销。最后，我们还自然地减少了导致碎片的“死”额外间隙的数量。</p>
+</li>
+<li><p>它改善了局部性。引用计数经常与对象一起使用，并且对于小对象可能位于同一缓存行，这提高了缓存性能（只要没有某个线程在紧密循环中复制智能指针；不要去做）。</p>
+</li>
+</ul>
+<h2 id="避免异常安全问题"><a href="#避免异常安全问题" class="headerlink" title="避免异常安全问题"></a>避免异常安全问题</h2><p>使用 make_shared 可以避免显式 new 并避免异常安全问题。</p>
+<p>如果我们在调用processWidget的时候使用computePriority()，并且用new而不是std::make_shared：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">processWidget</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">shared_ptr</span><span class="token generic class-name"><span class="token operator">&lt;</span>Widget<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token keyword">new</span> Widget<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment">//潜在的资源泄露 </span>
+              <span class="token function">computePriority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>就像注释指示的那样，上面的代码会导致new创造出来的Widget发生泄露。那么到底是怎么泄露的呢？调用代码和被调用函数都用到了std::shared_ptr，并且std::shared_ptr就是被设计来阻止资源泄露的。当最后一个指向这儿的std::shared_ptr消失时，它们会自动销毁它们指向的资源。如果每个人在每个地方都使用std::shared_ptr，那么这段代码是怎么导致资源泄露的呢？</p>
+<p>答案和编译器的翻译有关，编译器把源代码翻译到目标代码，在运行期，函数的参数必须在函数被调用前被估值，所以在调用processWidget时，下面的事情肯定发生在processWidget能开始执行之前：</p>
+<ol>
+<li>表达式“new Widget”必须被估值，也就是，一个Widget必须被创建在堆上。</li>
+<li>std::shared_ptr（负责管理由new创建的指针）的构造函数必须被执行。</li>
+<li>computePriority必须跑完。</li>
+</ol>
+<p>编译器不需要必须产生这样顺序的代码。但“new Widget”必须在std::shared_ptr的构造函数被调用前执行，因为new的结构被用为构造函数的参数，但是computePriority可能在这两个调用前（后，或很奇怪地，中间）被执行。也就是，编译器可能产生出这样顺序的代码：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">执行“<span class="token keyword">new</span> Widget”。
+执行computePriority。
+执行std<span class="token double-colon punctuation">::</span>shared_ptr的构造函数。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>如果这样的代码被产生出来，并且在运行期，computePriority产生了一个异常，则在第一步动态分配的Widget就会泄露了，因为它永远不会被存放到在第三步才开始管理它的std::shared_ptr中。</p>
+<p>使用std::make_shared可以避免这样的问题。调用代码将看起来像这样：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">processWidget</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>Widget<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>       <span class="token comment">//没有资源泄露</span>
+              <span class="token function">computePriority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>           <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>在运行期，不管std::make_shared或computePriority哪一个先被调用。如果std::make_shared先被调用，则在computePriority调用前，指向动态分配出来的Widget的原始指针能安全地被存放到被返回的std::shared_ptr中。如果computePriority之后产生一个异常，std::shared_ptr的析构函数将发现它持有的Widget需要被销毁。并且如果computePriority先被调用并产生一个异常，std::make_shared就不会被调用，因此这里就不需要考虑动态分配的Widget了。</p>
+<p>如果使用std::unique_ptr和std::make_unique来替换std::shared_ptr和std::make_shared，事实上，会用到同样的理由。因此，使用std::make_unique代替new就和“使用std::make_shared来写出异常安全的代码”一样重要。</p>
+<p>有以下情况，您不能使用 make_shared（或 allocate_shared）来创建您知道将由共享指针拥有的对象</p>
+<ol>
+<li>如果您需要自定义删除器，例如因为使用共享指针来管理非共享对象内存资源或分配在非标准内存区域的对象，不能使用make_shared，因为它不支持指定删除器；</li>
+<li>如果您采用指向从其他（通常是遗留）代码传递给您的对象的原始指针，您将直接从该原始指针构造一个shared_ptr。</li>
+<li>构造函数是保护或私有时,无法使用 make_shared,<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const">解决方法</a></li>
+</ol>
+<blockquote>
+<p>todo sylar 将 <code>new</code> 修改为 <code>std::make_shared</code></p>
+</blockquote>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/">https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/03eea8262c11">https://www.jianshu.com/p/03eea8262c11</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/10/23/sylar/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/c/" rel="tag">c++</a><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8make-shared%E5%88%9D%E5%A7%8B%E5%8C%96/">尽量使用make_shared初始化</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/20/sylar/%E5%85%B3%E4%BA%8E-C-%E4%B8%AD%E7%9A%84-extern-C/">关于 C++ 中的 extern "C"</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/19/sylar/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/17/sylar/scheduler/">协程调度模块</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 12.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 17.5px;">c++11</a> <a href="/tags/error/" style="font-size: 15px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
