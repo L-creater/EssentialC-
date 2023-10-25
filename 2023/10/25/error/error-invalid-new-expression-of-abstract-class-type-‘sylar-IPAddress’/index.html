@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>error: invalid new-expression of abstract class type ‘sylar::IPAddress’ - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="error: invalid new-expression of abstract class type ‘sylar::IPAddress’"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>error: invalid new-expression of abstract class type ‘sylar::IPAddress’</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.25</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>error:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">error<span class="token operator">:</span> invalid <span class="token keyword">new</span><span class="token operator">-</span>expression of abstract <span class="token keyword">class</span> <span class="token class-name">type</span> ‘sylar<span class="token double-colon punctuation">::</span>IPAddress’
+  <span class="token number">162</span> <span class="token operator">|</span>         <span class="token punctuation">&#123;</span> <span class="token double-colon punctuation">::</span><span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>__p<span class="token punctuation">)</span> <span class="token function">_Up</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">forward</span><span class="token generic class-name"><span class="token operator">&lt;</span>_Args<span class="token operator">></span></span></span><span class="token punctuation">(</span>__args<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+      <span class="token operator">|</span>           <span class="token operator">^</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">bool</span> <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">GetInterfaceAddresses</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token punctuation">,</span> <span class="token keyword">uint32_t</span><span class="token operator">>></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span>
+                                    <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>iface<span class="token punctuation">,</span> <span class="token keyword">int</span> family<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>iface<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">||</span> iface <span class="token operator">==</span> <span class="token string">"*"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>family <span class="token operator">==</span> AF_INET <span class="token operator">||</span> family <span class="token operator">==</span> AF_UNSPEC<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// result.push_back(std::make_pair(Address::ptr(new IPv4Address()), 0u));</span>
+      result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>
+          std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">dynamic_pointer_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Address<span class="token operator">></span></span></span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPAddress<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0u</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>family <span class="token operator">==</span> AF_INET6 <span class="token operator">||</span> family <span class="token operator">==</span> AF_UNSPEC<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span><span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">ptr</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">IPv6Address</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0u</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<ol>
+<li>这个报错代表一个尝试在实例化一个抽象类，也就是说父类的接口中有纯虚函数在子类中没有实现；</li>
+<li>实例化了父类，而父类中包含了纯虚函数，virtual　＝０是不能实例化的，相当于抽象类只能继承，不能实例化． —&gt;这里IPAddress,Address都是抽象类，IPAddress是address的子类。</li>
+</ol>
+<p>解决方法：　实例化子类　 —&gt;IPv4Address</p>
+<p><strong>应该修改为：</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">bool</span> <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">GetInterfaceAddresses</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token punctuation">,</span> <span class="token keyword">uint32_t</span><span class="token operator">>></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span>
+                                    <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>iface<span class="token punctuation">,</span> <span class="token keyword">int</span> family<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>iface<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">||</span> iface <span class="token operator">==</span> <span class="token string">"*"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>family <span class="token operator">==</span> AF_INET <span class="token operator">||</span> family <span class="token operator">==</span> AF_UNSPEC<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// result.push_back(std::make_pair(Address::ptr(new IPv4Address()), 0u));</span>
+      result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>
+          std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">dynamic_pointer_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Address<span class="token operator">></span></span></span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPv4Address<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0u</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>family <span class="token operator">==</span> AF_INET6 <span class="token operator">||</span> family <span class="token operator">==</span> AF_UNSPEC<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span><span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">ptr</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">IPv6Address</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0u</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/23/sylar/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/error/" rel="tag">error</a><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/25/error/error-invalid-new-expression-of-abstract-class-type-%E2%80%98sylar-IPAddress%E2%80%99/">error: invalid new-expression of abstract class type ‘sylar::IPAddress’</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8make-shared%E5%88%9D%E5%A7%8B%E5%8C%96/">尽量使用make_shared初始化</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/20/sylar/%E5%85%B3%E4%BA%8E-C-%E4%B8%AD%E7%9A%84-extern-C/">关于 C++ 中的 extern "C"</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/19/sylar/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 13.33px;">c++</a> <a href="/tags/c-11/" style="font-size: 16.67px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
