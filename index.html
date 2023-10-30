@@ -74,6 +74,57 @@
     
     <div class="post-item">
         <h2>
+            <a href="/2023/10/30/sylar/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a>
+        </h2>
+    
+        <p>从GCC的说明中可知，__builtin_expect的主要作用就是：帮助编译器判断条件跳转的预期值，避免因执行jmp跳转指令造成时间浪费。作用是允许程序员将最有可能执行的分支告诉编译器。这个指...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.30</time>
+            
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/30/sylar/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a>
+        </h2>
+    
+        <p>定时器设计sylar的定时器采用最小堆设计，所有定时器根据绝对的超时时间点进行排序，每次取出离当前时间最近的一个超时时间点，计算出超时需要等待的时间，然后等待超时。超时时间到后，获取当前的绝对时...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.30</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a>
+        </h2>
+    
+        <p>void ByteArray::write(const void *buf, size_t size) &amp;#123;
+  if (size == 0) &amp;#123;
+    return;
+  ...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.30</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
             <a href="/2023/10/26/sylar/final%E5%92%8Coverride%E7%9A%84%E4%BD%9C%E7%94%A8/">final和override的作用</a>
         </h2>
     
@@ -211,62 +262,6 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
         </div>
     </div>
     
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/19/sylar/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a>
-        </h2>
-    
-        <p>使用insert()将元素插入到集合中去的时候，集合会根据设定的比较函数将该元素放到该放的节点上去。在定义集合的时候，如果没有指定比较函数，那么采用默认的比较函数(按键值由小到大的顺序插入元素)...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.19</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/17/sylar/scheduler/">协程调度模块</a>
-        </h2>
-    
-        <p>协程调度最难理解的地方是当caller线程也参与调度时调度协程和主线程切换的情况，注意对照源码进行理解。
-协程调度器当你有很多协程时，如何把这些协程都消耗掉，这就是协程调度。引入协程调度后，则可...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.17</time>
-            
-                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/16/sylar/%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97/">协程模块</a>
-        </h2>
-    
-        <p>协程协程和线程的区别协程虽然被称为轻量级线程，但在单线程内，协程并不能并发执行，只能是一个协程结束或yield后，再执行另一个协程，而线程则是可以真正并发执行的。
-其实这点也好理解，毕竟协程只是...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.16</time>
-            
-                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
 </section>
 
         <section class="page-navigator">
@@ -284,7 +279,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/26/sylar/final%E5%92%8Coverride%E7%9A%84%E4%BD%9C%E7%94%A8/">final和override的作用</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/26/sylar/%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E6%A8%A1%E6%9D%BF%E6%B6%88%E9%99%A4%E9%87%8D%E5%A4%8D%E4%BB%A3%E7%A0%81/">可变参数模板消除重复代码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/25/error/error-invalid-new-expression-of-abstract-class-type-%E2%80%98sylar-IPAddress%E2%80%99/">error: invalid new-expression of abstract class type ‘sylar::IPAddress’</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/23/sylar/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8make-shared%E5%88%9D%E5%A7%8B%E5%8C%96/">尽量使用make_shared初始化</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/22/error/error-template-with-C-linkage/">error: template with C linkage</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/26/sylar/final%E5%92%8Coverride%E7%9A%84%E4%BD%9C%E7%94%A8/">final和override的作用</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/26/sylar/%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E6%A8%A1%E6%9D%BF%E6%B6%88%E9%99%A4%E9%87%8D%E5%A4%8D%E4%BB%A3%E7%A0%81/">可变参数模板消除重复代码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/25/error/error-invalid-new-expression-of-abstract-class-type-%E2%80%98sylar-IPAddress%E2%80%99/">error: invalid new-expression of abstract class type ‘sylar::IPAddress’</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
@@ -292,7 +287,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-tags">标签云：</h3>
-                    <a href="/tags/c/" style="font-size: 15px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/error/" style="font-size: 15px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                    <a href="/tags/c/" style="font-size: 13.33px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
                 </div>
             </div>
         </section>
