@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>定时器模块 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="定时器模块"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>定时器模块</h2>
+            <div class="post-meta">
+                <time class="date">2023.10.30</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="定时器设计"><a href="#定时器设计" class="headerlink" title="定时器设计"></a>定时器设计</h2><p>sylar的定时器采用最小堆设计，所有定时器根据绝对的超时时间点进行排序，每次取出离当前时间最近的一个超时时间点，计算出超时需要等待的时间，然后等待超时。超时时间到后，获取当前的绝对时间点，然后把最小堆里超时时间点小于这个时间点的定时器都收集起来，执行它们的回调函数。</p>
+<p>注意，在注册定时事件时，一般提供的是相对时间，比如相对当前时间3秒后执行。sylar会根据传入的相对时间和当前的绝对时间计算出定时器超时时的绝对时间点，然后根据这个绝对时间点对定时器进行最小堆排序。因为依赖的是系统绝对时间，所以需要考虑校时因素，这点会在后面讨论。</p>
+<p>Timer类的成员变量包括定时器的绝对超时时间点，是否重复执行，回调函数，以及一个指向TimerManager的指针，提供cancel&#x2F;reset&#x2F;refresh方法用于操作定时器。<br>构造Timer时可以传入超时时间，也可以直接传入一个绝对时间。Timer的构造函数被定义成私有方式，只能通过TimerManager类来创建Timer对象。除此外，Timer类还提供了一个仿函数Comparator，用于比较两个Timer对象，比较的依据是绝对超时时间。</p>
+<p><strong>创建定时器时只传入了相对超时时间，内部要先进行转换，根据当前时间把相对时间转化成绝对时间。</strong></p>
+<h3 id="Timer"><a href="#Timer" class="headerlink" title="Timer"></a>Timer</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token comment">/**
+ * @brief 定时器
+ */</span>
+<span class="token keyword">class</span> <span class="token class-name">Timer</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword">public</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">enable_shared_from_this</span><span class="token operator">&lt;</span><span class="token class-name">Timer</span><span class="token operator">></span></span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">friend</span> <span class="token keyword">class</span> <span class="token class-name">TimerManager</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">typedef</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>Timer<span class="token operator">></span> ptr<span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 取消定时器
+   *
+   * @return true
+   * @return false
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">cancel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 刷新设置定时器的执行时间
+   *
+   * @return true
+   * @return false
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">refresh</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 重置定时器时间
+   *
+   * @param ms 定时器执行间隔时间(毫秒)
+   * @param from_now  是否从当前时间开始计算
+   * @return true
+   * @return false
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">reset</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> <span class="token keyword">bool</span> from_now<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token function">Timer</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">,</span> <span class="token keyword">bool</span> resurring<span class="token punctuation">,</span>
+        TimerManager <span class="token operator">*</span>manager<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">Timer</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> next<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token keyword">bool</span> m_recurring <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>  <span class="token comment">// 是否循环定时器</span>
+  <span class="token keyword">uint64_t</span> m_ms <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>         <span class="token comment">// 执行周期</span>
+  <span class="token keyword">uint64_t</span> m_next <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>       <span class="token comment">// 精确的执行时间</span>
+  std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> m_cb<span class="token punctuation">;</span>
+  TimerManager <span class="token operator">*</span>m_manager <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token keyword">struct</span> <span class="token class-name">Comparator</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">bool</span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token keyword">const</span> Timer<span class="token double-colon punctuation">::</span>ptr <span class="token operator">&amp;</span>lhs<span class="token punctuation">,</span> <span class="token keyword">const</span> Timer<span class="token double-colon punctuation">::</span>ptr <span class="token operator">&amp;</span>rhs<span class="token punctuation">)</span> <span class="token keyword">const</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="Timer构造函数"><a href="#Timer构造函数" class="headerlink" title="Timer构造函数"></a>Timer构造函数</h3><p>可以看出sylar会根据传入的相对时间和当前的绝对时间计算出定时器超时时的绝对时间点。然后根据这个绝对时间点对定时器进行最小堆排序</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">Timer</span><span class="token double-colon punctuation">::</span><span class="token function">Timer</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">,</span> <span class="token keyword">bool</span> resurring<span class="token punctuation">,</span>
+             TimerManager <span class="token operator">*</span>manager<span class="token punctuation">)</span>
+    <span class="token operator">:</span> <span class="token function">m_recurring</span><span class="token punctuation">(</span>resurring<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">m_ms</span><span class="token punctuation">(</span>ms<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">m_cb</span><span class="token punctuation">(</span>cb<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">m_manager</span><span class="token punctuation">(</span>manager<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  m_next <span class="token operator">=</span> sylar<span class="token double-colon punctuation">::</span><span class="token function">GetCurrentMS</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> m_ms<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="cancel取消定时器"><a href="#cancel取消定时器" class="headerlink" title="cancel取消定时器"></a>cancel取消定时器</h3><p>就是从TimerManager的m_timers中找到对应的Timer::ptr，然后删除(erase)到</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">bool</span> <span class="token class-name">Timer</span><span class="token double-colon punctuation">::</span><span class="token function">cancel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  TimerManager<span class="token double-colon punctuation">::</span>RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_manager<span class="token operator">-></span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>m_cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_cb <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+    <span class="token keyword">auto</span> it <span class="token operator">=</span> m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>refresh刷新设置定时器的执行时间，就是将TimerManager(m_manager)中的m_timers找到对应的timer,刷新其定时器的执行时间。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">bool</span> <span class="token class-name">Timer</span><span class="token double-colon punctuation">::</span><span class="token function">refresh</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  TimerManager<span class="token double-colon punctuation">::</span>RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_manager<span class="token operator">-></span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>m_cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">auto</span> it <span class="token operator">=</span> m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>it <span class="token operator">==</span> m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">//  先移除掉，重置时间，然后塞回去</span>
+  <span class="token comment">// operator是基于时间来做的，如果直接改时间，会影响他的比较位置，整个数据结构都会有问题。</span>
+  <span class="token comment">// set  不能直接改变元素值，因为那样会打乱原本正确的顺序，要改变元素值必须先删除旧元素，则插入新元素</span>
+  m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_next <span class="token operator">=</span> sylar<span class="token double-colon punctuation">::</span><span class="token function">GetCurrentMS</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> m_ms<span class="token punctuation">;</span>
+  m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="reset重置定时器时间"><a href="#reset重置定时器时间" class="headerlink" title="reset重置定时器时间"></a>reset重置定时器时间</h3><p>重置的是将要执行的时间和执行周期(m_ms)</p>
+<p>三种情况</p>
+<ol>
+<li><code>ms == m_ms</code> 并且 <code>from_now == false</code>,周期不变并且时间也不从当前开始计算，则不改变，直接返回。</li>
+<li><code>ms != m_ms</code> 并且 <code>from_now == true</code>,那么起始时间设置为现在，并且改变 m_ms,设置m_next，添加到m_timers</li>
+<li><code>ms != m_ms</code> 并且 <code>from_now == false</code>,起始时间设置为(m_next -m_ms),<code>m_ms = ms;</code>, <code>m_next = start + m_ms;</code>,添加到m_timers</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">bool</span> <span class="token class-name">Timer</span><span class="token double-colon punctuation">::</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> <span class="token keyword">bool</span> from_now<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">/// 不从现在开始计时</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>ms <span class="token operator">==</span> m_ms <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>from_now<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  TimerManager<span class="token double-colon punctuation">::</span>RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_manager<span class="token operator">-></span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>m_cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">auto</span> it <span class="token operator">=</span> m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>it <span class="token operator">==</span> m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  m_manager<span class="token operator">-></span>m_timers<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">uint64_t</span> start <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token comment">// 是否从当前时间开始计算</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>from_now<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/// 改为现在开始</span>
+    start <span class="token operator">=</span> sylar<span class="token double-colon punctuation">::</span><span class="token function">GetCurrentMS</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/// 获取起始时间</span>
+    start <span class="token operator">=</span> m_next <span class="token operator">-</span> m_ms<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_ms <span class="token operator">=</span> ms<span class="token punctuation">;</span>
+  m_next <span class="token operator">=</span> start <span class="token operator">+</span> m_ms<span class="token punctuation">;</span>
+  m_manager<span class="token operator">-></span><span class="token function">addTimer</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="TimerManager实现对所有Timer的管理"><a href="#TimerManager实现对所有Timer的管理" class="headerlink" title="TimerManager实现对所有Timer的管理"></a>TimerManager实现对所有Timer的管理</h3><p>TimerManager包含一个std::set类型的Timer集合(<code>std::set&lt;Timer::ptr, Timer::Comparator&gt; m_timers;</code>)，<code>m_timers</code>就是定时器的最小堆结构，因为set里的元素总是排序过的，所以总是可以很方便地获取到当前的最小定时器。</p>
+<p>TimerManager提供创建定时器，到最近一个定时器执行的时间间隔(毫秒)(<code>getNextTimer</code>)，以及获取全部已经超时的定时器回调函数的方法(<code>void TimerManager::listExpiredCb(std::vector&lt;std::function&lt;void()&gt;&gt; &amp;cbs)</code>)，并且提供了一个onTimerInsertedAtFront()方法，这是一个虚函数，由IOManager继承时实现，当新的定时器插入到Timer集合的首部时，TimerManager通过该方法来通知IOManager立刻更新当前的epoll_wait超时。TimerManager还负责检测是否发生了校时，由detectClockRollover方法实现。</p>
+<h3 id="TimerManager"><a href="#TimerManager" class="headerlink" title="TimerManager"></a>TimerManager</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">TimerManager</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">friend</span> <span class="token keyword">class</span> <span class="token class-name">Timer</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">typedef</span> RWMutex RWMutexType<span class="token punctuation">;</span>
+
+  <span class="token function">TimerManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">virtual</span> <span class="token operator">~</span><span class="token function">TimerManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 添加定时器
+   * @param[in] ms 定时器执行间隔时间
+   * @param[in] cb 定时器回调函数
+   * @param[in] recurring 是否循环定时器
+   */</span>
+  Timer<span class="token double-colon punctuation">::</span>ptr <span class="token function">addTimer</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">,</span>
+                      <span class="token keyword">bool</span> recurring <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 添加条件定时器
+   * @param[in] ms 定时器执行间隔时间
+   * @param[in] cb 定时器回调函数
+   * @param[in] weak_cond 条件
+   * @param[in] recurring 是否循环
+   */</span>
+  Timer<span class="token double-colon punctuation">::</span>ptr <span class="token function">addConditionTimer</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> ms<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">,</span>
+                               std<span class="token double-colon punctuation">::</span>weak_ptr<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token operator">></span> weak_cond<span class="token punctuation">,</span>
+                               <span class="token keyword">bool</span> recurring <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 到最近一个定时器执行的时间间隔(毫秒)
+   *
+   * @return uint64_t
+   */</span>
+  <span class="token keyword">uint64_t</span> <span class="token function">getNextTimer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 获取需要执行的定时器的回调函数列表
+   *
+   * @param[out] cbs 回调函数数组
+   */</span>
+  <span class="token keyword">void</span> <span class="token function">listExpiredCb</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">>></span> <span class="token operator">&amp;</span>cbs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 是否有定时器
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">hasTimer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">protected</span><span class="token operator">:</span>
+  <span class="token comment">/**
+   * @brief 当有新的定时器插入到定时器的首部,执行该函数,IoManager来实现
+   */</span>
+  <span class="token keyword">virtual</span> <span class="token keyword">void</span> <span class="token function">onTimerInsertedAtFront</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 将定时器添加到管理器中
+   */</span>
+  <span class="token keyword">void</span> <span class="token function">addTimer</span><span class="token punctuation">(</span>Timer<span class="token double-colon punctuation">::</span>ptr val<span class="token punctuation">,</span> RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token operator">&amp;</span>lock<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  <span class="token comment">/**
+   * @brief 检测服务器时间是否被调后了
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">detextClockRollover</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> now_ms<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  RWMutexType m_mutex<span class="token punctuation">;</span>
+  <span class="token comment">/// 这个参数不代表映射对象，而是传递一个比较结构体</span>
+  <span class="token comment">/// 定时器集合</span>
+  std<span class="token double-colon punctuation">::</span>set<span class="token operator">&lt;</span>Timer<span class="token double-colon punctuation">::</span>ptr<span class="token punctuation">,</span> Timer<span class="token double-colon punctuation">::</span>Comparator<span class="token operator">></span> m_timers<span class="token punctuation">;</span>
+  <span class="token comment">/// 是否触发onTimerInsertedAtFront</span>
+  <span class="token keyword">bool</span> m_tickled <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token comment">/// 上次执行时间</span>
+  <span class="token keyword">uint64_t</span> m_previousTime <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="到最近一个定时器执行的时间间隔-毫秒"><a href="#到最近一个定时器执行的时间间隔-毫秒" class="headerlink" title="到最近一个定时器执行的时间间隔(毫秒)"></a>到最近一个定时器执行的时间间隔(毫秒)</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">uint64_t</span> <span class="token class-name">TimerManager</span><span class="token double-colon punctuation">::</span><span class="token function">getNextTimer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_tickled <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>m_timers<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// Value = 18446744073709551615 (0xffffffffffffffff)</span>
+    <span class="token keyword">return</span> <span class="token operator">~</span><span class="token number">0ull</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">const</span> Timer<span class="token double-colon punctuation">::</span>ptr <span class="token operator">&amp;</span>next <span class="token operator">=</span> <span class="token operator">*</span>m_timers<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">uint64_t</span> now_ms <span class="token operator">=</span> sylar<span class="token double-colon punctuation">::</span><span class="token function">GetCurrentMS</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token comment">/// 已经超时了，返回 0</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>now_ms <span class="token operator">>=</span> next<span class="token operator">-></span>m_next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+     <span class="token comment">/// 还未超时，返回从现在开始到执行这个定时器，需要等待的时间。</span>
+    <span class="token keyword">return</span> next<span class="token operator">-></span>m_next <span class="token operator">-</span> now_ms<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 传进来的时间比他小，并且比他一个小时之前按还小，有问题</span>
+<span class="token keyword">bool</span> <span class="token class-name">TimerManager</span><span class="token double-colon punctuation">::</span><span class="token function">detextClockRollover</span><span class="token punctuation">(</span><span class="token keyword">uint64_t</span> now_ms<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">bool</span> rollover <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token comment">// 现在的时间比上次执行的时间还小，并且比上次执行的时间的一小时之前还小，有问题</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>now_ms <span class="token operator">&lt;</span> m_previousTime <span class="token operator">&amp;&amp;</span> now_ms <span class="token operator">&lt;</span> <span class="token punctuation">(</span>m_previousTime <span class="token operator">-</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    rollover <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_previousTime <span class="token operator">=</span> now_ms<span class="token punctuation">;</span>
+  <span class="token keyword">return</span> rollover<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="获取全部已经超时的定时器回调函数"><a href="#获取全部已经超时的定时器回调函数" class="headerlink" title="获取全部已经超时的定时器回调函数"></a>获取全部已经超时的定时器回调函数</h3><ol>
+<li>获取当前的时间</li>
+<li>检查是否时间调后了，会导致任务无法按时执行。<ol>
+<li>没有重调时间，且超时任务还没到达，直接返回</li>
+<li>重调时间了，那么就说明出现问题了，这里的处理是，将之前的m_timers中的定时器全部执行。</li>
+</ol>
+</li>
+<li>没有重调时间，并且有任务，先找到第一个大于或等于now_timer的迭代器</li>
+<li>处理找到的迭代器的执行时间等于now_timer的情况，这里的方案是，也将其加入超时的定时器中。</li>
+<li>先将已经超时的定时器，加入预先分配的<code>vector&lt;Timer::ptr&gt;</code>中，然后将这些定时器在m_timers中删除。</li>
+<li>将这些超时的定时器的cb放入<code>std::vector&lt;std::function&lt;void()&gt;&gt; &amp;cbs</code>中：<ol>
+<li>在放入时，需要检查m_recurring(是否循环执行此定时器)选项，如果为true，则需要重置其下一次的执行时间，并将其再次放入待执行的定时器集合中(m_timers)</li>
+<li>为false，则<code>timer-&gt;m_cb = nullptr;</code>,将其回调函数置为空。</li>
+</ol>
+</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">TimerManager</span><span class="token double-colon punctuation">::</span><span class="token function">listExpiredCb</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">>></span> <span class="token operator">&amp;</span>cbs<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">uint64_t</span> now_ms <span class="token operator">=</span> sylar<span class="token double-colon punctuation">::</span><span class="token function">GetCurrentMS</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Timer<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span> expired<span class="token punctuation">;</span>
+  <span class="token punctuation">&#123;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>m_timers<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">bool</span> rollover <span class="token operator">=</span> <span class="token function">detextClockRollover</span><span class="token punctuation">(</span>now_ms<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>rollover <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>m_timers<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">-></span>m_next <span class="token operator">></span> now_ms<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  Timer<span class="token double-colon punctuation">::</span>ptr <span class="token function">now_timer</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">Timer</span><span class="token punctuation">(</span>now_ms<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Timer::ptr now_timer = std::make_shared&lt;Timer>(now_ms);</span>
+  <span class="token comment">// todo</span>
+  <span class="token keyword">auto</span> it <span class="token operator">=</span> rollover <span class="token operator">?</span> m_timers<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">:</span> m_timers<span class="token punctuation">.</span><span class="token function">lower_bound</span><span class="token punctuation">(</span>now_timer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">while</span> <span class="token punctuation">(</span>it <span class="token operator">!=</span> m_timers<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token operator">*</span>it<span class="token punctuation">)</span><span class="token operator">-></span>m_next <span class="token operator">==</span> now_ms<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token operator">++</span>it<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  expired<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>expired<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> m_timers<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_timers<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>m_timers<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  cbs<span class="token punctuation">.</span><span class="token function">reserve</span><span class="token punctuation">(</span>expired<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> <span class="token operator">&amp;</span>timer <span class="token operator">:</span> expired<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    cbs<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>timer<span class="token operator">-></span>m_cb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>timer<span class="token operator">-></span>m_recurring<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      timer<span class="token operator">-></span>m_next <span class="token operator">=</span> now_ms <span class="token operator">+</span> timer<span class="token operator">-></span>m_ms<span class="token punctuation">;</span>
+      m_timers<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+      timer<span class="token operator">-></span>m_cb <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="添加timer"><a href="#添加timer" class="headerlink" title="添加timer"></a>添加timer</h3><p>最终执行的下面的函数</p>
+<p>当TimerManager检测到新添加的定时器的超时时间比当前最小的定时器还要小时，TimerManager通过这个方法来通知IOManager立刻更新当前的epoll_wait超时，<br>否则新添加的定时器的执行时间将不准确。<br>实际实现时，只需要在<code>onTimerInsertedAtFront()</code>方法内执行一次<code>tickle</code>就行了，<code>tickle</code>之后，<code>epoll_wait</code>会立即退出，并重新从<code>TimerManager</code>中获取最近的超时时间，这时拿到的超时时间就是新添加的最小定时器的超时时间了。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">TimerManager</span><span class="token double-colon punctuation">::</span><span class="token function">addTimer</span><span class="token punctuation">(</span>Timer<span class="token double-colon punctuation">::</span>ptr timer<span class="token punctuation">,</span> RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token operator">&amp;</span>lock<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> it <span class="token operator">=</span> m_timers<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>timer<span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">;</span>
+  <span class="token keyword">bool</span> at_front <span class="token operator">=</span> <span class="token punctuation">(</span>it <span class="token operator">==</span> m_timers<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>m_tickled<span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>at_front<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_tickled <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">///是否在最靠前</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>at_front<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">onTimerInsertedAtFront</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="关于校时问题"><a href="#关于校时问题" class="headerlink" title="关于校时问题"></a>关于校时问题</h3><p>sylar的定时器以gettimeofday()来获取绝对时间点并判断超时，所以依赖于系统时间，如果系统进行了校时，比如NTP时间同步，那这套定时机制就失效了。sylar的解决办法是设置一个较小的超时步长，比如3秒钟，也就是epoll_wait最多3秒超时，假设最近一个定时器的超时时间是10秒以后，那epoll_wait需要超时3次才会触发。每次超时之后除了要检查有没有要触发的定时器，还顺便检查一下系统时间有没有被往回调。如果系统时间往回调了1个小时以上，那就触发全部定时器。其实只需要换个时间源就可以解决校时问题，换成clock_gettime(CLOCK_MONOTONIC_RAW)的方式获取系统的单调时间，就可以解决这个问题了。</p>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://www.midlane.top/wiki/pages/viewpage.action?pageId=16417216">https://www.midlane.top/wiki/pages/viewpage.action?pageId=16417216</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/%E4%BB%BF%E5%87%BD%E6%95%B0/">仿函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/%E6%A8%A1%E5%9D%97/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>IO协程调度模块 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="IO协程调度模块"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>IO协程调度模块</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.02</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h1 id="IO协程调度模块"><a href="#IO协程调度模块" class="headerlink" title="IO协程调度模块"></a>IO协程调度模块</h1><p>继承自协程调度器，封装了epoll，支持为socket fd注册读写事件回调函数。<br><img src="/../../../images/iomanager.drawio.png" alt="Alt text"></p>
+<p>IO协程调度还解决了调度器在idle状态下忙等待导致CPU占用率高的问题。IO协程调度器使用一对管道fd来tickle调度协程，当调度器空闲时，idle协程通过epoll_wait阻塞在管道的读描述符上，等管道的可读事件。添加新任务时，tickle方法写管道，idle协程检测到管道可读后退出，调度器执行调度。</p>
+<h2 id="IO协程调度概述"><a href="#IO协程调度概述" class="headerlink" title="IO协程调度概述"></a>IO协程调度概述</h2><p>在前面的协程调度模块中，调度器对协程的调度是无条件执行的，在调度器已经启动调度的情况下，任务一旦添加成功，就会排队等待调度器执行。调度器不支持删除调度任务，并且调度器在正常退出之前一定会执行完全部的调度任务，所以在某种程度上可以认为，把一个协程添加到调度器的任务队列，就相当于调用了协程的resume方法。</p>
+<p>IO协程调度支持协程调度的全部功能，因为IO协程调度器是直接继承协程调度器实现的。除了协程调度，IO协程调度还增加了IO事件调度的功能，这个功能是针对描述符（一般是套接字描述符）的。IO协程调度支持为描述符注册可读和可写事件的回调函数，当描述符可读或可写时，执行对应的回调函数。（这里可以直接把回调函数等效成协程，所以这个功能被称为IO协程调度）</p>
+<h2 id="sylar-IO协程调度模块设计"><a href="#sylar-IO协程调度模块设计" class="headerlink" title="sylar IO协程调度模块设计"></a>sylar IO协程调度模块设计</h2><p>对于IO协程调度来说，每次调度都包含一个三元组信息，分别是描述符-事件类型（可读或可写）-回调函数，调度器记录全部需要调度的三元组信息，其中描述符和事件类型用于epoll_wait，回调函数用于协程调度。这个三元组信息在源码上通过FdContext结构体来存储，在执行epoll_wait时通过epoll_event的私有数据指针data.ptr来保存FdContext结构体信息。</p>
+<p>IO协程调度器在idle时会epoll_wait所有注册的fd，如果有fd满足条件，epoll_wait返回，从私有数据中拿到fd的上下文信息，并且执行其中的回调函数。（实际是idle协程只负责收集所有已触发的fd的回调函数并将其加入调度器的任务队列，真正的执行时机是idle协程退出后，调度器在下一轮调度时执行）</p>
+<p>与协程调度器不一样的是，IO协程调度器支持取消事件。取消事件表示不关心某个fd的某个事件了，如果某个fd的可读或可写事件都被取消了，那这个fd会从调度器的epoll_wait中删除。</p>
+<h2 id="sylar-IO协程调度器实现"><a href="#sylar-IO协程调度器实现" class="headerlink" title="sylar IO协程调度器实现"></a>sylar IO协程调度器实现</h2><h3 id="read和write"><a href="#read和write" class="headerlink" title="read和write"></a>read和write</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">ssize_t <span class="token function">read</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>buf<span class="token punctuation">,</span> size_t count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+参数：
+fd：文件描述符
+
+buf：存数据的缓冲区
+
+count：缓冲区大小
+
+返回值：
+<span class="token number">0</span>：读到文件末尾。
+
+成功； <span class="token operator">></span> <span class="token number">0</span> 读到的字节数。
+
+失败： <span class="token operator">-</span><span class="token number">1</span>， 设置 errno
+
+
+ssize_t <span class="token function">write</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span><span class="token keyword">const</span> <span class="token keyword">void</span><span class="token operator">*</span>buf<span class="token punctuation">,</span>size_t count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+参数说明：
+  fd<span class="token operator">:</span>是文件描述符
+  buf<span class="token operator">:</span>通常是一个字符串，需要写入的字符串
+  count：是每次写入的字节数
+
+返回值：
+成功：返回写入的字节数
+失败：返回<span class="token operator">-</span><span class="token number">1</span>并设置errno
+ps： 写常规文件时，write的返回值通常等于请求写的字节数count， 而向终端设备或者网络写时则不一定<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="IO协程调度器对应IOManager"><a href="#IO协程调度器对应IOManager" class="headerlink" title="IO协程调度器对应IOManager"></a>IO协程调度器对应IOManager</h3><p>这个类直接继承自Scheduler和TimerManager</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token keyword">class</span> <span class="token class-name">IOManager</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword">public</span> <span class="token class-name">Scheduler</span> ，<span class="token keyword">public</span> <span class="token class-name">TimerManager</span></span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">public</span><span class="token operator">:</span>
+    <span class="token keyword">typedef</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>IOManager<span class="token operator">></span> ptr<span class="token punctuation">;</span>
+    <span class="token keyword">typedef</span> RWMutex RWMutexType<span class="token punctuation">;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="首先是读写事件的定义，这里直接继承epoll的枚举值"><a href="#首先是读写事件的定义，这里直接继承epoll的枚举值" class="headerlink" title="首先是读写事件的定义，这里直接继承epoll的枚举值"></a>首先是读写事件的定义，这里直接继承epoll的枚举值</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief IO事件，继承自epoll对事件的定义
+ * @details 这里只关心socket fd的读和写事件，其他epoll事件会归类到这两类事件中
+ */</span>
+<span class="token keyword">enum</span> <span class="token class-name">Event</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/// 无事件</span>
+    NONE <span class="token operator">=</span> <span class="token number">0x0</span><span class="token punctuation">,</span>
+    <span class="token comment">/// 读事件(EPOLLIN)</span>
+    READ <span class="token operator">=</span> <span class="token number">0x1</span><span class="token punctuation">,</span>
+    <span class="token comment">/// 写事件(EPOLLOUT)</span>
+    WRITE <span class="token operator">=</span> <span class="token number">0x4</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="描述符-事件类型-回调函数三元组的定义"><a href="#描述符-事件类型-回调函数三元组的定义" class="headerlink" title="描述符-事件类型-回调函数三元组的定义"></a>描述符-事件类型-回调函数三元组的定义</h3><p>这个三元组也称为fd上下文，使用结构体FdContext来表示。由于fd有可读和可写两种事件，每种事件的回调函数也可以不一样，所以每个fd都需要保存两个事件类型-回调函数组合。FdContext结构体定义如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief socket fd上下文类
+ * @details 每个socket fd都对应一个FdContext，包括fd的值，fd上的事件，以及fd的读写事件上下文
+ */</span>
+<span class="token keyword">struct</span> <span class="token class-name">FdContext</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">typedef</span> Mutex MutexType<span class="token punctuation">;</span>
+    <span class="token comment">/**
+     * @brief 事件上下文类
+     * @details fd的每个事件都有一个事件上下文，保存这个事件的回调函数以及执行回调函数的调度器
+     *          sylar对fd事件做了简化，只预留了读事件和写事件，所有的事件都被归类到这两类事件中
+     */</span>
+    <span class="token keyword">struct</span> <span class="token class-name">EventContext</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">/// 执行事件回调的调度器</span>
+        Scheduler <span class="token operator">*</span>scheduler <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+        <span class="token comment">/// 事件回调协程</span>
+        Fiber<span class="token double-colon punctuation">::</span>ptr fiber<span class="token punctuation">;</span>
+        <span class="token comment">/// 事件回调函数</span>
+        std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">/**
+     * @brief 获取事件上下文类
+     * @param[in] event 事件类型
+     * @return 返回对应事件的上下文
+     */</span>
+    EventContext <span class="token operator">&amp;</span><span class="token function">getEventContext</span><span class="token punctuation">(</span>Event event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">/**
+     * @brief 重置事件上下文
+     * @param[in, out] ctx 待重置的事件上下文对象
+     */</span>
+    <span class="token keyword">void</span> <span class="token function">resetEventContext</span><span class="token punctuation">(</span>EventContext <span class="token operator">&amp;</span>ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">/**
+     * @brief 触发事件
+     * @details 根据事件类型调用对应上下文结构中的调度器去调度回调协程或回调函数
+     * @param[in] event 事件类型
+     */</span>
+    <span class="token keyword">void</span> <span class="token function">triggerEvent</span><span class="token punctuation">(</span>Event event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">/// 读事件上下文</span>
+    EventContext read<span class="token punctuation">;</span>
+    <span class="token comment">/// 写事件上下文</span>
+    EventContext write<span class="token punctuation">;</span>
+    <span class="token comment">/// 事件关联的句柄</span>
+    <span class="token keyword">int</span> fd <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token comment">/// 该fd添加了哪些事件的回调函数，或者说该fd关心哪些事件</span>
+    Event events <span class="token operator">=</span> NONE<span class="token punctuation">;</span>
+    <span class="token comment">/// 事件的Mutex</span>
+    MutexType mutex<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="IOManager的成员变量"><a href="#IOManager的成员变量" class="headerlink" title="IOManager的成员变量"></a>IOManager的成员变量</h3><p>IOManager包含一个epoll实例的句柄m_epfd以及用于tickle的一对pipe fd，还有全部的fd上下文m_fdContexts，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/// epoll 文件句柄</span>
+<span class="token keyword">int</span> m_epfd <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token comment">/// pipe 文件句柄，fd[0]读端，fd[1]写端</span>
+<span class="token keyword">int</span> m_tickleFds<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token comment">/// 当前等待执行的IO事件数量</span>
+std<span class="token double-colon punctuation">::</span>atomic<span class="token operator">&lt;</span>size_t<span class="token operator">></span> m_pendingEventCount <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token number">0</span><span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token comment">/// IOManager的Mutex</span>
+RWMutexType m_mutex<span class="token punctuation">;</span>
+<span class="token comment">/// socket事件上下文的容器</span>
+std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>FdContext <span class="token operator">*</span><span class="token operator">></span> m_fdContexts<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="继承类IOManager中改造协程调度器"><a href="#继承类IOManager中改造协程调度器" class="headerlink" title="继承类IOManager中改造协程调度器"></a>继承类IOManager中改造协程调度器</h3><p>使其支持epoll，并重载tickle和idle，实现通知调度协程和IO协程调度功能。<br><strong>IOManager创建即可调度协程</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 构造函数
+ * @param[in] threads 线程数量
+ * @param[in] use_caller 是否将调用线程包含进去
+ * @param[in] name 调度器的名称
+ */</span>
+<span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">IOManager</span><span class="token punctuation">(</span>size_t threads<span class="token punctuation">,</span> <span class="token keyword">bool</span> use_caller<span class="token punctuation">,</span> <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>name<span class="token punctuation">)</span>
+    <span class="token operator">:</span> <span class="token function">Scheduler</span><span class="token punctuation">(</span>threads<span class="token punctuation">,</span> use_caller<span class="token punctuation">,</span> name<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 创建epoll实例</span>
+    m_epfd <span class="token operator">=</span> <span class="token function">epoll_create</span><span class="token punctuation">(</span><span class="token number">5000</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span>m_epfd <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+     
+    <span class="token comment">// 创建pipe，获取m_tickleFds[2]，其中m_tickleFds[0]是管道的读端，m_tickleFds[1]是管道的写端</span>
+    <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">pipe</span><span class="token punctuation">(</span>m_tickleFds<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span><span class="token operator">!</span>rt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">// 注册pipe读句柄的可读事件，用于tickle调度协程，通过epoll_event.data.fd保存描述符</span>
+    epoll_event event<span class="token punctuation">;</span>
+    <span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>event<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>epoll_event<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    event<span class="token punctuation">.</span>events  <span class="token operator">=</span> EPOLLIN <span class="token operator">|</span> EPOLLET<span class="token punctuation">;</span>
+    event<span class="token punctuation">.</span>data<span class="token punctuation">.</span>fd <span class="token operator">=</span> m_tickleFds<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">// 非阻塞方式，配合边缘触发</span>
+    rt <span class="token operator">=</span> <span class="token function">fcntl</span><span class="token punctuation">(</span>m_tickleFds<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> F_SETFL<span class="token punctuation">,</span> O_NONBLOCK<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span><span class="token operator">!</span>rt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">// 将管道的读描述符加入epoll多路复用，如果管道可读，idle中的epoll_wait会返回</span>
+    rt <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> EPOLL_CTL_ADD<span class="token punctuation">,</span> m_tickleFds<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span><span class="token operator">!</span>rt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token function">contextResize</span><span class="token punctuation">(</span><span class="token number">64</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token comment">// 这里直接开启了Schedluer，也就是说IOManager创建即可调度协程</span>
+    <span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+ 
+<span class="token comment">/**
+ * @brief 通知调度器有任务要调度
+ * @details 写pipe让idle协程从epoll_wait退出，待idle协程yield之后Scheduler::run就可以调度其他任务
+ * 如果当前没有空闲调度线程，那就没必要发通知
+ */</span>
+<span class="token keyword">void</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">tickle</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_DEBUG</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"tickle"</span><span class="token punctuation">;</span>
+    <span class="token comment">// 如果没有空闲线程，就直接返回</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">hasIdleThreads</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">write</span><span class="token punctuation">(</span>m_tickleFds<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"T"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span>rt <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+ <span class="token comment">/**
+ * @brief idle协程
+ * @details
+ * 对于IO协程调度来说，应阻塞在等待IO事件上，idle退出的时机是epoll_wait返回，对应的操作是tickle或注册的IO事件就绪
+ * 调度器无调度任务时会阻塞idle协程上，对IO调度器而言，idle状态应该关注两件事，一是有没有新的调度任务，对应Schduler::schedule()，
+ * 如果有新的调度任务，那应该立即退出idle状态，并执行对应的任务；二是关注当前注册的所有IO事件有没有触发，如果有触发，那么应该执行
+ * IO事件对应的回调函数
+ */</span>
+<span class="token keyword">void</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">idle</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 一次epoll_wait最多检测256个就绪事件，如果就绪事件超过了这个数，那么会在下轮epoll_wati继续处理</span>
+  <span class="token keyword">const</span> <span class="token keyword">uint64_t</span> MAX_EVNETS <span class="token operator">=</span> <span class="token number">256</span><span class="token punctuation">;</span>
+  epoll_event <span class="token operator">*</span>events <span class="token operator">=</span> <span class="token keyword">new</span> epoll_event<span class="token punctuation">[</span>MAX_EVNETS<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>epoll_event<span class="token operator">></span> <span class="token function">shared_events</span><span class="token punctuation">(</span>events<span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>epoll_event <span class="token operator">*</span>ptr<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// delete[] events; //error</span>
+    <span class="token comment">// 传进来的是ptr</span>
+    <span class="token keyword">delete</span><span class="token punctuation">[</span><span class="token punctuation">]</span> ptr<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">uint64_t</span> next_timeout <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">stopping</span><span class="token punctuation">(</span>next_timeout<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">SYLAR_LOG_INFO</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"name="</span> <span class="token operator">&lt;&lt;</span> <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"idle stopping exit"</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">static</span> <span class="token keyword">const</span> <span class="token keyword">int</span> MAX_TIMEOUT <span class="token operator">=</span> <span class="token number">3000</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>next_timeout <span class="token operator">!=</span> <span class="token operator">~</span><span class="token number">0ull</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        next_timeout <span class="token operator">=</span> <span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>next_timeout<span class="token punctuation">)</span> <span class="token operator">></span> MAX_TIMEOUT <span class="token operator">?</span> MAX_TIMEOUT <span class="token operator">:</span> next_timeout<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        next_timeout <span class="token operator">=</span> MAX_TIMEOUT<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+      <span class="token comment">// 阻塞在epoll_wait上，等待事件发生</span>
+      rt <span class="token operator">=</span> <span class="token function">epoll_wait</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> events<span class="token punctuation">,</span> <span class="token number">64</span><span class="token punctuation">,</span> <span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>next_timeout<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>rt <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> errno <span class="token operator">==</span> EINTR<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">>></span> cbs<span class="token punctuation">;</span>
+    <span class="token function">listExpiredCb</span><span class="token punctuation">(</span>cbs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>cbs<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">schedule</span><span class="token punctuation">(</span>cbs<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> cbs<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      cbs<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 遍历所有发生的事件，根据epoll_event的私有指针找到对应的FdContext，进行事件处理</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> rt<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      epoll_event <span class="token operator">&amp;</span>event <span class="token operator">=</span> events<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+      <span class="token comment">// SYLAR_LOG_INFO(g_logger) &lt;&lt; event.data.fd;</span>
+      <span class="token comment">// 处理tickle() 的情况</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>data<span class="token punctuation">.</span>fd <span class="token operator">==</span> m_tickleFds<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// ticklefd[0]用于通知协程调度，这时只需要把管道里的内容读完即可，本轮idle结束Scheduler::run会重新执行协程调度</span>
+        u_int8_t dummy<span class="token punctuation">;</span>
+
+        <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token function">read</span><span class="token punctuation">(</span>m_tickleFds<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>dummy<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span>
+          <span class="token punctuation">;</span>
+
+        <span class="token keyword">continue</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+      <span class="token comment">// 通过epoll_event的私有指针获取FdContext</span>
+      FdContext <span class="token operator">*</span>fd_ctx <span class="token operator">=</span> <span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>FdContext <span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>data<span class="token punctuation">.</span>ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      FdContext<span class="token double-colon punctuation">::</span>MutexType<span class="token double-colon punctuation">::</span>Lock <span class="token function">lock</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">/**
+       * EPOLLERR: 出错，比如写读端已经关闭的pipe
+       * EPOLLHUP: 套接字对端关闭
+       * 出现这两种事件，应该同时触发fd的读和写事件，否则有可能出现注册的事件永远执行不到的情况
+       */</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>events <span class="token operator">&amp;</span> <span class="token punctuation">(</span>EPOLLERR <span class="token operator">|</span> EPOLLHUP<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        event<span class="token punctuation">.</span>events <span class="token operator">|=</span> <span class="token punctuation">(</span>EPOLLIN <span class="token operator">|</span> EPOLLOUT<span class="token punctuation">)</span> <span class="token operator">&amp;</span> fd_ctx<span class="token operator">-></span>events<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+      <span class="token keyword">int</span> real_events <span class="token operator">=</span> NONE<span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>events <span class="token operator">&amp;</span> EPOLLIN<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        real_events <span class="token operator">|=</span> READ<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>events <span class="token operator">&amp;</span> EPOLLOUT<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        real_events <span class="token operator">|=</span> WRITE<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> real_events<span class="token punctuation">)</span> <span class="token operator">==</span> NONE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">continue</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+
+      <span class="token comment">// 剔除已经发生的事件，将剩下的事件重新加入epoll_wait，</span>
+      <span class="token comment">// 如果剩下的事件为0，表示这个fd已经不需要关注了，直接从epoll中删除</span>
+      <span class="token keyword">int</span> left_events <span class="token operator">=</span> <span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> <span class="token operator">~</span>real_events<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">int</span> op <span class="token operator">=</span> left_events <span class="token operator">?</span> EPOLL_CTL_MOD <span class="token operator">:</span> EPOLL_CTL_DEL<span class="token punctuation">;</span>
+      event<span class="token punctuation">.</span>events <span class="token operator">=</span> EPOLLET <span class="token operator">|</span> left_events<span class="token punctuation">;</span>
+
+      <span class="token keyword">int</span> rt2 <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> op<span class="token punctuation">,</span> fd_ctx<span class="token operator">-></span>fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>rt2<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"epoll_ctl("</span> <span class="token operator">&lt;&lt;</span> m_epfd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> op <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> fd_ctx<span class="token operator">-></span>fd
+                                  <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> event<span class="token punctuation">.</span>events <span class="token operator">&lt;&lt;</span> <span class="token string">"):"</span> <span class="token operator">&lt;&lt;</span> rt2 <span class="token operator">&lt;&lt;</span> <span class="token string">"("</span> <span class="token operator">&lt;&lt;</span> errno <span class="token operator">&lt;&lt;</span> <span class="token string">") ("</span>
+                                  <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+        <span class="token keyword">continue</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+
+      <span class="token comment">// 处理已经发生的事件，也就是让调度器调度指定的函数或协程</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>real_events <span class="token operator">&amp;</span> READ<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 有trigger 数量减一</span>
+        fd_ctx<span class="token operator">-></span><span class="token function">triggerEvent</span><span class="token punctuation">(</span>READ<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>real_events <span class="token operator">&amp;</span> WRITE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        fd_ctx<span class="token operator">-></span><span class="token function">triggerEvent</span><span class="token punctuation">(</span>WRITE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 一旦处理完所有的事件，idle协程swapOut，这样可以让调度协程(Scheduler::run)重新检查是否有新任务要调度
+     * 上面triggerEvent实际也只是把对应的fiber重新加入调度，要执行的话还要等idle协程退出.
+     */</span>
+    Fiber<span class="token double-colon punctuation">::</span>ptr cur <span class="token operator">=</span> <span class="token class-name">Fiber</span><span class="token double-colon punctuation">::</span><span class="token function">GetThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">auto</span> raw_ptr <span class="token operator">=</span> cur<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    cur<span class="token punctuation">.</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 切换到调度协程，执行任务</span>
+    raw_ptr<span class="token operator">-></span><span class="token function">swapOut</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="注册事件回调addEvent"><a href="#注册事件回调addEvent" class="headerlink" title="注册事件回调addEvent"></a>注册事件回调addEvent</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 添加事件
+ * @details fd描述符发生了event事件时执行cb函数
+ * @param[in] fd socket句柄
+ * @param[in] event 事件类型
+ * @param[in] cb 事件回调函数，如果为空，则默认把当前协程作为回调执行体
+ * @return 添加成功返回0,失败返回-1
+ */</span>
+<span class="token keyword">int</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">addEvent</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> Event event<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  FdContext <span class="token operator">*</span>fd_ctx <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token comment">// 读锁</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>m_fdContexts<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">></span> fd<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 优化 直接在if中加读锁</span>
+    fd_ctx <span class="token operator">=</span> m_fdContexts<span class="token punctuation">[</span>fd<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock2</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">contextResize</span><span class="token punctuation">(</span>fd <span class="token operator">*</span> <span class="token number">1.5</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    fd_ctx <span class="token operator">=</span> m_fdContexts<span class="token punctuation">[</span>fd<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">// 同一个fd不允许重复添加相同的事件</span>
+  FdContext<span class="token double-colon punctuation">::</span>MutexType<span class="token double-colon punctuation">::</span>Lock <span class="token function">lock2</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> event<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"addEvent assert fd = "</span> <span class="token operator">&lt;&lt;</span> fd <span class="token operator">&lt;&lt;</span> <span class="token string">"event= "</span> <span class="token operator">&lt;&lt;</span> event
+                              <span class="token operator">&lt;&lt;</span> <span class="token string">"fd_ctx->events="</span> <span class="token operator">&lt;&lt;</span> fd_ctx<span class="token operator">-></span>events<span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> event<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 将新的事件加入epoll_wait，使用epoll_event的私有指针存储FdContext的位置</span>
+  <span class="token keyword">int</span> op <span class="token operator">=</span> fd_ctx<span class="token operator">-></span>events <span class="token operator">?</span> EPOLL_CTL_MOD <span class="token operator">:</span> EPOLL_CTL_ADD<span class="token punctuation">;</span>
+  epoll_event epevent<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>events <span class="token operator">=</span> EPOLLET <span class="token operator">|</span> fd_ctx<span class="token operator">-></span>events <span class="token operator">|</span> event<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>data<span class="token punctuation">.</span>ptr <span class="token operator">=</span> fd_ctx<span class="token punctuation">;</span>
+
+  <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> op<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>epevent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>rt<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"epoll_ctl("</span> <span class="token operator">&lt;&lt;</span> m_epfd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> op <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> fd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span>
+                              <span class="token operator">&lt;&lt;</span> epevent<span class="token punctuation">.</span>events <span class="token operator">&lt;&lt;</span> <span class="token string">"):"</span> <span class="token operator">&lt;&lt;</span> rt <span class="token operator">&lt;&lt;</span> <span class="token string">"("</span> <span class="token operator">&lt;&lt;</span> errno <span class="token operator">&lt;&lt;</span> <span class="token string">") ("</span>
+                              <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 待执行IO事件数加1</span>
+  <span class="token operator">++</span>m_pendingEventCount<span class="token punctuation">;</span>
+
+  <span class="token comment">// 找到这个fd的event事件对应的EventContext，对其中的scheduler, cb, fiber进行赋值</span>
+  fd_ctx<span class="token operator">-></span>events <span class="token operator">=</span> <span class="token punctuation">(</span>Event<span class="token punctuation">)</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">|</span> event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  FdContext<span class="token double-colon punctuation">::</span>EventContext <span class="token operator">&amp;</span>event_ctx <span class="token operator">=</span> fd_ctx<span class="token operator">-></span><span class="token function">getContext</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span><span class="token operator">!</span>event_ctx<span class="token punctuation">.</span>scheduler <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>event_ctx<span class="token punctuation">.</span>fiber <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>event_ctx<span class="token punctuation">.</span>cb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 赋值scheduler和回调函数，如果回调函数为空，则把当前协程当成回调执行体</span>
+  event_ctx<span class="token punctuation">.</span>scheduler <span class="token operator">=</span> <span class="token class-name">Scheduler</span><span class="token double-colon punctuation">::</span><span class="token function">GetThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    event_ctx<span class="token punctuation">.</span>cb<span class="token punctuation">.</span><span class="token function">swap</span><span class="token punctuation">(</span>cb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    event_ctx<span class="token punctuation">.</span>fiber <span class="token operator">=</span> <span class="token class-name">Fiber</span><span class="token double-colon punctuation">::</span><span class="token function">GetThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">SYLAR_ASSERT2</span><span class="token punctuation">(</span>event_ctx<span class="token punctuation">.</span>fiber<span class="token operator">-></span><span class="token function">getState</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> Fiber<span class="token double-colon punctuation">::</span>EXEC<span class="token punctuation">,</span>
+                  <span class="token string">"state="</span> <span class="token operator">&lt;&lt;</span> event_ctx<span class="token punctuation">.</span>fiber<span class="token operator">-></span><span class="token function">getState</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="删除事件回调delEvent"><a href="#删除事件回调delEvent" class="headerlink" title="删除事件回调delEvent"></a>删除事件回调delEvent</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 删除事件
+ * @param[in] fd socket句柄
+ * @param[in] event 事件类型
+ * @attention 不会触发事件
+ * @return 是否删除成功
+ */</span>
+<span class="token keyword">bool</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">delEvent</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> Event event<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>m_fdContexts<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;=</span> fd<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">// 直接使用fd的值作为FdContext数组的下标</span>
+  FdContext <span class="token operator">*</span>fd_ctx <span class="token operator">=</span> m_fdContexts<span class="token punctuation">[</span>fd<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  FdContext<span class="token double-colon punctuation">::</span>MutexType<span class="token double-colon punctuation">::</span>Lock <span class="token function">lock2</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> event<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 清除指定的事件，表示不关心这个事件了，如果清除之后结果为0，则从epoll_wait中删除该文件描述符</span>
+  Event new_events <span class="token operator">=</span> <span class="token punctuation">(</span>Event<span class="token punctuation">)</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> <span class="token operator">~</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">int</span> op <span class="token operator">=</span> new_events <span class="token operator">?</span> EPOLL_CTL_MOD <span class="token operator">:</span> EPOLL_CTL_DEL<span class="token punctuation">;</span>
+  epoll_event epevent<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>events <span class="token operator">=</span> EPOLLET <span class="token operator">|</span> new_events<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>data<span class="token punctuation">.</span>ptr <span class="token operator">=</span> fd_ctx<span class="token punctuation">;</span>
+
+  <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> op<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>epevent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>rt<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token string">"epoll_ctl("</span> <span class="token operator">&lt;&lt;</span> m_epfd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> op <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> fd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span>
+        <span class="token operator">&lt;&lt;</span> epevent<span class="token punctuation">.</span>events <span class="token operator">&lt;&lt;</span> <span class="token string">"):"</span> <span class="token operator">&lt;&lt;</span> rt <span class="token operator">&lt;&lt;</span> <span class="token string">"("</span> <span class="token operator">&lt;&lt;</span> errno <span class="token operator">&lt;&lt;</span> <span class="token string">") ("</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+  <span class="token comment">// 重置该fd对应的event事件上下文</span>
+  fd_ctx<span class="token operator">-></span>events <span class="token operator">=</span> new_events<span class="token punctuation">;</span>
+  FdContext<span class="token double-colon punctuation">::</span>EventContext <span class="token operator">&amp;</span>event_ctx <span class="token operator">=</span> fd_ctx<span class="token operator">-></span><span class="token function">getContext</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  fd_ctx<span class="token operator">-></span><span class="token function">resetContext</span><span class="token punctuation">(</span>event_ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="取消事件回调cancelEvent"><a href="#取消事件回调cancelEvent" class="headerlink" title="取消事件回调cancelEvent"></a>取消事件回调cancelEvent</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 取消事件
+ * @param[in] fd socket句柄
+ * @param[in] event 事件类型
+ * @attention 如果该事件被注册过回调，那就触发一次回调事件
+ * @return 是否删除成功
+ */</span>
+<span class="token keyword">bool</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">cancelEvent</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">,</span> Event event<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>m_fdContexts<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;=</span> fd<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  FdContext <span class="token operator">*</span>fd_ctx <span class="token operator">=</span> m_fdContexts<span class="token punctuation">[</span>fd<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  FdContext<span class="token double-colon punctuation">::</span>MutexType<span class="token double-colon punctuation">::</span>Lock <span class="token function">lock2</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> event<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">// 删除事件 </span>
+  Event new_events <span class="token operator">=</span> <span class="token punctuation">(</span>Event<span class="token punctuation">)</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> <span class="token operator">~</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">int</span> op <span class="token operator">=</span> new_events <span class="token operator">?</span> EPOLL_CTL_MOD <span class="token operator">:</span> EPOLL_CTL_DEL<span class="token punctuation">;</span>
+  epoll_event epevent<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>events <span class="token operator">=</span> EPOLLET <span class="token operator">|</span> new_events<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>data<span class="token punctuation">.</span>ptr <span class="token operator">=</span> fd_ctx<span class="token punctuation">;</span>
+
+  <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> op<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>epevent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>rt<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token string">"epoll_ctl("</span> <span class="token operator">&lt;&lt;</span> m_epfd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> op <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> fd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span>
+        <span class="token operator">&lt;&lt;</span> epevent<span class="token punctuation">.</span>events <span class="token operator">&lt;&lt;</span> <span class="token string">"):"</span> <span class="token operator">&lt;&lt;</span> rt <span class="token operator">&lt;&lt;</span> <span class="token string">"("</span> <span class="token operator">&lt;&lt;</span> errno <span class="token operator">&lt;&lt;</span> <span class="token string">") ("</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 删除之前触发一次事件</span>
+  fd_ctx<span class="token operator">-></span><span class="token function">triggerEvent</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="取消全部事件cancelAll"><a href="#取消全部事件cancelAll" class="headerlink" title="取消全部事件cancelAll"></a>取消全部事件cancelAll</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 取消所有事件
+ * @details 所有被注册的回调事件在cancel之前都会被执行一次
+ * @param[in] fd socket句柄
+ * @return 是否删除成功
+ */</span>
+<span class="token keyword">bool</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">cancelAll</span><span class="token punctuation">(</span><span class="token keyword">int</span> fd<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>m_fdContexts<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;=</span> fd<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  FdContext <span class="token operator">*</span>fd_ctx <span class="token operator">=</span> m_fdContexts<span class="token punctuation">[</span>fd<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  lock<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  FdContext<span class="token double-colon punctuation">::</span>MutexType<span class="token double-colon punctuation">::</span>Lock <span class="token function">lock2</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 删除全部事件</span>
+  <span class="token keyword">int</span> op <span class="token operator">=</span> EPOLL_CTL_DEL<span class="token punctuation">;</span>
+  epoll_event epevent<span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>events <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  epevent<span class="token punctuation">.</span>data<span class="token punctuation">.</span>ptr <span class="token operator">=</span> fd_ctx<span class="token punctuation">;</span>
+
+  <span class="token keyword">int</span> rt <span class="token operator">=</span> <span class="token function">epoll_ctl</span><span class="token punctuation">(</span>m_epfd<span class="token punctuation">,</span> op<span class="token punctuation">,</span> fd<span class="token punctuation">,</span> <span class="token operator">&amp;</span>epevent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>rt<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token string">"epoll_ctl("</span> <span class="token operator">&lt;&lt;</span> m_epfd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> op <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> fd <span class="token operator">&lt;&lt;</span> <span class="token string">","</span>
+        <span class="token operator">&lt;&lt;</span> epevent<span class="token punctuation">.</span>events <span class="token operator">&lt;&lt;</span> <span class="token string">"):"</span> <span class="token operator">&lt;&lt;</span> rt <span class="token operator">&lt;&lt;</span> <span class="token string">"("</span> <span class="token operator">&lt;&lt;</span> errno <span class="token operator">&lt;&lt;</span> <span class="token string">") ("</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">")"</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 触发全部已注册的事件</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> READ<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    fd_ctx<span class="token operator">-></span><span class="token function">triggerEvent</span><span class="token punctuation">(</span>READ<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">&amp;</span> WRITE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    fd_ctx<span class="token operator">-></span><span class="token function">triggerEvent</span><span class="token punctuation">(</span>WRITE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token operator">--</span>m_pendingEventCount<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token function">SYLAR_ASSERT</span><span class="token punctuation">(</span>fd_ctx<span class="token operator">-></span>events <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+IOManager <span class="token operator">*</span><span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">GetThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token generic-function"><span class="token function">dynamic_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>IOManager <span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token class-name">Scheduler</span><span class="token double-colon punctuation">::</span><span class="token function">GetThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="重载的onTimerInsertedAtFront"><a href="#重载的onTimerInsertedAtFront" class="headerlink" title="重载的onTimerInsertedAtFront"></a>重载的onTimerInsertedAtFront</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">IOManager</span><span class="token double-colon punctuation">::</span><span class="token function">onTimerInsertedAtFront</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">tickle</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ol>
+<li>sylar的IO协程调度模块可分为两部分，第一部分是对协程调度器的改造，将epoll与协程调度融合，重新实现tickle和idle，并保证原有的功能不变。第二部分是基于epoll实现IO事件的添加、删除、调度、取消等功能。</li>
+<li>IO协程调度关注的是FdContext信息，也就是描述符-事件-回调函数三元组，IOManager需要保存所有关注的三元组，并且在epoll_wait检测到描述符事件就绪时执行对应的回调函数。</li>
+<li>epoll是线程安全的，即使调度器有多个调度线程，它们也可以共用同一个epoll实例，而不用担心互斥。由于空闲时所有线程都阻塞的epoll_wait上，所以也不用担心CPU占用问题。</li>
+<li>addEvent是一次性的，比如说，注册了一个读事件，当fd可读时会触发该事件，但触发完之后，这次注册的事件就失效了，后面fd再次可读时，并不会继续执行该事件回调，如果要持续触发事件的回调，那每次事件处理完都要手动再addEvent。</li>
+<li>cancelEvent和cancelAll都会触发一次事件，但delEvent不会。</li>
+<li>FdContext的寻址问题，sylar直接使用fd的值作为FdContext数组的下标，这样可以快速找到一个fd对应的FdContext。由于关闭的fd会被重复利用，所以这里也不用担心FdContext数组膨胀太快，或是利用率低的问题。</li>
+<li>IO协程调度器的退出，不但所有协程要完成调度，所有IO事件也要完成调度。</li>
+</ol>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://www.midlane.top/wiki/pages/viewpage.action?pageId=10061031">https://www.midlane.top/wiki/pages/viewpage.action?pageId=10061031</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/02/sylar/c++/%E4%BB%BF%E5%87%BD%E6%95%B0/">仿函数</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/%E4%BB%BF%E5%87%BD%E6%95%B0/">仿函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/%E6%A8%A1%E5%9D%97/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
