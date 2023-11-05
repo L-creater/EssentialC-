@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>配置模块 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="配置模块"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>配置模块</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.05</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="sylar配置模块设计"><a href="#sylar配置模块设计" class="headerlink" title="sylar配置模块设计"></a>sylar配置模块设计</h2><p>采用约定优于配置的思想</p>
+<p>[维基百科：约定优于配置]<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BA%A6%E5%AE%9A%E4%BC%98%E4%BA%8E%E9%85%8D%E7%BD%AE">https://zh.wikipedia.org/wiki/%E7%BA%A6%E5%AE%9A%E4%BC%98%E4%BA%8E%E9%85%8D%E7%BD%AE</a></p>
+<h3 id="ConfigVarBase"><a href="#ConfigVarBase" class="headerlink" title="ConfigVarBase"></a>ConfigVarBase</h3><p>配置项基类，虚基类，定义了配置项公有的成员和方法。</p>
+<p>sylar对每个配置项都包括名称和描述两项成员，以及toString&#x2F;fromString两个纯虚函数方法。ConfigVarBase并不包含配置项类型和值，这些由继承类实现，由继承类实现的还包括具体类型的toString&#x2F;fromString方法，用于和YAML字符串进行相互转换。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token keyword">class</span> <span class="token class-name">ConfigVarBase</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">using</span> ptr <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>ConfigVarBase<span class="token operator">></span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 构造函数
+   * @param[in] name 配置参数名称[0-9a-z_.]
+   * @param[in] description 配置参数描述
+   */</span>
+  <span class="token function">ConfigVarBase</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>name<span class="token punctuation">,</span> <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>description<span class="token punctuation">)</span>
+      <span class="token operator">:</span> <span class="token function">m_name</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">m_description</span><span class="token punctuation">(</span>description<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+  <span class="token keyword">virtual</span> <span class="token operator">~</span><span class="token function">ConfigVarBase</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> m_name<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+  <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span><span class="token function">getDescription</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> m_description<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+  <span class="token comment">/**
+   * @brief 转成字符串
+   */</span>
+  <span class="token keyword">virtual</span> std<span class="token double-colon punctuation">::</span>string <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 从字符串初始化值
+   */</span>
+  <span class="token keyword">virtual</span> <span class="token keyword">bool</span> <span class="token function">fromString</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>val<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 返回配置参数值的类型名称
+   */</span>
+  <span class="token keyword">virtual</span> std<span class="token double-colon punctuation">::</span>string <span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">protected</span><span class="token operator">:</span>
+  <span class="token comment">/// 配置参数的名称</span>
+  std<span class="token double-colon punctuation">::</span>string m_name<span class="token punctuation">;</span>
+  <span class="token comment">/// 配置参数的描述</span>
+  std<span class="token double-colon punctuation">::</span>string m_description<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="LexicalCast"><a href="#LexicalCast" class="headerlink" title="LexicalCast"></a>LexicalCast</h3><p>sylar从一个基本类型的转换类开始，特化出了剩余类型的转换类。<br>这里的LexicalCast类是一个仿函数，关于访函数看这里。它支持<code>LexicalCast&lt;F, T&gt;()(const F &amp;v)</code>调用，可将传入的F类型的参数v进行转换，并返回T类型的结果。实际的转换语句是<code>boost::lexical_cast&lt;T&gt;(v)</code>。但是，受限于<code>boost::lexical_cast</code>, <code>LexicalCast</code>当前只能实现基本数据类型和<code>std::string</code>的相互转换。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 类型转换模板类(F 源类型, T 目标类型)
+ */</span>
+<span class="token comment">// F from_type , T to_type</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">F</span><span class="token punctuation">,</span> <span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">class</span> <span class="token class-name">LexicalCast</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token comment">/**
+   * @brief 类型转换
+   * @param[in] v 源类型值
+   * @return 返回v转换后的目标类型
+   * @exception 当类型不可转换时抛出异常
+   */</span>
+  T <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token keyword">const</span> F <span class="token operator">&amp;</span>v<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> boost<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">lexical_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">></span></span></span><span class="token punctuation">(</span>v<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>sylar了实现YAML字符串和vector&#x2F;list&#x2F;set&#x2F;unordered_set&#x2F;map&#x2F;unordered_map的相互转换。<br>每个类型都进行特化，分别实现其转换类，下面仅列出YAML字符串和vector的相互转换实现，其他的见源码：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token comment">// 类型和类内成员的二义性，typename</span>
+<span class="token comment">// string to vector</span>
+<span class="token comment">/**
+ * @brief 类型转换模板类片特化(YAML String 转换成 std::vector&lt;T>)
+ */</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">class</span> <span class="token class-name">LexicalCast</span><span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token operator">>></span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>v<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    YAML<span class="token double-colon punctuation">::</span>Node node <span class="token operator">=</span> <span class="token class-name">YAML</span><span class="token double-colon punctuation">::</span><span class="token function">Load</span><span class="token punctuation">(</span>v<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token operator">></span> vec<span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span>stringstream ss<span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> node<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// 清空ss</span>
+      ss<span class="token punctuation">.</span><span class="token function">str</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      ss <span class="token operator">&lt;&lt;</span> node<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+      vec<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">LexicalCast</span><span class="token generic class-name"><span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> T<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>ss<span class="token punctuation">.</span><span class="token function">str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> vec<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * @brief 类型转换模板类片特化(std::vector&lt;T> 转换成 YAML String)
+ */</span>
+<span class="token comment">// vector to string</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">class</span> <span class="token class-name">LexicalCast</span><span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>string<span class="token operator">></span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  std<span class="token double-colon punctuation">::</span>string <span class="token keyword">operator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token operator">></span> <span class="token operator">&amp;</span>v<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    YAML<span class="token double-colon punctuation">::</span>Node node<span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">auto</span> <span class="token operator">&amp;</span>i <span class="token operator">:</span> v<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// 可以嵌套</span>
+      node<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token class-name">YAML</span><span class="token double-colon punctuation">::</span><span class="token function">Load</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">LexicalCast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>string<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    std<span class="token double-colon punctuation">::</span>stringstream ss<span class="token punctuation">;</span>
+    ss <span class="token operator">&lt;&lt;</span> node<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> ss<span class="token punctuation">.</span><span class="token function">str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>上面分别实现了<code>LexicalCast&lt;std::string, std::vector&lt;T&gt;&gt;</code>和<code>LexicalCast&lt;std::vector&lt;T&gt;, std::string&gt;</code>，其中在转换单个的数组元素时，再次用到了<code>LexicalCast&lt;std::string, T&gt;</code>和<code>LexicalCast&lt;T, std::string&gt;</code>，</p>
+<ul>
+<li>如果这里T是基本数据类型，那么就可以用最开始的基本类型的转换类进行模板实例化并完成转换了。</li>
+<li>这里的模板实例化是可以嵌套的，如果T不是基本类型，则继续嵌套。<code>node.push_back(YAML::Load(LexicalCast&lt;T, std::string&gt;()(i)));</code>这里T可以继续是<code>vector&lt;T&gt;</code>。</li>
+</ul>
+<h3 id="ConfigVar"><a href="#ConfigVar" class="headerlink" title="ConfigVar"></a>ConfigVar</h3><p>具体的配置参数类，继承自ConfigVarBase，并且是一个模板类，有3个模板参数。第一个模板参数是类型T，表示配置项的类型。另外两个模板参数是FromStr和ToStr，这两个参数是仿函数，FromStr用于将YAML字符串转类型T，ToStr用于将T转YAML字符串。这两个模板参数具有默认值LexicalCast&lt;std::string, T&gt;和LexicalCast&lt;T, std::string&gt;，根据不同的类型T，FromStr和ToStr具有不同的偏特化实现。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 配置参数模板子类,保存对应类型的参数值
+ * @details T 参数的具体类型
+ *          FromStr 从std::string转换成T类型的仿函数
+ *          ToStr 从T转换成std::string的仿函数
+ *          std::string 为YAML格式的字符串
+ */</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token punctuation">,</span> <span class="token keyword">class</span> <span class="token class-name">FromStr</span> <span class="token operator">=</span> LexicalCast<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> T<span class="token operator">></span><span class="token punctuation">,</span>
+          <span class="token keyword">class</span> <span class="token class-name">ToStr</span> <span class="token operator">=</span> LexicalCast<span class="token operator">&lt;</span>T<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>string<span class="token operator">>></span>
+<span class="token keyword">class</span> <span class="token class-name">ConfigVar</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword">public</span> <span class="token class-name">ConfigVarBase</span></span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">typedef</span> RWMutex RWMutexType<span class="token punctuation">;</span>
+  <span class="token keyword">using</span> ptr <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>ConfigVar<span class="token operator">></span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> on_change_cb <span class="token operator">=</span>
+      std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token keyword">const</span> T <span class="token operator">&amp;</span>old_value<span class="token punctuation">,</span> <span class="token keyword">const</span> T <span class="token operator">&amp;</span>new_value<span class="token punctuation">)</span><span class="token operator">></span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 通过参数名,参数值,描述构造ConfigVar
+   * @param[in] name 参数名称有效字符为[0-9a-z_.]
+   * @param[in] default_value 参数的默认值
+   * @param[in] description 参数的描述
+   */</span>
+  <span class="token function">ConfigVar</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string name<span class="token punctuation">,</span> <span class="token keyword">const</span> T <span class="token operator">&amp;</span>default_value<span class="token punctuation">,</span>
+            <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string description<span class="token punctuation">)</span>
+      <span class="token operator">:</span> <span class="token function">ConfigVarBase</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> description<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">m_val</span><span class="token punctuation">(</span>default_value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 将参数值转换成YAML String
+   * @exception 当转换失败抛出异常
+   */</span>
+  std<span class="token double-colon punctuation">::</span>string <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">override</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// return boost::lexical_cast&lt;std::string>(m_val);</span>
+      RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token function">ToStr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>m_val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>exception <span class="token operator">&amp;</span>e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span><span class="token function">SYLAR_LOG_ROOT</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">"configVar::toString exception"</span> <span class="token operator">&lt;&lt;</span> e<span class="token punctuation">.</span><span class="token function">what</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">" convert: "</span> <span class="token operator">&lt;&lt;</span> <span class="token keyword">typeid</span><span class="token punctuation">(</span>m_val<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"to string"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token string">""</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 从YAML String 转成参数的值
+   * @exception 当转换失败抛出异常
+   */</span>
+  <span class="token keyword">bool</span> <span class="token function">fromString</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>val<span class="token punctuation">)</span> <span class="token keyword">override</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// boost::lexical_cast&lt;T>(m_val);</span>
+      <span class="token function">setValue</span><span class="token punctuation">(</span><span class="token function">FromStr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">(</span>val<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>exception <span class="token operator">&amp;</span>e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span><span class="token function">SYLAR_LOG_ROOT</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">"configVar::toString exception"</span> <span class="token operator">&lt;&lt;</span> e<span class="token punctuation">.</span><span class="token function">what</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">" convert: to string "</span> <span class="token operator">&lt;&lt;</span> <span class="token keyword">typeid</span><span class="token punctuation">(</span>m_val<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" - "</span> <span class="token operator">&lt;&lt;</span> val<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 获取当前参数的值
+   */</span>
+  <span class="token keyword">const</span> T <span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> m_val<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 设置当前参数的值
+   * @details 如果参数的值有发生变化,则通知对应的注册回调函数
+   */</span>
+  <span class="token keyword">void</span> <span class="token function">setValue</span><span class="token punctuation">(</span>T val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#123;</span>  <span class="token comment">// 加括号是 产生一个局部域，出了括号，就会释放锁</span>
+      RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>val <span class="token operator">==</span> m_val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> <span class="token operator">&amp;</span>i <span class="token operator">:</span> m_cbs<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// func</span>
+      i<span class="token punctuation">.</span><span class="token function">second</span><span class="token punctuation">(</span>m_val<span class="token punctuation">,</span> val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    m_val <span class="token operator">=</span> val<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 返回参数值的类型名称(typeinfo)
+   */</span>
+  std<span class="token double-colon punctuation">::</span>string <span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token keyword">override</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> <span class="token keyword">typeid</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 添加变化回调函数
+   * @return 返回该回调函数对应的唯一id,用于删除回调
+   */</span>
+  u_int64_t <span class="token function">addListener</span><span class="token punctuation">(</span>on_change_cb cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">static</span> u_int64_t s_fun_id <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token operator">++</span>s_fun_id<span class="token punctuation">;</span>
+    m_cbs<span class="token punctuation">[</span>s_fun_id<span class="token punctuation">]</span> <span class="token operator">=</span> cb<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> s_fun_id<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 删除回调函数
+   * @param[in] key 回调函数的唯一id
+   */</span>
+  <span class="token keyword">void</span> <span class="token function">delListener</span><span class="token punctuation">(</span>u_int64_t key<span class="token punctuation">,</span> on_change_cb<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    m_cbs<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">/**
+   * @brief 获取回调函数
+   * @param[in] key 回调函数的唯一id
+   * @return 如果存在返回对应的回调函数,否则返回nullptr
+   */</span>
+  on_change_cb <span class="token function">getListener</span><span class="token punctuation">(</span>u_int64_t key<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    RWMutexType<span class="token double-colon punctuation">::</span>ReadLock <span class="token function">lock</span><span class="token punctuation">(</span>m_mutex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">auto</span> it <span class="token operator">=</span> m_cbs<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> it <span class="token operator">==</span> m_cbs<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token keyword">nullptr</span> <span class="token operator">:</span> it<span class="token operator">-></span>second<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">/**
+   * @brief 清理所有的回调函数
+   *
+   */</span>
+  <span class="token keyword">void</span> <span class="token function">clearListener</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> m_cbs<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+ <span class="token keyword">private</span><span class="token operator">:</span>
+  RWMutexType m_mutex<span class="token punctuation">;</span>
+  T m_val<span class="token punctuation">;</span>
+  <span class="token comment">// 变更回调函数组，u_int64_t key 要求唯一， 一般可以用hash</span>
+  std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>u_int64_t<span class="token punctuation">,</span> on_change_cb<span class="token operator">></span> m_cbs<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="Config"><a href="#Config" class="headerlink" title="Config"></a>Config</h3><p>ConfigVar的管理类，负责管理全部的ConfigVar对象，单例模式。</p>
+<p>提供Lookup方法，用于根据配置名称查询配置项。如果调用Lookup查询时同时提供了默认值和配置项的描述信息，那么在未找到对应的配置时，会自动创建一个对应的配置项，这样就保证了配置模块定义即可用的特性。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @brief 获取/创建对应参数名的配置参数
+ * @param[in] name 配置参数名称
+ * @param[in] default_value 参数默认值
+ * @param[in] description 参数描述
+ * @details 获取参数名为name的配置参数,如果存在直接返回
+ *          如果不存在,创建参数配置并用default_value赋值
+ * @return 返回对应的配置参数,如果参数名存在但是类型不匹配则返回nullptr
+ * @exception 如果参数名包含非法字符[^0-9a-z_.] 抛出异常 std::invalid_argument
+ */</span>
+<span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">static</span> <span class="token keyword">typename</span> <span class="token class-name">ConfigVar</span><span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token double-colon punctuation">::</span>ptr <span class="token function">Lookup</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>name<span class="token punctuation">,</span>
+                                         <span class="token keyword">const</span> T <span class="token operator">&amp;</span>default_value<span class="token punctuation">,</span>
+                                         <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>description<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  RWMutexType<span class="token double-colon punctuation">::</span>WriteLock <span class="token function">lock</span><span class="token punctuation">(</span><span class="token function">GetMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">auto</span> it <span class="token operator">=</span> <span class="token function">GetDatas</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>it <span class="token operator">!=</span> <span class="token function">GetDatas</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">auto</span> tmp <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">dynamic_pointer_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>ConfigVar<span class="token operator">&lt;</span>T<span class="token operator">>></span></span></span><span class="token punctuation">(</span>it<span class="token operator">-></span>second<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>tmp<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">SYLAR_LOG_INFO</span><span class="token punctuation">(</span><span class="token function">SYLAR_LOG_ROOT</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">"Lookup name = "</span> <span class="token operator">&lt;&lt;</span> name <span class="token operator">&lt;&lt;</span> <span class="token string">" exists"</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> tmp<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span><span class="token function">SYLAR_LOG_ROOT</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">"Lookup name= "</span> <span class="token operator">&lt;&lt;</span> name <span class="token operator">&lt;&lt;</span> <span class="token string">" exits but type not "</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token keyword">typeid</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">name</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" read_type= "</span> <span class="token operator">&lt;&lt;</span> it<span class="token operator">-></span>second<span class="token operator">-></span><span class="token function">getTypeName</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+          <span class="token operator">&lt;&lt;</span> <span class="token string">" "</span> <span class="token operator">&lt;&lt;</span> it<span class="token operator">-></span>second<span class="token operator">-></span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>name<span class="token punctuation">.</span><span class="token function">find_first_not_of</span><span class="token punctuation">(</span><span class="token string">"abcdefghijklmnopqrstuvwxyz._12345678"</span><span class="token punctuation">)</span> <span class="token operator">!=</span>
+      std<span class="token double-colon punctuation">::</span>string<span class="token double-colon punctuation">::</span>npos<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_INFO</span><span class="token punctuation">(</span><span class="token function">SYLAR_LOG_ROOT</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"Lookup name invalid "</span> <span class="token operator">&lt;&lt;</span> name<span class="token punctuation">;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">invalid_argument</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">typename</span> <span class="token class-name">ConfigVar</span><span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token double-colon punctuation">::</span>ptr v <span class="token operator">=</span>
+      std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>ConfigVar<span class="token operator">&lt;</span>T<span class="token operator">>></span></span></span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> default_value<span class="token punctuation">,</span> description<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// s_datas[name] = v;</span>
+  <span class="token function">GetDatas</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span>name<span class="token punctuation">]</span> <span class="token operator">=</span> v<span class="token punctuation">;</span>
+  <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>LoadFromYaml用于从YAML对象指定的配置文件路径中加载配置。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">Config</span><span class="token double-colon punctuation">::</span><span class="token function">LoadFromYaml</span><span class="token punctuation">(</span><span class="token keyword">const</span> YAML<span class="token double-colon punctuation">::</span>Node <span class="token operator">&amp;</span>root<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> <span class="token keyword">const</span> YAML<span class="token double-colon punctuation">::</span>Node<span class="token operator">>></span> all_nodes<span class="token punctuation">;</span>
+  <span class="token function">ListAllMember</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">,</span> root<span class="token punctuation">,</span> all_nodes<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> <span class="token operator">&amp;</span>i <span class="token operator">:</span> all_nodes<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span>string key <span class="token operator">=</span> i<span class="token punctuation">.</span>first<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">continue</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    std<span class="token double-colon punctuation">::</span><span class="token function">transform</span><span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> key<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> key<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token double-colon punctuation">::</span>tolower<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ConfigVarBase<span class="token double-colon punctuation">::</span>ptr var <span class="token operator">=</span> <span class="token function">LookupBase</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>var<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>i<span class="token punctuation">.</span>second<span class="token punctuation">.</span><span class="token function">IsScalar</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        var<span class="token operator">-></span><span class="token function">fromString</span><span class="token punctuation">(</span>i<span class="token punctuation">.</span>second<span class="token punctuation">.</span><span class="token function">Scalar</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>stringstream ss<span class="token punctuation">;</span>
+        ss <span class="token operator">&lt;&lt;</span> i<span class="token punctuation">.</span>second<span class="token punctuation">;</span>
+        var<span class="token operator">-></span><span class="token function">fromString</span><span class="token punctuation">(</span>ss<span class="token punctuation">.</span><span class="token function">str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>Config的全部成员变量和方法都是static类型，保证了全局只有一个实例。这里要注意静态函数和静态变量初始化问题：<br>静态函数先初始化，静态变量还未初始化，就到用此静态变量时，会出现问题。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 创建全局变量，静态成员的话，静态成员的初始化的顺序，比调用此成员的方法晚，就会出现内存错误</span>
+<span class="token comment">/**
+ * @brief 配置项的RWMutex
+ */</span>
+<span class="token keyword">static</span> RWMutexType <span class="token operator">&amp;</span><span class="token function">GetMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">static</span> RWMutexType s_mutex<span class="token punctuation">;</span>
+  <span class="token keyword">return</span> s_mutex<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.midlane.top/wiki/pages/viewpage.action?pageId=10061021">https://www.midlane.top/wiki/pages/viewpage.action?pageId=10061021</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/%E4%BB%BF%E5%87%BD%E6%95%B0/">仿函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/%E6%A8%A1%E5%9D%97/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
