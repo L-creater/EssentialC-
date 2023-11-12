@@ -3,7 +3,7 @@
   <head>
      
     <meta charset="UTF-8">
-    <title>std::move - 木偶人</title>
+    <title>木偶人</title>
     <link rel="shortcut icon" href="/static/img/icon.png">
     <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
     
@@ -15,7 +15,7 @@
 
     <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
     <meta property="og:site_name" content="木偶人">
-    <meta property="og:title" content="std::move"/>
+    <meta property="og:title" content=""/>
     
     <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
     
@@ -52,53 +52,50 @@
 
     <main>
     <div class="wrap min">
-        <section class="post-title">
-            <h2>std::move</h2>
-            <div class="post-meta">
-                <time class="date">2023.08.08</time>
+        <section class="home-title">
+            <h1>木偶人</h1>
+            <span></span>
             
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            </div>
-        </section>
-        <article class="post-content">
-        
-            <blockquote>
-<p>move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。</p>
-</blockquote>
-<blockquote>
-<p>这里要注意对move语义的<strong>误解</strong>,move只是转移了资源的控制权，本质上是将左值强制转换为右值引用，以用于move语义，避免含有资源的对象发生无所谓的拷贝。<strong>move对于拥有形如对内存、文件句柄等资源的成员的对象有效。如果是一些基本类型，比如int和char[10]数组等，如果使用move仍然会发生拷贝(因为没有对应的移动构造函数)，所以说对含有资源的对象来说更有意义</strong></p>
-</blockquote>
+    <div class="home-social">
+    
+        <a target="_blank" rel="noopener" href="https://github.com/lyt-s" title="Github">
+            <i class="fa fa-github"></i>
+        </a>
+    
+        <a href="https://lyt-s.github.io/" title="首页">
+            <i class="fa fa-home"></i>
+        </a>
+    
+    </div>
 
-        </article>
-        <section class="post-near">
-            <ul>
-                
-                    <li>上一篇: <a href="/2023/08/08/cpp/std-ref%E5%92%8Cstd-cref/">std::ref和std::cref</a></li>
-                
-                
-                    <li>下一篇: <a href="/2023/08/07/test/">test</a></li>
-                
-            </ul>
+
         </section>
-        
-            <section class="post-tags">
-            <a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a>
-            </section>
-        
+        <section class="home-posts">
     
-        <section class="post-author">
-        
-            <figure class="author-avatar">
-                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
-            </figure>
-        
-            <div class="author-info">
-                <h4>木偶人</h4>
-                <p>...</p>
-            </div>
+    <div class="post-item">
+        <h2>
+            <a href="/2023/08/07/test/">test</a>
+        </h2>
+    
+        <p>
+测试
+
+</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.08.07</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag">测试</a></span>
+            
+        </div>
+    </div>
+    
+</section>
+
+        <section class="page-navigator">
+            <a class="extend prev" rel="prev" href="/page/3/">«</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
         </section>
-    
     </div>
 </main>
 

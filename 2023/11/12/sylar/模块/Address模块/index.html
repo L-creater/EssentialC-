@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>Address模块 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="Address模块"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>Address模块</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.12</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p><img src="/../../../images/Address%E7%B1%BB%E5%9B%BE.png" alt="Alt text"></p>
+<p>Address：所有网络地址的基类，抽象类，对应sockaddr类型，但只包含抽象方法，不包含具体的成员。除此外，Address作为地址类还提供了网络地址查询及网卡地址查询功能。</p>
+<h2 id="Address"><a href="#Address" class="headerlink" title="Address"></a>Address</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">IPAddress</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ * @brief 网络地址的基类,抽象类
+ */</span>
+<span class="token keyword">class</span> <span class="token class-name">Address</span> <span class="token punctuation">&#123;</span>
+ <span class="token keyword">public</span><span class="token operator">:</span>
+  <span class="token keyword">typedef</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>Address<span class="token operator">></span> ptr<span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 通过sockaddr指针创建Address
+   * @param[in] addr sockaddr指针
+   * @param[in] addrlen sockaddr的长度
+   * @return 返回和sockaddr相匹配的Address,失败返回nullptr
+   */</span>
+  <span class="token keyword">static</span> Address<span class="token double-colon punctuation">::</span>ptr <span class="token function">Create</span><span class="token punctuation">(</span><span class="token keyword">const</span> sockaddr <span class="token operator">*</span>addr<span class="token punctuation">,</span> socklen_t addrlen<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 通过host地址返回对应条件的所有Address
+   * @param[out] result 保存满足条件的Address
+   * @param[in] host 域名,服务器名等.举例: www.sylar.top[:80] (方括号为可选内容)
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @param[in] type socketl类型SOCK_STREAM、SOCK_DGRAM 等
+   * @param[in] protocol 协议,IPPROTO_TCP、IPPROTO_UDP 等
+   * @return 返回是否转换成功
+   */</span>
+  <span class="token keyword">static</span> <span class="token keyword">bool</span> <span class="token function">Lookup</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span> <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span>
+                     <span class="token keyword">int</span> family <span class="token operator">=</span> AF_INET<span class="token punctuation">,</span> <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">int</span> protocol <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 通过host地址返回对应条件的任意Address
+   * @param[in] host 域名,服务器名等.举例: www.sylar.top[:80] (方括号为可选内容)
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @param[in] type socketl类型SOCK_STREAM、SOCK_DGRAM 等
+   * @param[in] protocol 协议,IPPROTO_TCP、IPPROTO_UDP 等
+   * @return 返回满足条件的任意Address,失败返回nullptr
+   */</span>
+  <span class="token keyword">static</span> Address<span class="token double-colon punctuation">::</span>ptr <span class="token function">LookupAny</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span> <span class="token keyword">int</span> family <span class="token operator">=</span> AF_INET<span class="token punctuation">,</span>
+                                <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">int</span> protocol <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 通过host地址返回对应条件的任意IPAddress
+   * @param[in] host 域名,服务器名等.举例: www.sylar.top[:80] (方括号为可选内容)
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @param[in] type socketl类型SOCK_STREAM、SOCK_DGRAM 等
+   * @param[in] protocol 协议,IPPROTO_TCP、IPPROTO_UDP 等
+   * @return 返回满足条件的任意IPAddress,失败返回nullptr
+   */</span>
+  <span class="token keyword">static</span> std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>IPAddress<span class="token operator">></span> <span class="token function">LookupAnyIPAddress</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span>
+                                                       <span class="token keyword">int</span> family <span class="token operator">=</span> AF_INET<span class="token punctuation">,</span>
+                                                       <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
+                                                       <span class="token keyword">int</span> protocol <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">/**
+   * @brief 返回本机所有网卡的&lt;网卡名, 地址, 子网掩码位数>
+   * @param[out] result 保存本机所有地址
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @return 是否获取成功
+   */</span>
+  <span class="token keyword">static</span> <span class="token keyword">bool</span> <span class="token function">GetInterfaceAddresses</span><span class="token punctuation">(</span>
+      std<span class="token double-colon punctuation">::</span>multimap<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token punctuation">,</span> <span class="token keyword">uint32_t</span><span class="token operator">></span> <span class="token operator">></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span>
+      <span class="token keyword">int</span> family <span class="token operator">=</span> AF_INET<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">/**
+   * @brief 获取指定网卡的地址和子网掩码位数
+   * @param[out] result 保存指定网卡所有地址
+   * @param[in] iface 网卡名称
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @return 是否获取成功
+   */</span>
+  <span class="token keyword">static</span> <span class="token keyword">bool</span> <span class="token function">GetInterfaceAddresses</span><span class="token punctuation">(</span>
+      std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token punctuation">,</span> <span class="token keyword">uint32_t</span><span class="token operator">></span> <span class="token operator">></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span>
+      <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>iface<span class="token punctuation">,</span> <span class="token keyword">int</span> family <span class="token operator">=</span> AF_INET<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Address<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token keyword">const</span> sockaddr <span class="token operator">*</span>address<span class="token punctuation">,</span> socklen_t addrlen<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>address <span class="token operator">==</span> <span class="token keyword">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  Address<span class="token double-colon punctuation">::</span>ptr result<span class="token punctuation">;</span>
+  <span class="token keyword">switch</span> <span class="token punctuation">(</span>address<span class="token operator">-></span>sa_family<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">case</span> AF_INET<span class="token operator">:</span>
+      result<span class="token punctuation">.</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">IPv4Address</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token keyword">const</span> sockaddr_in <span class="token operator">*</span><span class="token punctuation">)</span>address<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+    <span class="token keyword">case</span> AF_INET6<span class="token operator">:</span>
+      result<span class="token punctuation">.</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">IPv6Address</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token keyword">const</span> sockaddr_in6 <span class="token operator">*</span><span class="token punctuation">)</span>address<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+    <span class="token keyword">default</span><span class="token operator">:</span>
+      result<span class="token punctuation">.</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">UnknownAddress</span><span class="token punctuation">(</span><span class="token operator">*</span>address<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">// SYLAR_LOG_ERROR(g_logger) &lt;&lt; "result: " &lt;&lt; result->toString();</span>
+  <span class="token keyword">return</span> result<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>下面两个都是调用的<code>Lookup</code></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span> result<span class="token punctuation">;</span>
+Address<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">LookupAny</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span> <span class="token keyword">int</span> family<span class="token punctuation">,</span> <span class="token keyword">int</span> type<span class="token punctuation">,</span>
+                                <span class="token keyword">int</span> protocol<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">Lookup</span><span class="token punctuation">(</span>result<span class="token punctuation">,</span> host<span class="token punctuation">,</span> family<span class="token punctuation">,</span> type<span class="token punctuation">,</span> protocol<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> result<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>IPAddress<span class="token operator">></span> <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">LookupAnyIPAddress</span><span class="token punctuation">(</span><span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span>
+                                                       <span class="token keyword">int</span> family<span class="token punctuation">,</span> <span class="token keyword">int</span> type<span class="token punctuation">,</span>
+                                                       <span class="token keyword">int</span> protocol<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span> result<span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">Lookup</span><span class="token punctuation">(</span>result<span class="token punctuation">,</span> host<span class="token punctuation">,</span> family<span class="token punctuation">,</span> type<span class="token punctuation">,</span> protocol<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> <span class="token operator">&amp;</span>i <span class="token operator">:</span> result<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      IPAddress<span class="token double-colon punctuation">::</span>ptr v <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">dynamic_pointer_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPAddress<span class="token operator">></span></span></span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>v<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> v<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="C-库函数-memchr"><a href="#C-库函数-memchr" class="headerlink" title="C 库函数 - memchr()"></a>C 库函数 - memchr()</h2><h3 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h3><p>C 库函数<code>void *memchr(const void *str, int c, size_t n)</code>在参数 str 所指向的字符串的前 n 个字节中搜索第一次出现字符 c（一个无符号字符）的位置。</p>
+<h3 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token operator">*</span><span class="token function">memchr</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">void</span> <span class="token operator">*</span>str<span class="token punctuation">,</span> <span class="token keyword">int</span> c<span class="token punctuation">,</span> size_t n<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3><ul>
+<li>str – 指向要执行搜索的内存块。</li>
+<li>c – 以 int 形式传递的值，但是函数在每次字节搜索时是使用该值的无符号字符形式。</li>
+<li>n – 要被分析的字节数。</li>
+</ul>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><p>该函数返回一个指向匹配字节的指针，如果在给定的内存区域未出现字符，则返回 NULL。</p>
+<h2 id="substr"><a href="#substr" class="headerlink" title="substr"></a>substr</h2><p>函数的形式为<code>s.substr(pos, count)</code>（pos的默认值是0，n的默认值是s.size() - pos，即不加参数会默认拷贝整个s）</p>
+<h3 id="描述-1"><a href="#描述-1" class="headerlink" title="描述"></a>描述</h3><p>返回子串 <code>[pos, pos + count)</code>。如果请求的子串越过字符串的结尾，即 <code>count</code> 大于 <code>size() - pos</code>（例如 <code>count == npos</code>），那么返回的子串是 <code>[pos, size())</code>。</p>
+<h3 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h3><ul>
+<li>pos - 要包含的首个字符的位置</li>
+<li>count - 子串的长度</li>
+</ul>
+<p>返回值<br>含子串 <code>[pos, pos + count)</code> 或 <code>[pos, size())</code> 的字符串。</p>
+<p>异常<br>在<code>pos &gt; size()</code> 时抛出 <code>std::out_of_range。</code></p>
+<p>如果因为任何原因抛出了异常，那么此函数无效果（强异常安全保证）。</p>
+<h2 id="host-c-str"><a href="#host-c-str" class="headerlink" title="host.c_str()"></a>host.c_str()</h2><p><code>c_str()</code>函数返回一个指向正规C字符串的指针, 内容与本string串相同.</p>
+<p>C++中 <code>c_str( )</code>主要用法就是这是为了与c语言兼容，在c语言中没有string类型，故必须通过string类对象的成员函数<code>c_str()</code>把string 对象转换成c中的字符串样式。</p>
+<p><code>c_str()</code> 以<code>char*</code>形式传回 <code>string</code> 内含字符串。</p>
+<p>示例：<br><code>(const char *)memchr(host.c_str() + 1, &#39;]&#39;, host.size() - 1);</code></p>
+<h2 id="getaddrinfo"><a href="#getaddrinfo" class="headerlink" title="getaddrinfo"></a>getaddrinfo</h2><p><code>int getaddrinfo( const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result );</code><br>函数的作用是帮你设置之后需要的struct，<br>可用于将IP 地址的文本字符串表示形式转换为addrinfo 结构，该结构包含IP 地址和其他信息的sockaddr 结构</p>
+<p>getaddrinfo 函数返回的是一个链表，因为一个主机名可能对应多个IP地址（IPv4和IPv6）。在实际使用中，你可以根据自己的需求选择合适的IP地址进行网络通信。</p>
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><ul>
+<li>hostname​​参数是你想进行连接的服务器的域名，或者IP地址。</li>
+<li>service：​​参数可以是个端口号，比如“​​80​​​”，或者是一个特定服务的名称，比如“​​http​​​”、“​​ftp​​​”、“​​telnet​​​”、“​​smtp​​” 等。</li>
+<li>hints：可以是一个空指针，也可以是一个指向某个addrinfo结构体的指针，调用者在这个结构中填入关于期望返回的信息类型的暗示。举例来说：指定的服务既可支持TCP也可支持UDP，所以调用者可以把hints结构中的ai_socktype成员设置成SOCK_DGRAM使得返回的仅仅是适用于数据报套接口的信息。</li>
+<li>result：本函数通过result指针参数返回一个指向addrinfo结构体链表的指针。</li>
+<li>返回值：0——成功，非0——出错</li>
+</ul>
+<h2 id="Lookup"><a href="#Lookup" class="headerlink" title="Lookup"></a>Lookup</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">  <span class="token comment">/**
+   * @brief 通过host地址返回对应条件的所有Address
+   * @param[out] result 保存满足条件的Address
+   * @param[in] host 域名,服务器名等.举例: www.sylar.top[:80] (方括号为可选内容)
+   * @param[in] family 协议族(AF_INT, AF_INT6, AF_UNIX)
+   * @param[in] type socketl类型SOCK_STREAM、SOCK_DGRAM 等
+   * @param[in] protocol 协议,IPPROTO_TCP、IPPROTO_UDP 等
+   * @return 返回是否转换成功
+   */</span>
+   <span class="token keyword">bool</span> <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">Lookup</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Address<span class="token double-colon punctuation">::</span>ptr<span class="token operator">></span> <span class="token operator">&amp;</span>result<span class="token punctuation">,</span> <span class="token keyword">const</span> std<span class="token double-colon punctuation">::</span>string <span class="token operator">&amp;</span>host<span class="token punctuation">,</span>
+                     <span class="token keyword">int</span> family<span class="token punctuation">,</span> <span class="token keyword">int</span> type<span class="token punctuation">,</span> <span class="token keyword">int</span> protocol<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  addrinfo hints<span class="token punctuation">,</span> <span class="token operator">*</span>results<span class="token punctuation">,</span> <span class="token operator">*</span>next<span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_flags <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_family <span class="token operator">=</span> family<span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_socktype <span class="token operator">=</span> type<span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_protocol <span class="token operator">=</span> protocol<span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_addrlen <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_addr <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_canonname <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+  hints<span class="token punctuation">.</span>ai_next <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span>string node<span class="token punctuation">;</span>
+  <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>service <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 检查 ipv6address service 处理[:80] // 为什么时0,大小端问题？</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>host<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> host<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token char">'['</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>endipv6 <span class="token operator">=</span>
+        <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">memchr</span><span class="token punctuation">(</span>host<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token char">']'</span><span class="token punctuation">,</span> host<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 找到 ']'</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>endipv6<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// todo check out of range</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span>endipv6 <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token char">':'</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        service <span class="token operator">=</span> endipv6 <span class="token operator">+</span> <span class="token number">2</span><span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+      node <span class="token operator">=</span> host<span class="token punctuation">.</span><span class="token function">substr</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> endipv6 <span class="token operator">-</span> host<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">//检查 node serivce</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>node<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    service <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">memchr</span><span class="token punctuation">(</span>host<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token char">':'</span><span class="token punctuation">,</span> host<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>service<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">memchr</span><span class="token punctuation">(</span>service <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token char">':'</span><span class="token punctuation">,</span> host<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> host<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> service <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        node <span class="token operator">=</span> host<span class="token punctuation">.</span><span class="token function">substr</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> service <span class="token operator">-</span> host<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token operator">++</span>service<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>node<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    node <span class="token operator">=</span> host<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">int</span> error <span class="token operator">=</span> <span class="token function">getaddrinfo</span><span class="token punctuation">(</span>node<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> service<span class="token punctuation">,</span> <span class="token operator">&amp;</span>hints<span class="token punctuation">,</span> <span class="token operator">&amp;</span>results<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span>
+        <span class="token operator">&lt;&lt;</span> <span class="token string">"Address::Lookup getaddress("</span> <span class="token operator">&lt;&lt;</span> host <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> family <span class="token operator">&lt;&lt;</span> <span class="token string">","</span> <span class="token operator">&lt;&lt;</span> type
+        <span class="token operator">&lt;&lt;</span> <span class="token string">") err="</span> <span class="token operator">&lt;&lt;</span> error <span class="token operator">&lt;&lt;</span> <span class="token string">"errstr="</span> <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  next <span class="token operator">=</span> results<span class="token punctuation">;</span>
+  <span class="token keyword">while</span> <span class="token punctuation">(</span>next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token function">Create</span><span class="token punctuation">(</span>next<span class="token operator">-></span>ai_addr<span class="token punctuation">,</span> <span class="token punctuation">(</span>socklen_t<span class="token punctuation">)</span>next<span class="token operator">-></span>ai_addrlen<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// SYLAR_LOG_INFO(g_logger) &lt;&lt; ((sockaddr_in</span>
+    <span class="token comment">// *)next->ai_addr)->sin_addr.s_addr;</span>
+    next <span class="token operator">=</span> next<span class="token operator">-></span>ai_next<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token function">freeaddrinfo</span><span class="token punctuation">(</span>results<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token operator">!</span>result<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="IPAddress"><a href="#IPAddress" class="headerlink" title="IPAddress"></a>IPAddress</h2><h3 id="create"><a href="#create" class="headerlink" title="create"></a>create</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">IPAddress<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">IPAddress</span><span class="token double-colon punctuation">::</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>address<span class="token punctuation">,</span> <span class="token keyword">uint16_t</span> port<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  addrinfo hints<span class="token punctuation">,</span> <span class="token operator">*</span>results<span class="token punctuation">;</span>
+  <span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>hints<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>hints<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// AI_NUMERICHOST 标志用于指示 getaddrinfo</span>
+  <span class="token comment">// 函数将主机名参数视为一个数值IP地址而不是一个主机名字符串。这对于需要直接使用IP地址而不是主机名的情况很有用。</span>
+  <span class="token comment">// 当设置了 AI_NUMERICHOST 标志时，getaddrinfo</span>
+  <span class="token comment">// 将不会尝试解析主机名，而是直接将主机名参数作为一个IP地址处理。</span>
+  hints<span class="token punctuation">.</span>ai_flags <span class="token operator">=</span> AI_NUMERICHOST<span class="token punctuation">;</span>
+  <span class="token comment">// ​ai_family​​​设置成了​​AF_UNSPEC​​​，也就意味着我压根不在意我们用IPv4还是IPv6,解析过程中支持多种地址类型。</span>
+  hints<span class="token punctuation">.</span>ai_family <span class="token operator">=</span> AF_UNSPEC<span class="token punctuation">;</span>
+  <span class="token comment">// ​getaddrinfo()​​​会在堆内存中创建​​results​指向的链表，使用完之后一定要使用​​freeaddrinfo()​​进行内存释放。</span>
+  <span class="token keyword">int</span> error <span class="token operator">=</span> <span class="token function">getaddrinfo</span><span class="token punctuation">(</span>address<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>hints<span class="token punctuation">,</span> <span class="token operator">&amp;</span>results<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">SYLAR_LOG_DEBUG</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"IPAddress::Create("</span> <span class="token operator">&lt;&lt;</span> address <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span> <span class="token operator">&lt;&lt;</span> port
+                              <span class="token operator">&lt;&lt;</span> <span class="token string">") error="</span> <span class="token operator">&lt;&lt;</span> error <span class="token operator">&lt;&lt;</span> <span class="token string">" errno="</span> <span class="token operator">&lt;&lt;</span> errno
+                              <span class="token operator">&lt;&lt;</span> <span class="token string">" errstr="</span> <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+    IPAddress<span class="token double-colon punctuation">::</span>ptr result <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">dynamic_pointer_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPAddress<span class="token operator">></span></span></span><span class="token punctuation">(</span>
+        <span class="token class-name">Address</span><span class="token double-colon punctuation">::</span><span class="token function">Create</span><span class="token punctuation">(</span>results<span class="token operator">-></span>ai_addr<span class="token punctuation">,</span> <span class="token punctuation">(</span>socklen_t<span class="token punctuation">)</span>results<span class="token operator">-></span>ai_addrlen<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      result<span class="token operator">-></span><span class="token function">setPort</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token function">freeaddrinfo</span><span class="token punctuation">(</span>results<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> result<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">freeaddrinfo</span><span class="token punctuation">(</span>results<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="IPv4Address"><a href="#IPv4Address" class="headerlink" title="IPv4Address"></a>IPv4Address</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">IPv4Address<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">IPv4Address</span><span class="token double-colon punctuation">::</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>address<span class="token punctuation">,</span> <span class="token keyword">uint16_t</span> port<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 创建 IPv4Address 对象的智能指针</span>
+  IPv4Address<span class="token double-colon punctuation">::</span>ptr rt <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPv4Address<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 设置端口号，字节序转换为大端序</span>
+  rt<span class="token operator">-></span>m_addr<span class="token punctuation">.</span>sin_port <span class="token operator">=</span> <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 将字符串形式的 IP 地址转换为二进制形式</span>
+  <span class="token keyword">int</span> result <span class="token operator">=</span> <span class="token function">inet_pton</span><span class="token punctuation">(</span>AF_INET<span class="token punctuation">,</span> address<span class="token punctuation">,</span> <span class="token operator">&amp;</span>rt<span class="token operator">-></span>m_addr<span class="token punctuation">.</span>sin_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 检查转换是否成功</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>result <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 转换失败，记录错误日志并返回空指针</span>
+    <span class="token function">SYLAR_LOG_ERROR</span><span class="token punctuation">(</span>g_logger<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"IPv4Address::Create("</span> <span class="token operator">&lt;&lt;</span> address <span class="token operator">&lt;&lt;</span> <span class="token string">", "</span>
+                              <span class="token operator">&lt;&lt;</span> port <span class="token operator">&lt;&lt;</span> <span class="token string">") rt="</span> <span class="token operator">&lt;&lt;</span> result <span class="token operator">&lt;&lt;</span> <span class="token string">" errno="</span> <span class="token operator">&lt;&lt;</span> errno
+                              <span class="token operator">&lt;&lt;</span> <span class="token string">" errstr="</span> <span class="token operator">&lt;&lt;</span> <span class="token function">strerror</span><span class="token punctuation">(</span>errno<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 返回创建的 IPv4Address 对象智能指针</span>
+  <span class="token keyword">return</span> rt<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>ostream <span class="token operator">&amp;</span><span class="token class-name">IPv4Address</span><span class="token double-colon punctuation">::</span><span class="token function">insert</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>ostream <span class="token operator">&amp;</span>os<span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 将 IPv4 地址的二进制形式进行字节序转换</span>
+  <span class="token keyword">uint32_t</span> addr <span class="token operator">=</span> <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>m_addr<span class="token punctuation">.</span>sin_addr<span class="token punctuation">.</span>s_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 将转换后的地址按照点分十进制形式输出到流中</span>
+  os <span class="token operator">&lt;&lt;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>addr <span class="token operator">>></span> <span class="token number">24</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xff</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"."</span> <span class="token operator">&lt;&lt;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>addr <span class="token operator">>></span> <span class="token number">16</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xff</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"."</span>
+     <span class="token operator">&lt;&lt;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>addr <span class="token operator">>></span> <span class="token number">8</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xff</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"."</span> <span class="token operator">&lt;&lt;</span> <span class="token punctuation">(</span>addr <span class="token operator">&amp;</span> <span class="token number">0xff</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 输出端口号（字节序已转换）</span>
+  os <span class="token operator">&lt;&lt;</span> <span class="token string">": "</span> <span class="token operator">&lt;&lt;</span> <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span>m_addr<span class="token punctuation">.</span>sin_port<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 返回更新后的输出流对象</span>
+  <span class="token keyword">return</span> os<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这个函数使用了模板，其中 T 是一个类型参数，表示返回值的类型。函数的目的是创建一个掩码，用于设置指定位数为1。</p>
+<p>函数内部，首先通过 sizeof(T) 获取类型 T 的字节大小，乘以8得到总位数。然后，从总位数中减去 bits 得到需要设置为0的位数。</p>
+<p>接下来，使用位操作符 &lt;&lt; 将1左移需要设置为0的位数的位置，然后减去1。这样，就得到了一个掩码，其中指定位数为1，其余位数为0。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token operator">></span>
+<span class="token keyword">static</span> T <span class="token function">CreateMask</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> bits<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&lt;&lt;</span> <span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">8</span> <span class="token operator">-</span> bits<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">IPAddress<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">IPv4Address</span><span class="token double-colon punctuation">::</span><span class="token function">broadcastAddress</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> prefix_len<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>prefix_len <span class="token operator">></span> <span class="token number">32</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 前缀长度超过32，无效，返回空指针</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 创建一个与当前地址相同的 sockaddr_in 结构体对象</span>
+  sockaddr_in <span class="token function">baddr</span><span class="token punctuation">(</span>m_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 将广播地址的主机部分设置为前缀位全为1</span>
+  baddr<span class="token punctuation">.</span>sin_addr<span class="token punctuation">.</span>s_addr <span class="token operator">|=</span>
+      <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">CreateMask</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">uint32_t</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>prefix_len<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 创建并返回一个指向新的 IPv4Address 对象的智能指针</span>
+  <span class="token keyword">return</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPv4Address<span class="token operator">></span></span></span><span class="token punctuation">(</span>baddr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>networkAddress 函数，用于计算指定前缀长度的网络地址。它接受一个 prefix_len 参数作为前缀长度，并返回一个指向 IPv4Address 对象的智能指针，表示计算得到的网络地址。</p>
+<p>在函数内部，首先检查传入的前缀长度 prefix_len 是否超过了有效范围。如果超过了32，表示无效的前缀长度，函数返回空指针。</p>
+<p>接着，代码创建了一个与当前地址相同的 sockaddr_in 结构体对象 baddr，即使用当前地址的 IP 地址和端口号初始化了 baddr。</p>
+<p>然后，代码使用 CreateMask 函数创建一个前缀位全为1的掩码，并将其与网络地址的主机部分进行按位与操作，将主机部分的相应位设置为0，从而得到网络地址。</p>
+<p>最后，通过调用<code>std::make_shared&lt;IPv4Address&gt;(baddr)</code> 创建一个新的 IPv4Address 对象，并返回指向该对象的智能指针。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">IPAddress<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">IPv4Address</span><span class="token double-colon punctuation">::</span><span class="token function">networkAddress</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> prefix_len<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>prefix_len <span class="token operator">></span> <span class="token number">32</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 前缀长度超过32，无效，返回空指针</span>
+    <span class="token keyword">return</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 创建一个与当前地址相同的 sockaddr_in 结构体对象</span>
+  sockaddr_in <span class="token function">baddr</span><span class="token punctuation">(</span>m_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 将网络地址的主机部分设置为前缀位全为0</span>
+  baddr<span class="token punctuation">.</span>sin_addr<span class="token punctuation">.</span>s_addr <span class="token operator">&amp;=</span>
+      <span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">CreateMask</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">uint32_t</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>prefix_len<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 创建并返回一个指向新的 IPv4Address 对象的智能指针</span>
+  <span class="token keyword">return</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPv4Address<span class="token operator">></span></span></span><span class="token punctuation">(</span>baddr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>计算指定前缀长度的子网掩码。它接受一个 prefix_len 参数作为前缀长度，并返回一个指向 IPv4Address 对象的智能指针，表示计算得到的子网掩码。</p>
+<p>在函数内部，首先创建一个 sockaddr_in 结构体对象 subnet，并使用 memset 函数将其内存空间初始化为0。然后，设置 subnet 的地址族为 AF_INET，表示IPv4地址族。</p>
+<p>代码使用 CreateMask 函数创建一个前缀位全为1的掩码，并对其进行按位取反操作 ~，将前缀位设置为0。</p>
+<p>最后，将计算得到的子网掩码的主机部分赋值给 subnet.sin_addr.s_addr，表示子网掩码的二进制形式。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">IPAddress<span class="token double-colon punctuation">::</span>ptr <span class="token class-name">IPv4Address</span><span class="token double-colon punctuation">::</span><span class="token function">subnetMask</span><span class="token punctuation">(</span><span class="token keyword">uint32_t</span> prefix_len<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  sockaddr_in subnet<span class="token punctuation">;</span>
+  <span class="token function">memset</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>subnet<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>subnet<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  subnet<span class="token punctuation">.</span>sin_family <span class="token operator">=</span> AF_INET<span class="token punctuation">;</span>
+
+  <span class="token comment">// 将子网掩码的主机部分设置为前缀位全为0</span>
+  subnet<span class="token punctuation">.</span>sin_addr<span class="token punctuation">.</span>s_addr <span class="token operator">=</span>
+      <span class="token operator">~</span><span class="token function">byteswapOnBigEndian</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">CreateMask</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">uint32_t</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>prefix_len<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 创建并返回一个指向新的 IPv4Address 对象的智能指针</span>
+  <span class="token keyword">return</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_shared</span><span class="token generic class-name"><span class="token operator">&lt;</span>IPv4Address<span class="token operator">></span></span></span><span class="token punctuation">(</span>subnet<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/12/sylar/%E6%A8%A1%E5%9D%97/Address%E6%A8%A1%E5%9D%97/">Address模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/%E4%BB%BF%E5%87%BD%E6%95%B0/">仿函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
