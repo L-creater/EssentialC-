@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>终章-sylar总结 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="终章-sylar总结"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>终章-sylar总结</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.17</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>项目结构</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token punctuation">.</span>
+├── CMakeLists<span class="token punctuation">.</span>txt
+├── README<span class="token punctuation">.</span>md
+├── bin
+│   ├── examples
+│   ├── root<span class="token punctuation">.</span>txt
+│   ├── samples
+│   ├── system<span class="token punctuation">.</span>txt
+│   └── tests
+├── build
+│   ├── CMakeCache<span class="token punctuation">.</span>txt
+│   ├── CMakeFiles
+│   ├── build<span class="token punctuation">.</span>ninja
+│   ├── cmake_install<span class="token punctuation">.</span>cmake
+│   ├── compile_commands<span class="token punctuation">.</span>json
+│   ├── examples
+│   ├── samples
+│   ├── sylar
+│   └── tests
+├── cmake
+│   ├── FindPackages<span class="token punctuation">.</span>cmake
+│   └── utils<span class="token punctuation">.</span>cmake
+├── examples
+│   ├── CMakeLists<span class="token punctuation">.</span>txt
+│   └── echo_server<span class="token punctuation">.</span>cc
+├── lib
+│   └── libsylar<span class="token punctuation">.</span>so
+├── samples
+│   ├── CMakeLists<span class="token punctuation">.</span>txt
+│   └── my_http_server<span class="token punctuation">.</span>cc
+├── script
+│   └── install_thirdparty<span class="token punctuation">.</span>sh
+├── sylar
+│   ├── CMakeLists<span class="token punctuation">.</span>txt
+│   ├── Doxyfile
+│   ├── address<span class="token punctuation">.</span>cc
+│   ├── address<span class="token punctuation">.</span>h
+│   ├── application<span class="token punctuation">.</span>cc
+│   ├── application<span class="token punctuation">.</span>h
+│   ├── bytearray<span class="token punctuation">.</span>cc
+│   ├── bytearray<span class="token punctuation">.</span>h
+│   ├── config<span class="token punctuation">.</span>cc
+│   ├── config<span class="token punctuation">.</span>h
+│   ├── daemon<span class="token punctuation">.</span>cc
+│   ├── daemon<span class="token punctuation">.</span>h
+│   ├── endian<span class="token punctuation">.</span>h
+│   ├── env<span class="token punctuation">.</span>cc
+│   ├── env<span class="token punctuation">.</span>h
+│   ├── fd_manager<span class="token punctuation">.</span>cc
+│   ├── fd_manager<span class="token punctuation">.</span>h
+│   ├── fiber<span class="token punctuation">.</span>cc
+│   ├── fiber<span class="token punctuation">.</span>h
+│   ├── hook<span class="token punctuation">.</span>cc
+│   ├── hook<span class="token punctuation">.</span>h
+│   ├── http
+│   ├── iomanager<span class="token punctuation">.</span>cc
+│   ├── iomanager<span class="token punctuation">.</span>h
+│   ├── log<span class="token punctuation">.</span>cc
+│   ├── log<span class="token punctuation">.</span>h
+│   ├── macro<span class="token punctuation">.</span>h
+│   ├── noncopyable<span class="token punctuation">.</span>h
+│   ├── schedule<span class="token punctuation">.</span>cc
+│   ├── schedule<span class="token punctuation">.</span>h
+│   ├── singleton<span class="token punctuation">.</span>h
+│   ├── socket<span class="token punctuation">.</span>cc
+│   ├── socket<span class="token punctuation">.</span>h
+│   ├── socket_stream<span class="token punctuation">.</span>cc
+│   ├── socket_stream<span class="token punctuation">.</span>h
+│   ├── stream<span class="token punctuation">.</span>cc
+│   ├── stream<span class="token punctuation">.</span>h
+│   ├── tcp_server<span class="token punctuation">.</span>cc
+│   ├── tcp_server<span class="token punctuation">.</span>h
+│   ├── thread<span class="token punctuation">.</span>cc
+│   ├── thread<span class="token punctuation">.</span>h
+│   ├── timer<span class="token punctuation">.</span>cc
+│   ├── timer<span class="token punctuation">.</span>h
+│   ├── uri<span class="token punctuation">.</span>h
+│   ├── uri<span class="token punctuation">.</span>rl
+│   ├── uri<span class="token punctuation">.</span>rl<span class="token punctuation">.</span>cc
+│   ├── util<span class="token punctuation">.</span>cc
+│   └── util<span class="token punctuation">.</span>h
+├── <span class="token keyword">template</span>
+│   └── bin
+├── tests
+│   ├── CMakeLists<span class="token punctuation">.</span>txt
+│   ├── test<span class="token punctuation">.</span>cc
+│   ├── test_address<span class="token punctuation">.</span>cc
+│   ├── test_application<span class="token punctuation">.</span>cc
+│   ├── test_byte_array<span class="token punctuation">.</span>cc
+│   ├── test_config<span class="token punctuation">.</span>cc
+│   ├── test_daemon<span class="token punctuation">.</span>cc
+│   ├── test_env<span class="token punctuation">.</span>cc
+│   ├── test_fiber<span class="token punctuation">.</span>cc
+│   ├── test_hook<span class="token punctuation">.</span>cc
+│   ├── test_http<span class="token punctuation">.</span>cc
+│   ├── test_http_connection<span class="token punctuation">.</span>cc
+│   ├── test_http_parser<span class="token punctuation">.</span>cc
+│   ├── test_http_server<span class="token punctuation">.</span>cc
+│   ├── test_iomanager<span class="token punctuation">.</span>cc
+│   ├── test_lexical_cast<span class="token punctuation">.</span>cc
+│   ├── test_pthread<span class="token punctuation">.</span>cc
+│   ├── test_schedule<span class="token punctuation">.</span>cc
+│   ├── test_socket<span class="token punctuation">.</span>cc
+│   ├── test_tcp_server<span class="token punctuation">.</span>cc
+│   ├── test_uri<span class="token punctuation">.</span>cc
+│   └── test_util<span class="token punctuation">.</span>cc
+├── third_party
+│   ├── boost
+│   ├── json<span class="token operator">-</span>cpp
+│   ├── protobuf
+│   ├── yaml<span class="token operator">-</span>cpp
+│   └── zlib
+└── tree<span class="token punctuation">.</span>txt
+
+<span class="token number">26</span> directories<span class="token punctuation">,</span> <span class="token number">86</span> files
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>sylar 为项目源码路径</li>
+<li>tests 为测试代码路径</li>
+<li>bin 为可执行文件<ul>
+<li>bin&#x2F;tests 为测试的可执行文件</li>
+<li>bin&#x2F;examples 为examples对应的可执行文件</li>
+<li>bin&#x2F;samples 为samples对应的可执行文件</li>
+</ul>
+</li>
+<li>cmake<ul>
+<li>FindPackages.cmake 设置所需要的第三方库。</li>
+<li>utils.cmake 为sylar中的cmake,其中包含设置__FILE__相对路径显示</li>
+</ul>
+</li>
+<li>third_party 所需要的第三方库</li>
+<li>build</li>
+<li>lib 这里存放生成的<code>sylar.so</code>,也可以设置生成到build&#x2F;lib下。</li>
+</ul>
+<h2 id="各个模块之间的关系"><a href="#各个模块之间的关系" class="headerlink" title="各个模块之间的关系"></a>各个模块之间的关系</h2><p><img src="/../../../images/sylar%E6%A1%86%E6%9E%B6%E5%9B%BE.png" alt="Alt text"></p>
+<h2 id="cmake-结构"><a href="#cmake-结构" class="headerlink" title="cmake 结构"></a>cmake 结构</h2><ul>
+<li>根目录<ul>
+<li>sylar</li>
+<li>tests</li>
+<li>examples</li>
+<li>samples</li>
+</ul>
+</li>
+</ul>
+<h3 id="根目录"><a href="#根目录" class="headerlink" title="根目录"></a>根目录</h3><pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token keyword">cmake_minimum_required</span><span class="token punctuation">(</span><span class="token property">VERSION</span> <span class="token number">3.22.1</span><span class="token punctuation">)</span>
+<span class="token keyword">project</span><span class="token punctuation">(</span>sylar<span class="token punctuation">)</span>
+
+<span class="token keyword">set</span><span class="token punctuation">(</span><span class="token variable">CMAKE_VERBOSE_MAKEFILE</span> <span class="token boolean">ON</span><span class="token punctuation">)</span>
+
+<span class="token keyword">set</span><span class="token punctuation">(</span><span class="token variable">CMAKE_CXX_FLAGS</span> <span class="token string">"$ENV&#123;CXXFLAGS&#125; -rdynamic  -O3  -fPIC -g -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined"</span><span class="token punctuation">)</span>
+<span class="token comment">#-------------------------------------------------------------------------------</span>
+
+<span class="token comment"># Find packages in the './third_party' directory</span>
+<span class="token keyword">include</span><span class="token punctuation">(</span>cmake/FindPackages.cmake<span class="token punctuation">)</span>
+
+<span class="token comment"># 修改log生成绝对路径改为相对路径  重定义 __FILE__</span>
+<span class="token keyword">include</span><span class="token punctuation">(</span>cmake/utils.cmake<span class="token punctuation">)</span>
+
+<span class="token comment"># Output compile_commands.json for clangd.</span>
+<span class="token keyword">set</span><span class="token punctuation">(</span><span class="token variable">CMAKE_EXPORT_COMPILE_COMMANDS</span> <span class="token boolean">ON</span><span class="token punctuation">)</span>
+
+<span class="token comment">#-------------------------------------------------------------------------------</span>
+
+<span class="token function">ragelmaker</span><span class="token punctuation">(</span>sylar/uri.rl LIB_SRC <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/sylar<span class="token punctuation">)</span>
+<span class="token function">ragelmaker</span><span class="token punctuation">(</span>sylar/http/http11_parser.rl LIB_SRC <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/sylar/http<span class="token punctuation">)</span>
+<span class="token function">ragelmaker</span><span class="token punctuation">(</span>sylar/http/httpclient_parser.rl LIB_SRC <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/sylar/http<span class="token punctuation">)</span>
+
+<span class="token comment">#-------------------------------------------------------------------------------</span>
+<span class="token comment">#lib</span>
+<span class="token keyword">add_subdirectory</span><span class="token punctuation">(</span>sylar<span class="token punctuation">)</span>
+
+<span class="token comment"># test</span>
+<span class="token keyword">add_subdirectory</span><span class="token punctuation">(</span>tests<span class="token punctuation">)</span>
+<span class="token keyword">add_subdirectory</span><span class="token punctuation">(</span>examples<span class="token punctuation">)</span>
+<span class="token keyword">add_subdirectory</span><span class="token punctuation">(</span>samples<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="sylar"><a href="#sylar" class="headerlink" title="sylar"></a>sylar</h3><pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token keyword">set</span><span class="token punctuation">(</span><span class="token variable">CMAKE_LIBRARY_OUTPUT_DIRECTORY</span> <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/lib<span class="token punctuation">)</span>
+<span class="token comment"># 输出在 build/lib/xx</span>
+<span class="token comment"># set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $&#123;CMAKE_BINARY_DIR&#125;/lib)</span>
+<span class="token keyword">file</span><span class="token punctuation">(</span>GLOB_RECURSE LIB_SRC ./*.cc<span class="token punctuation">)</span>
+
+<span class="token keyword">add_library</span><span class="token punctuation">(</span>sylar <span class="token namespace">SHARED</span> <span class="token punctuation">$&#123;</span>LIB_SRC<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token function">force_redefine_file_macro_for_sources</span><span class="token punctuation">(</span>sylar<span class="token punctuation">)</span> <span class="token comment">#__FILE__</span>
+
+<span class="token keyword">target_include_directories</span><span class="token punctuation">(</span>sylar    <span class="token namespace">PUBLIC</span>   
+                                    <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/sylar
+                                    <span class="token punctuation">$&#123;</span>yaml-cpp_INCLUDE_DIRS<span class="token punctuation">&#125;</span> 
+                                    <span class="token punctuation">$&#123;</span>Boost_INCLUDE_DIRS<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+<span class="token keyword">target_link_libraries</span><span class="token punctuation">(</span>sylar         <span class="token namespace">PUBLIC</span> 
+                                    dl <span class="token comment"># todo  dslym</span>
+                                    pthread
+                                    <span class="token punctuation">$&#123;</span>Boost_LIBRARIES<span class="token punctuation">&#125;</span>
+                                    <span class="token punctuation">$&#123;</span>yaml-cpp_LIBRARIES<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="tests"><a href="#tests" class="headerlink" title="tests"></a>tests</h3><p>可执行文件可以生成在bin&#x2F;tests&#x2F;目录下，也可以设置声成在build&#x2F;bin&#x2F;tests&#x2F;目录下。<br>这里设置的是前者。</p>
+<pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token comment"># 可执行文件输出位置</span>
+<span class="token function">SET</span><span class="token punctuation">(</span><span class="token variable">EXECUTABLE_OUTPUT_PATH</span> <span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/bin/tests<span class="token punctuation">)</span>
+<span class="token comment"># # 可执行文件输出位置 build/bin/test</span>
+<span class="token comment"># set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $&#123;CMAKE_BINARY_DIR&#125;/bin/tests)</span>
+<span class="token comment">#----test-----------------------------------------------------------------------</span>
+<span class="token keyword">add_executable</span><span class="token punctuation">(</span>test test.cc<span class="token punctuation">)</span>
+<span class="token keyword">add_dependencies</span><span class="token punctuation">(</span>test sylar<span class="token punctuation">)</span>
+<span class="token function">force_redefine_file_macro_for_sources</span><span class="token punctuation">(</span>test<span class="token punctuation">)</span> <span class="token comment">#__FILE__</span>
+<span class="token keyword">target_link_libraries</span><span class="token punctuation">(</span>test sylar<span class="token punctuation">)</span>
+<span class="token keyword">target_include_directories</span><span class="token punctuation">(</span>test <span class="token namespace">PRIVATE</span> <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+...
+<span class="token comment"># 下面生成可执行文件，与上面类似，不再列出，可以去看源码。</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="examples"><a href="#examples" class="headerlink" title="examples"></a>examples</h3><p>可执行文件可以生成在bin&#x2F;examples&#x2F;目录下，也可以设置声成在build&#x2F;bin&#x2F;examples&#x2F;目录下。<br>这里设置的是前者。</p>
+<pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token comment"># 可执行文件输出位置</span>
+<span class="token function">SET</span><span class="token punctuation">(</span><span class="token variable">EXECUTABLE_OUTPUT_PATH</span> <span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/bin/examples<span class="token punctuation">)</span>
+<span class="token comment"># # 可执行文件输出位置 build/bin/examples</span>
+<span class="token comment"># set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $&#123;CMAKE_BINARY_DIR&#125;/bin/examples)</span>
+<span class="token comment">#----examples-----------------------------------------------------------------------</span>
+<span class="token keyword">add_executable</span><span class="token punctuation">(</span>echo_server echo_server.cc<span class="token punctuation">)</span>
+<span class="token function">force_redefine_file_macro_for_sources</span><span class="token punctuation">(</span>echo_server<span class="token punctuation">)</span> <span class="token comment">#__FILE__</span>
+<span class="token keyword">target_include_directories</span><span class="token punctuation">(</span>echo_server <span class="token namespace">PRIVATE</span>  <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>
+                                                <span class="token punctuation">$&#123;</span>yaml-cpp_INCLUDE_DIRS<span class="token punctuation">&#125;</span> 
+                                                <span class="token punctuation">$&#123;</span>Boost_INCLUDE_DIRS<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+<span class="token keyword">target_link_libraries</span><span class="token punctuation">(</span>echo_server <span class="token namespace">PRIVATE</span>   sylar<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="samples"><a href="#samples" class="headerlink" title="samples"></a>samples</h3><p>可执行文件可以生成在bin&#x2F;samples&#x2F;目录下，也可以设置声成在build&#x2F;bin&#x2F;samples&#x2F;目录下。<br>这里设置的是前者。</p>
+<pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token comment"># 可执行文件输出位置</span>
+<span class="token function">SET</span><span class="token punctuation">(</span><span class="token variable">EXECUTABLE_OUTPUT_PATH</span> <span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_SOURCE_DIR</span><span class="token punctuation">&#125;</span>/bin/samples<span class="token punctuation">)</span>
+<span class="token comment"># # 可执行文件输出位置 build/bin/samples</span>
+<span class="token comment"># set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $&#123;CMAKE_BINARY_DIR&#125;/bin/samples)</span>
+<span class="token comment">#----examples-----------------------------------------------------------------------</span>
+<span class="token keyword">add_executable</span><span class="token punctuation">(</span>my_http_server my_http_server.cc<span class="token punctuation">)</span>
+<span class="token function">force_redefine_file_macro_for_sources</span><span class="token punctuation">(</span>my_http_server<span class="token punctuation">)</span> <span class="token comment">#__FILE__</span>
+
+<span class="token keyword">target_include_directories</span><span class="token punctuation">(</span>my_http_server <span class="token namespace">PRIVATE</span>  <span class="token punctuation">$&#123;</span><span class="token variable">CMAKE_SOURCE_DIR</span><span class="token punctuation">&#125;</span>
+                                                <span class="token punctuation">$&#123;</span>yaml-cpp_INCLUDE_DIRS<span class="token punctuation">&#125;</span> 
+                                                <span class="token punctuation">$&#123;</span>Boost_INCLUDE_DIRS<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+<span class="token keyword">target_link_libraries</span><span class="token punctuation">(</span>my_http_server <span class="token namespace">PRIVATE</span> sylar<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/16/sylar/%E6%A8%A1%E5%9D%97/hook%E6%A8%A1%E5%9D%97/">hook模块</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/17/sylar/%E6%A8%A1%E5%9D%97/%E7%BB%88%E7%AB%A0/">终章-sylar总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/16/sylar/%E6%A8%A1%E5%9D%97/hook%E6%A8%A1%E5%9D%97/">hook模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/12/sylar/%E6%A8%A1%E5%9D%97/Address%E6%A8%A1%E5%9D%97/">Address模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
