@@ -67,7 +67,7 @@
 <li><p>整个建立连接的流程</p>
 </li>
 <li><p>如何保证一个线程只有一个EventLoop对象</p>
-<p><img src="image-20230811105311147.png" alt="image-20230811105311147"></p>
+<p><img src="/../../images/image-20230811105311147.png" alt="image-20230811105311147"></p>
 </li>
 <li><p>__thread变量是每个线程有一份独立实体，各个线程的变量值互不干扰。除了这个主要的用途，他还可以修饰那些”值可能会变，带有全局性，但是又不值得用全局锁保护”的变量。</p>
 <ul>
@@ -83,11 +83,11 @@
 </li>
 </ol>
 <p>epoll + threadPool</p>
-<p><img src="image-20230811110816183.png" alt="image-20230811110816183"></p>
+<p><img src="/../../images/image-20230811110816183.png" alt="image-20230811110816183"></p>
 <p>main Reactor + sub Reactor</p>
-<p><img src="image-20230811111003090.png" alt="image-20230811111003090"></p>
-<p>main Reactor + sub Reactor + theadPool<br><img src="image-20230811110513867.png" alt="image-20230811110513867"></p>
-<h1 id="连接建立的流程"><a href="#连接建立的流程" class="headerlink" title="连接建立的流程"></a>连接建立的流程</h1><ol>
+<p><img src="/../../images/image-20230811111003090.png" alt="image-20230811111003090"></p>
+<p>main Reactor + sub Reactor + theadPool<br><img src="/../../images/image-20230811110513867.png" alt="image-20230811110513867"></p>
+<h2 id="连接建立的流程"><a href="#连接建立的流程" class="headerlink" title="连接建立的流程"></a>连接建立的流程</h2><ol>
 <li>网络库是怎样bind、listen和accept的</li>
 <li>epoll模型被封装成啥样了，是怎样调度读写事件的</li>
 <li>accept描述符是怎样被注册到epoll模型中的</li>
@@ -179,11 +179,16 @@
   <span class="token comment">// we are always reading the wakeupfd</span>
   wakeupChannel_<span class="token operator">-></span><span class="token function">enableReading</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <ul>
-<li>threadId_ : 记录当前EventLoop是被哪个线程id创建的 即标识了当前EventLoop的所属线程id ，用来确保conn在对应的subLoop上执行</li>
-<li>wakeupFd_ : 作用：当mainLoop获取一个新用户的Channel 需通过轮询算法选择一个subLoop 通过该成员唤醒subLoop处理Channel</li>
-<li>activeChannels_ : 返回Poller检测到当前有事件发生的所有Channel列表</li>
-<li>t_loopInThisThread : 构建EventLoop时，确保一个线程一个EventLoop。</li>
+<li><p>threadId_ : 记录当前EventLoop是被哪个线程id创建的 即标识了当前EventLoop的所属线程id ，用来确保conn在对应的subLoop上执行</p>
+</li>
+<li><p>wakeupFd_ : 作用：当mainLoop获取一个新用户的Channel 需通过轮询算法选择一个subLoop 通过该成员唤醒subLoop处理Channel</p>
+</li>
+<li><p>activeChannels_ : 返回Poller检测到当前有事件发生的所有Channel列表</p>
+</li>
+<li><p>t_loopInThisThread : 构建EventLoop时，确保一个线程一个EventLoop。</p>
+</li>
 </ul>
 <h2 id="bind-listen-accept"><a href="#bind-listen-accept" class="headerlink" title="bind listen accept"></a>bind listen accept</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">TcpServer</span><span class="token double-colon punctuation">::</span><span class="token function">TcpServer</span><span class="token punctuation">(</span>EventLoop <span class="token operator">*</span>loop<span class="token punctuation">,</span> <span class="token keyword">const</span> InetAddress <span class="token operator">&amp;</span>listenAddr<span class="token punctuation">,</span>
                      <span class="token keyword">const</span> string <span class="token operator">&amp;</span>nameArg<span class="token punctuation">,</span> Option option<span class="token punctuation">)</span>
@@ -287,6 +292,7 @@
   LOG_TRACE <span class="token operator">&lt;&lt;</span> <span class="token string">"EventLoop "</span> <span class="token operator">&lt;&lt;</span> <span class="token keyword">this</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" stop looping"</span><span class="token punctuation">;</span>
   looping_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <h2 id="epoll-wait"><a href="#epoll-wait" class="headerlink" title="epoll_wait"></a>epoll_wait</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Timestamp <span class="token class-name">EPollPoller</span><span class="token double-colon punctuation">::</span><span class="token function">poll</span><span class="token punctuation">(</span><span class="token keyword">int</span> timeoutMs<span class="token punctuation">,</span> ChannelList<span class="token operator">*</span> activeChannels<span class="token punctuation">)</span>
 <span class="token punctuation">&#123;</span>
   LOG_TRACE <span class="token operator">&lt;&lt;</span> <span class="token string">"fd total count "</span> <span class="token operator">&lt;&lt;</span> channels_<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -322,6 +328,7 @@
   <span class="token punctuation">&#125;</span>
   <span class="token keyword">return</span> now<span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>前面 bind listen accept epoll_wait 都已经进行。</p>
 <h2 id="将TcpConnection分发到subLoop上"><a href="#将TcpConnection分发到subLoop上" class="headerlink" title="将TcpConnection分发到subLoop上"></a>将TcpConnection分发到subLoop上</h2><ul>
 <li><p>TcpServer::start() &#x3D;&gt; Acceptor.listen() 如果有新用户连接 要执行一个回调(accept &#x3D;&gt; connfd &#x3D;&gt;TcpServer::newConnection &#x3D;&#x3D;&gt; 创建TcpConnection对象conn，把他加入ConnectionMap,打包Channel &#x3D;&gt; 唤醒subloop)</p>
@@ -329,6 +336,8 @@
 <li><p>每一个TcpConnection 对应一个 connfd 和 channel，并把TcpConnection中的read、write、close、error绑定到channel中，当此fd需要read、write、close、error时，会直接调用TcpConnection中的handleRead、handleWrite、handleClose、handleError。</p>
 </li>
 <li><p>TcpServer会将对应的connectionCallback_、messageCallback_、writeCompleteCallback_注册到TcpConnection上。TcpConnection在执行handleRead… 这些函数时，回调用这些Callback 。</p>
+</li>
+</ul>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">TcpServer</span><span class="token double-colon punctuation">::</span><span class="token function">newConnection</span><span class="token punctuation">(</span><span class="token keyword">int</span> sockfd<span class="token punctuation">,</span> <span class="token keyword">const</span> InetAddress <span class="token operator">&amp;</span>peerAddr<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
   loop_<span class="token operator">-></span><span class="token function">assertInLoopThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   EventLoop <span class="token operator">*</span>ioLoop <span class="token operator">=</span> threadPool_<span class="token operator">-></span><span class="token function">getNextLoop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -381,7 +390,8 @@
             <span class="token operator">&lt;&lt;</span> <span class="token string">" fd="</span> <span class="token operator">&lt;&lt;</span> sockfd<span class="token punctuation">;</span>
   socket_<span class="token operator">-></span><span class="token function">setKeepAlive</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>依赖都是单向的，TcpServer会用到Acceptor，但Acceptor不知道TcpServer的存在。TcpServer会用到TcpConnection，但TcpConnection不知道TcpServer的存在。<br><img src="image.png" alt="Alt text"></p>
+
+<p>依赖都是单向的，TcpServer会用到Acceptor，但Acceptor不知道TcpServer的存在。TcpServer会用到TcpConnection，但TcpConnection不知道TcpServer的存在。<br><img src="/../../images/muduo%E5%88%9D%E5%A7%8B%E5%8C%96%E5%BA%8F%E5%88%97.png" alt="Alt text"></p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">EventLoop</span><span class="token double-colon punctuation">::</span><span class="token function">runInLoop</span><span class="token punctuation">(</span>Functor cb<span class="token punctuation">)</span>
 <span class="token punctuation">&#123;</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isInLoopThread</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -393,6 +403,7 @@
     <span class="token function">queueInLoop</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>cb<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p> 在queueInLoop()函数中主要就是把cb这个可调用对象保存在EventLoop对象的pendingFunctors_这个数组中，<br> <strong>我们希望这个cb能在某个EventLoop对象所绑定的线程上运行，但是由于当前CPU执行的线程不是我们期待的这个EventLoop线程，我们只能把这个可调用对象先存在这个EventLoop对象的数组成员pendingFunctors_中。</strong></p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">EventLoop</span><span class="token double-colon punctuation">::</span><span class="token function">queueInLoop</span><span class="token punctuation">(</span>Functor cb<span class="token punctuation">)</span>
 <span class="token punctuation">&#123;</span>
@@ -425,8 +436,8 @@
     <span class="token punctuation">&#123;</span>
         <span class="token function">LOG_ERROR</span><span class="token punctuation">(</span><span class="token string">"EventLoop::wakeup() writes %lu bytes instead of 8\n"</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
-</ul>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <ol>
 <li>从EventLoop::loop()函数中，我们知道EventLoop::loop()肯定运行在其所绑定的EventLoop线程内，在该函数内会调用doPendingFunctors()函数，这个函数就是把自己这个EventLoop对象中的pendingFunctors_数组中保存的可调用对象拿出来执行。pendingFunctors_中保存的是其他线程希望你这个EventLoop线程执行的函数。</li>
 <li>假如EventLoop A线程阻塞在EventLoop::loop()中的epoll_wait()调用上（EventLoop A上监听的文件描述符没有任何事件发生），这时候EventLoop线程要求EventLoop A赶紧执行某个函数，那其他线程要怎么唤醒这个阻塞住的EventLoop A线程呢？</li>
@@ -443,6 +454,7 @@
     <span class="token comment">// 新连接建立 执行回调 ,这里时TcpServer 的 connectionCallback_ 由用户定义</span>
     <span class="token function">connectionCallback_</span><span class="token punctuation">(</span><span class="token function">shared_from_this</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <h2 id="分发到subLoop上后，当有数据到来时"><a href="#分发到subLoop上后，当有数据到来时" class="headerlink" title="分发到subLoop上后，当有数据到来时"></a>分发到subLoop上后，当有数据到来时</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 读是相对服务器而言的 当对端客户端有数据到达 服务器端检测到EPOLLIN 就会触发该fd上的回调 handleRead取读走对端发来的数据</span>
 <span class="token comment">// #include"Channel.h"</span>
 <span class="token keyword">void</span> <span class="token class-name">Channel</span><span class="token double-colon punctuation">::</span><span class="token function">handleEventWithGuard</span><span class="token punctuation">(</span>Timestamp receiveTime<span class="token punctuation">)</span>
@@ -646,6 +658,7 @@
         <span class="token function">LOG_ERROR</span><span class="token punctuation">(</span><span class="token string">"TcpConnection fd=%d is down, no more writing"</span><span class="token punctuation">,</span> channel_<span class="token operator">-></span><span class="token function">fd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <ul>
 <li>由于muduo底层是epoll驱动的，可读可写状态是由文件描述符对应的内核缓冲区决定的</li>
 <li>若要发生可读或者可写事件，首先，前提是要向epoll注册（调用epoll_ctl）需要关注的事件类型。当关注了可读事件时，若文件描述符对应的缓冲区从空变为非空，则触发读事件；</li>
@@ -664,6 +677,7 @@
     <span class="token keyword">private</span><span class="token operator">:</span>
     EventLoop <span class="token operator">*</span>ownerLoop_<span class="token punctuation">;</span> <span class="token comment">// 定义Poller所属的事件循环EventLoop</span>
   <span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>  TcpConnection::handleRead()(readv 返回0)&#x3D;&#x3D;&gt;TcpConnection::handleClose &#x3D;&#x3D;&gt; TcpServer::removeConnection &#x3D;&#x3D;&gt;TcpServer::removeConnectionInLoop (清除ConnectionMap对应的TcpConnectionPtr) &#x3D;&#x3D;&gt; TcpConnection::connectDestroyed;</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token class-name">TcpServer</span><span class="token double-colon punctuation">::</span><span class="token function">removeConnection</span><span class="token punctuation">(</span><span class="token keyword">const</span> TcpConnectionPtr <span class="token operator">&amp;</span>conn<span class="token punctuation">)</span>
 <span class="token punctuation">&#123;</span>
@@ -693,6 +707,7 @@
   <span class="token punctuation">&#125;</span>
   channel_<span class="token operator">-></span><span class="token function">remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <ol>
 <li><p>要想彻底删除一个TcpConnection对象，就必须要调用这个对象的connecDestroyed()方法，这个方法执行完后才能释放这个对象的堆内存。每个TcpConnection对象的connectDestroyed()方法都必须在这个TcpConnection对象所属的Sub EventLoop绑定的线程中执行。</p>
 </li>
@@ -746,7 +761,7 @@
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/17/sylar/%E6%A8%A1%E5%9D%97/%E7%BB%88%E7%AB%A0/">终章-sylar总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/16/sylar/%E6%A8%A1%E5%9D%97/hook%E6%A8%A1%E5%9D%97/">hook模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/12/sylar/%E6%A8%A1%E5%9D%97/Address%E6%A8%A1%E5%9D%97/">Address模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/216-%E7%BB%84%E5%90%88%E7%9A%84%E6%80%BB%E5%92%8CIII/">216.组合的总和III</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/%E5%9B%9E%E6%BA%AF/">回溯</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/77-%E7%BB%84%E5%90%88/">77.组合</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/17/sylar/%E6%A8%A1%E5%9D%97/%E7%BB%88%E7%AB%A0/">终章-sylar总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/16/sylar/%E6%A8%A1%E5%9D%97/hook%E6%A8%A1%E5%9D%97/">hook模块</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/12/sylar/%E6%A8%A1%E5%9D%97/Address%E6%A8%A1%E5%9D%97/">Address模块</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
@@ -754,7 +769,7 @@
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-tags">标签云：</h3>
-                    <a href="/tags/c/" style="font-size: 16.67px;">c++</a> <a href="/tags/c-11/" style="font-size: 13.33px;">c++11</a> <a href="/tags/error/" style="font-size: 16.67px;">error</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                    <a href="/tags/c/" style="font-size: 17.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/error/" style="font-size: 17.5px;">error</a> <a href="/tags/leetcode/" style="font-size: 12.5px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
                 </div>
             </div>
         </section>
