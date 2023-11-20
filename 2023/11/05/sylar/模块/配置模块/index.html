@@ -64,7 +64,7 @@
         <article class="post-content">
         
             <h2 id="sylar配置模块设计"><a href="#sylar配置模块设计" class="headerlink" title="sylar配置模块设计"></a>sylar配置模块设计</h2><p>采用约定优于配置的思想</p>
-<p>[维基百科：约定优于配置]<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BA%A6%E5%AE%9A%E4%BC%98%E4%BA%8E%E9%85%8D%E7%BD%AE">https://zh.wikipedia.org/wiki/%E7%BA%A6%E5%AE%9A%E4%BC%98%E4%BA%8E%E9%85%8D%E7%BD%AE</a></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BA%A6%E5%AE%9A%E4%BC%98%E4%BA%8E%E9%85%8D%E7%BD%AE">维基百科：约定优于配置</a></p>
 <h3 id="ConfigVarBase"><a href="#ConfigVarBase" class="headerlink" title="ConfigVarBase"></a>ConfigVarBase</h3><p>配置项基类，虚基类，定义了配置项公有的成员和方法。</p>
 <p>sylar对每个配置项都包括名称和描述两项成员，以及toString&#x2F;fromString两个纯虚函数方法。ConfigVarBase并不包含配置项类型和值，这些由继承类实现，由继承类实现的还包括具体类型的toString&#x2F;fromString方法，用于和YAML字符串进行相互转换。</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">

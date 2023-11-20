@@ -64,7 +64,7 @@
         <article class="post-content">
         
             <h1 id="av-register-all"><a href="#av-register-all" class="headerlink" title="av_register_all"></a>av_register_all</h1><p>先看下解码的流程：</p>
-<p><img src="/./assets/FFmpeg%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
+<p><img src="/../../images/FFmpeg/FFmpeg%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
 <h2 id="av-register-all-分析"><a href="#av-register-all-分析" class="headerlink" title="av_register_all 分析"></a>av_register_all 分析</h2><p>在最开始编译FFmpeg的时候，我们做了一个configure的配置，其中开启或者关闭了很多选项。configure的配置会生成两个文件：config.mk和config.h。</p>
 <ul>
 <li><p>config.mk：就是makefile文件需要包含进去的子模块，会作用在编译阶段，帮助开发者编译出正确的库。</p>
