@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFmpegAPI学习---avformat_open_input - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFmpegAPI学习---avformat_open_input"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFmpegAPI学习---avformat_open_input</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.20</time>
+            
+                <span class="category"><a class="category-link" href="/categories/FFmpeg/">FFmpeg</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>先看下解码的流程：</p>
+<p><img src="/../../images/FFmpeg/FFmpeg%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
+<h2 id="avformat-open-input打开输入文件"><a href="#avformat-open-input打开输入文件" class="headerlink" title="avformat_open_input打开输入文件"></a>avformat_open_input打开输入文件</h2><p>这个函数会生成 AVFormatContext,定义如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * Open an input stream and read the header. The codecs are not opened.
+ * The stream must be closed with avformat_close_input().
+ *
+ * @param ps Pointer to user-supplied AVFormatContext (allocated by avformat_alloc_context).
+ *           May be a pointer to NULL, in which case an AVFormatContext is allocated by this
+ *           function and written into ps.
+ *           Note that a user-supplied AVFormatContext will be freed on failure.
+ * @param url URL of the stream to open.
+ * @param fmt If non-NULL, this parameter forces a specific input format.
+ *            Otherwise the format is autodetected.
+ * @param options  A dictionary filled with AVFormatContext and demuxer-private options.
+ *                 On return this parameter will be destroyed and replaced with a dict containing
+ *                 options that were not found. May be NULL.
+ *
+ * @return 0 on success, a negative AVERROR on failure.
+ *
+ * @note If you want to use custom IO, preallocate the format context and set its pb field.
+ */</span>
+<span class="token keyword">int</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span>AVFormatContext <span class="token operator">*</span><span class="token operator">*</span>ps<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>url<span class="token punctuation">,</span> ff_const59 AVInputFormat <span class="token operator">*</span>fmt<span class="token punctuation">,</span> AVDictionary <span class="token operator">*</span><span class="token operator">*</span>options<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>打开文件的方式有两种:</p>
+<ol>
+<li><p>const char *url</p>
+<ul>
+<li>根据文件名的后缀来猜测以什么样的封装格式打开文件，例如 mp4，m4a 后缀的文件 都用 mov 封装格式来打开。</li>
+</ul>
+</li>
+<li><p>ff_const59 AVInputFormat *fmt</p>
+<ul>
+<li>指定某一种格式，不用猜测。</li>
+</ul>
+</li>
+</ol>
+<p>FFmpeg 的函数 经常会有 options 这个参数，因为每种封装格式都支持很多定制参数的，例如 mp4 封装格式支持 movflags:faststart，这样可以 在录制完成之后把 moov 移动到文件头部，这样在网络里面播放 mp4 的时候，就会更快一些。(? todo)初学者可以暂时不用管 options 参数，直接传 NULL 即可。</p>
+<p>与打开输入文件相关的结构体如下：</p>
+<ol>
+<li>AVFormatContext<ul>
+<li>封装格式上下文结构体，也是统领全局的结构体，保存了视频文件封装<br> 格式相关信息。</li>
+</ul>
+</li>
+<li>AVStream<ul>
+<li>视频文件中每个视频（音频）流对应一个该结构体。</li>
+</ul>
+</li>
+</ol>
+<p>示例:<br><strong>这里有个小技巧，将ffmpeg.c函数中的main函数，替换为下面的函数，就可以运行。</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"libavformat/avformat.h"</span></span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+
+    AVFormatContext <span class="token operator">*</span>fmt_ctx <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> err<span class="token punctuation">;</span>
+    <span class="token comment">// 提示，要把 juren-30s.mp4 文件放到自己设置的目录下才能找到。</span>
+    <span class="token keyword">char</span> filename<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"juren-30s.mp4"</span><span class="token punctuation">;</span>
+
+    fmt_ctx <span class="token operator">=</span> <span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>fmt_ctx<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span><span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token operator">==</span>type<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+
+        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">,</span> filename<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open success \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"filename - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"duration - %I64d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"nb_streams - %u \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>nb_streams<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span><span class="token punctuation">(</span> <span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> fmt_ctx<span class="token operator">-></span>nb_streams<span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                 <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream codec_type - %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"iformat name - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>iformat<span class="token operator">-></span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"iformat long name - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>iformat<span class="token operator">-></span>long_name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token punctuation">&#125;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">==</span>type<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token comment">//设置探测大小</span>
+        AVDictionary <span class="token operator">*</span>format_opts <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+        <span class="token function">av_dict_set</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>format_opts<span class="token punctuation">,</span> <span class="token string">"probesize"</span><span class="token punctuation">,</span> <span class="token string">"32"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">,</span> filename<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>format_opts<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+            <span class="token function">avformat_find_stream_info</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open success \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"filename - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"duration - %I64d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"nb_streams - %u \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>nb_streams<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span><span class="token punctuation">(</span> <span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> fmt_ctx<span class="token operator">-></span>nb_streams<span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                 <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream codec_type - %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"iformat name - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>iformat<span class="token operator">-></span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"iformat long name - %s \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>iformat<span class="token operator">-></span>long_name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token punctuation">&#125;</span>
+       <span class="token function">av_dict_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>format_opts<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="AVFormatContext"><a href="#AVFormatContext" class="headerlink" title="AVFormatContext"></a>AVFormatContext</h3><p>里面内容太多，先分析一小部分。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">AVFormatContext</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/**
+     * A class for logging and @ref avoptions. Set by avformat_alloc_context().
+     * Exports (de)muxer private options if they exist.
+     */</span>
+    <span class="token keyword">const</span> AVClass <span class="token operator">*</span>av_class<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * The input container format.
+     *
+     * Demuxing only, set by avformat_open_input().
+     */</span>
+    ff_const59 <span class="token keyword">struct</span> <span class="token class-name">AVInputFormat</span> <span class="token operator">*</span>iformat<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * The output container format.
+     *
+     * Muxing only, must be set by the caller before avformat_write_header().
+     */</span>
+    ff_const59 <span class="token keyword">struct</span> <span class="token class-name">AVOutputFormat</span> <span class="token operator">*</span>oformat<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * Format private data. This is an AVOptions-enabled struct
+     * if and only if iformat/oformat.priv_class is not NULL.
+     *
+     * - muxing: set by avformat_write_header()
+     * - demuxing: set by avformat_open_input()
+     */</span>
+    <span class="token keyword">void</span> <span class="token operator">*</span>priv_data<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * Number of elements in AVFormatContext.streams.
+     *
+     * Set by avformat_new_stream(), must not be modified by any other code.
+     */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> nb_streams<span class="token punctuation">;</span>  <span class="token comment">// 通常下是，音频流和视频流</span>
+
+    <span class="token comment">/**
+     * Position of the first frame of the component, in
+     * AV_TIME_BASE fractional seconds. NEVER set this value directly:
+     * It is deduced from the AVStream values.
+     *
+     * Demuxing only, set by libavformat.
+     */</span>
+    <span class="token keyword">int64_t</span> start_time<span class="token punctuation">;</span> <span class="token comment">// 开始时间</span>
+
+    <span class="token comment">/**
+     * Duration of the stream, in AV_TIME_BASE fractional
+     * seconds. Only set this value if you know none of the individual stream
+     * durations and also do not set any of them. This is deduced from the
+     * AVStream values if not set.
+     *
+     * Demuxing only, set by libavformat.
+     */</span>
+    <span class="token keyword">int64_t</span> duration<span class="token punctuation">;</span> <span class="token comment">// 时长</span>
+    <span class="token comment">/**
+     * Total stream bitrate in bit/s, 0 if not
+     * available. Never set it directly if the file_size and the
+     * duration are known as FFmpeg can compute it automatically.
+     */</span>
+    <span class="token keyword">int64_t</span> bit_rate<span class="token punctuation">;</span> <span class="token comment">// 码率</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    
+    <span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从上面代码中可以看到,<code>AVFormatContext</code> 里面其实有 <code>AVInputFormat（输入）跟</code> <code>AVOutputFormat</code> （输出），我们上面只是打开了一个输入文件，所以只有 <code>AVInputFormat</code> 被初始化了。</p>
+<p><strong>虽然 <code>AVFormatContext</code> 里面有输入输出两个指针，但是他们很少一起使用的，我的意思是 <code>AVInputFormat</code> 跟 <code>AVOutputFormat</code> 很少会一起初始化，包括 <code>ffmpeg.c</code> 里面也没有一起使用。</strong></p>
+<p>如果你想再初始化一个 <code>AVOutputFormat</code> 来处理输出，需要调 <code>avformat_alloc_output_context2</code> 再搞一个 <code>AVFormatContext</code> 出来。</p>
+<p>参考:<br><a target="_blank" rel="noopener" href="https://ffmpeg.xianwaizhiyin.net/api-ffmpeg/input.html">https://ffmpeg.xianwaizhiyin.net/api-ffmpeg/input.html</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-av-register-all/">FFmpegAPI学习---av_register_all</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/FFmpeg/FFmpeg/">FFmpeg简介</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 16px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 16px;">error</a> <a href="/tags/leetcode/" style="font-size: 12px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFmpegAPI学习---avformat_find_stream_info - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFmpegAPI学习---avformat_find_stream_info"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFmpegAPI学习---avformat_find_stream_info</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.20</time>
+            
+                <span class="category"><a class="category-link" href="/categories/FFmpeg/">FFmpeg</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>先看下解码的流程：</p>
+<p><img src="/../../images/FFmpeg/FFmpeg%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
+<h2 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * Read packets of a media file to get stream information. This
+ * is useful for file formats with no headers such as MPEG. This
+ * function also computes the real framerate in case of MPEG-2 repeat
+ * frame mode.
+ * The logical file position is not changed by this function;
+ * examined packets may be buffered for later processing.
+ *
+ * @param ic media file handle
+ * @param options  If non-NULL, an ic.nb_streams long array of pointers to
+ *                 dictionaries, where i-th member contains options for
+ *                 codec corresponding to i-th stream.
+ *                 On return each dictionary will be filled with options that were not found.
+ * @return >=0 if OK, AVERROR_xxx on error
+ *
+ * @note this function isn't guaranteed to open all the codecs, so
+ *       options being non-empty at return is a perfectly normal behavior.
+ *
+ * @todo Let the user decide somehow what information is needed so that
+ *       we do not waste time getting stuff the user does not need.
+ */</span>
+<span class="token keyword">int</span> <span class="token function">avformat_find_stream_info</span><span class="token punctuation">(</span>AVFormatContext <span class="token operator">*</span>ic<span class="token punctuation">,</span> AVDictionary <span class="token operator">*</span><span class="token operator">*</span>options<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="avformat-find-stream-info-分析"><a href="#avformat-find-stream-info-分析" class="headerlink" title="avformat_find_stream_info 分析"></a>avformat_find_stream_info 分析</h2><p>该方法的作用就是把所有的Stream的MetaData信息填充好。方法内部会先查找对于的解码器，然后打开对应的解码器，紧接着会利用Demuxer中的read_packet函数读取一段数据进行解码，当然，解码的数据越多，分析出来的流信息就越准确，如果是本地资源，那么很快就可以得到准确的信息了。但是对于网络资源来说，则会比较慢，因此该函数有几个参数可以控制读取数据的长度，一个是probe size，一个是max_analyze_duration, 还有一个就是fps_probe_size，这三个参数共同控制解码数据的长度，如果配置的这几个参数的数值越小，那么这个函数执行的时间就会越快，但会导致AVStream结构体里面的信息（视频的宽、高、fps、编码类型）不准确。</p>
+<p>实例:</p>
+<p>完整代码见 avformat_open_input</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+ AVFormatContext <span class="token operator">*</span>pFormatCtx<span class="token punctuation">;</span>
+ <span class="token keyword">int</span>    i<span class="token punctuation">,</span> videoindex<span class="token punctuation">;</span>
+ AVCodecContext <span class="token operator">*</span>pCodecCtx<span class="token punctuation">;</span>
+ AVCodec   <span class="token operator">*</span>pCodec<span class="token punctuation">;</span>
+ AVFrame <span class="token operator">*</span>pFrame<span class="token punctuation">,</span><span class="token operator">*</span>pFrameYUV<span class="token punctuation">;</span>
+ <span class="token keyword">uint8_t</span> <span class="token operator">*</span>out_buffer<span class="token punctuation">;</span>
+ AVPacket <span class="token operator">*</span>packet<span class="token punctuation">;</span>
+ <span class="token keyword">int</span> y_size<span class="token punctuation">;</span>
+ <span class="token keyword">int</span> ret<span class="token punctuation">,</span> got_picture<span class="token punctuation">;</span>
+ <span class="token keyword">struct</span> <span class="token class-name">SwsContext</span> <span class="token operator">*</span>img_convert_ctx<span class="token punctuation">;</span>
+ <span class="token comment">//输入文件路径</span>
+    <span class="token keyword">char</span> filepath<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"/home/lyt/FFmpeg-n4.4.1/Debug/juren-30s.mp4"</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">int</span> frame_cnt<span class="token punctuation">;</span>
+
+ <span class="token function">av_register_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token function">avformat_network_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ pFormatCtx <span class="token operator">=</span> <span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pFormatCtx<span class="token punctuation">,</span>filepath<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token operator">!=</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"Couldn't open input stream.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+ <span class="token punctuation">&#125;</span>
+ <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token function">avformat_find_stream_info</span><span class="token punctuation">(</span>pFormatCtx<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"Couldn't find stream information.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+ <span class="token punctuation">&#125;</span>
+ <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-av-register-all/">FFmpegAPI学习---av_register_all</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-av-register-all/">FFmpegAPI学习---av_register_all</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/FFmpeg/FFmpeg/">FFmpeg简介</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 16px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 16px;">error</a> <a href="/tags/leetcode/" style="font-size: 12px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

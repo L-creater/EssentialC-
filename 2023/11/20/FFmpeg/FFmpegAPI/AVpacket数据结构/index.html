@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>AVpacket数据结构 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="AVpacket数据结构"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>AVpacket数据结构</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.20</time>
+            
+                <span class="category"><a class="category-link" href="/categories/FFmpeg/">FFmpeg</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>一个管理压缩后的媒体数据的结构，它本身不包含压缩的媒体数据，而是通过 data 指针指向媒体数据。</p>
+<p>这里面的媒体数据通常是一帧视频的数据，或者一帧音频的数据。但是也有一些特殊情况，这个 AVPacket 的 data 是空的，只有 side data 的数据。side data 是一些附加信息。</p>
+<h2 id="AVPacket数据结构"><a href="#AVPacket数据结构" class="headerlink" title="AVPacket数据结构"></a>AVPacket数据结构</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * This structure stores compressed data. It is typically exported by demuxers
+ * and then passed as input to decoders, or received as output from encoders and
+ * then passed to muxers.
+ *
+ * For video, it should typically contain one compressed frame. For audio it may
+ * contain several compressed frames. Encoders are allowed to output empty
+ * packets, with no compressed data, containing only side data
+ * (e.g. to update some stream parameters at the end of encoding).
+ *
+ * The semantics of data ownership depends on the buf field.
+ * If it is set, the packet data is dynamically allocated and is
+ * valid indefinitely until a call to av_packet_unref() reduces the
+ * reference count to 0.
+ *
+ * If the buf field is not set av_packet_ref() would make a copy instead
+ * of increasing the reference count.
+ *
+ * The side data is always allocated with av_malloc(), copied by
+ * av_packet_ref() and freed by av_packet_unref().
+ *
+ * sizeof(AVPacket) being a part of the public ABI is deprecated. once
+ * av_init_packet() is removed, new packets will only be able to be allocated
+ * with av_packet_alloc(), and new fields may be added to the end of the struct
+ * with a minor bump.
+ *
+ * @see av_packet_alloc
+ * @see av_packet_ref
+ * @see av_packet_unref
+ */</span>
+<span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">AVPacket</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/**
+     * A reference to the reference-counted buffer where the packet data is
+     * stored.
+     * May be NULL, then the packet data is not reference-counted.
+     */</span>
+    AVBufferRef <span class="token operator">*</span>buf<span class="token punctuation">;</span>
+    <span class="token comment">/**
+     * Presentation timestamp in AVStream->time_base units; the time at which
+     * the decompressed packet will be presented to the user.
+     * Can be AV_NOPTS_VALUE if it is not stored in the file.
+     * pts MUST be larger or equal to dts as presentation cannot happen before
+     * decompression, unless one wants to view hex dumps. Some formats misuse
+     * the terms dts and pts/cts to mean something different. Such timestamps
+     * must be converted to true pts/dts before they are stored in AVPacket.
+     */</span>
+    <span class="token keyword">int64_t</span> pts<span class="token punctuation">;</span> <span class="token comment">// 显示时间戳</span>
+    <span class="token comment">/**
+     * Decompression timestamp in AVStream->time_base units; the time at which
+     * the packet is decompressed.
+     * Can be AV_NOPTS_VALUE if it is not stored in the file.
+     */</span>
+    <span class="token keyword">int64_t</span> dts<span class="token punctuation">;</span> <span class="token comment">// 解码时间戳</span>
+    <span class="token keyword">uint8_t</span> <span class="token operator">*</span>data<span class="token punctuation">;</span> <span class="token comment">// 压缩编码数据</span>
+    <span class="token keyword">int</span>   size<span class="token punctuation">;</span> <span class="token comment">// 压缩编码数据大小</span>
+    <span class="token keyword">int</span>   stream_index<span class="token punctuation">;</span> <span class="token comment">// 所属的AVStream</span>
+    <span class="token comment">/**
+     * A combination of AV_PKT_FLAG values
+     */</span>
+    <span class="token keyword">int</span>   flags<span class="token punctuation">;</span>
+    <span class="token comment">/**
+     * Additional packet data that can be provided by the container.
+     * Packet can contain several types of side information.
+     */</span>
+    AVPacketSideData <span class="token operator">*</span>side_data<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> side_data_elems<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * Duration of this packet in AVStream->time_base units, 0 if unknown.
+     * Equals next_pts - this_pts in presentation order.
+     */</span>
+    <span class="token keyword">int64_t</span> duration<span class="token punctuation">;</span>
+
+    <span class="token keyword">int64_t</span> pos<span class="token punctuation">;</span>                            <span class="token comment">///&lt; byte position in stream, -1 if unknown</span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">FF_API_CONVERGENCE_DURATION</span></span>
+    <span class="token comment">/**
+     * @deprecated Same as the duration field, but as int64_t. This was required
+     * for Matroska subtitles, whose duration values could overflow when the
+     * duration field was still an int.
+     */</span>
+    attribute_deprecated
+    <span class="token keyword">int64_t</span> convergence_duration<span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+<span class="token punctuation">&#125;</span> AVPacket<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="跟读取文件内容-相关的函数如下"><a href="#跟读取文件内容-相关的函数如下" class="headerlink" title="跟读取文件内容 相关的函数如下"></a>跟读取文件内容 相关的函数如下</h2><ol>
+<li><p>av_packet_alloc</p>
+<ul>
+<li>初始化一个 <code>AVPacket。</code></li>
+</ul>
+</li>
+<li><p>av_read_frame</p>
+<ul>
+<li>从 <code>AVFormatContext</code> 容器里面读取一个 <code>AVPacket</code>，需要注意，虽然函数名是 <code>frame</code>，但是读取的是 <code>AVPacket。</code></li>
+</ul>
+</li>
+<li><p>av_packet_unref</p>
+<ul>
+<li>减少 <code>AVPacket</code> 对编码数据的引用次数。减到 0 会释放 编码数据的内存。</li>
+</ul>
+</li>
+<li><p>av_packet_free</p>
+<ul>
+<li>释放 <code>AVPacket</code> 自身的内存。里面会调 <code>av_packet_unref</code></li>
+</ul>
+</li>
+</ol>
+<p>注意：<code>av_read_frame</code> 的返回值有很多种情况。</p>
+<ol>
+<li><p>成功读取到一个 <code>AVPacket</code> 。</p>
+</li>
+<li><p>读取到文件末尾。</p>
+</li>
+<li><p>网络流有问题，或者本地硬盘坏了。导致 <code>AVFormatContext</code> 里面的 <code>pb-&gt;error</code>有异常。</p>
+</li>
+</ol>
+<p>示例:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"libavformat/avformat.h"</span></span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+
+    AVFormatContext <span class="token operator">*</span>fmt_ctx <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">int</span> err<span class="token punctuation">;</span>
+    <span class="token comment">//提示，要把 juren-30s.mp4 文件放到 Debug 目录下才能找到。</span>
+    <span class="token keyword">char</span> filename<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"juren-30s.mp4"</span><span class="token punctuation">;</span>
+
+    fmt_ctx <span class="token operator">=</span> <span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>fmt_ctx<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span><span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> ENOMEM<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">,</span> filename<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> err<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span><span class="token operator">==</span>type <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        AVPacket <span class="token operator">*</span>pkt <span class="token operator">=</span> <span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        ret <span class="token operator">=</span> <span class="token function">av_read_frame</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"read fail \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">//省略错误处理。</span>
+            <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"read success \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream 0 type : %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream 1 type : %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream_index : %d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>stream_index<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"duration : %I64d ,time_base : %d/%d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>duration<span class="token punctuation">,</span>
+                   fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">.</span>num<span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">.</span>den<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"size : %d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pos : %I64d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>pos<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"data : %x %x %x %x %x %x %x \n"</span><span class="token punctuation">,</span>
+                   pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                   pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">6</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token function">av_packet_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">2</span><span class="token operator">==</span>type <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+
+        AVPacket <span class="token operator">*</span>pkt <span class="token operator">=</span> <span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> i<span class="token punctuation">;</span>
+        <span class="token keyword">for</span><span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">100</span> <span class="token punctuation">;</span>i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            ret <span class="token operator">=</span> <span class="token function">av_read_frame</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"read fail \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">//省略错误处理。</span>
+                <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"read success \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream 0 type : %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream 1 type : %d \n"</span><span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>codec_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"stream_index : %d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>stream_index<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"duration : %I64d ,time_base : %d/%d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>duration<span class="token punctuation">,</span>
+                       fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">.</span>num<span class="token punctuation">,</span>fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">.</span>den<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"size : %d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pos : %I64d \n"</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>pos<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"data : %x %x %x %x %x %x %x \n"</span><span class="token punctuation">,</span>
+                       pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                       pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pkt<span class="token operator">-></span>data<span class="token punctuation">[</span><span class="token number">6</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token function">av_packet_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>上面的代码只读了一个 AVPacket。</p>
+<p>从上图代码可以看出，我用 <code>av_packet_alloc</code> 初始化了一个 AVPacket ，那是不是用 <code>av_read_frame</code> 读一次数据，就要调一次 <code>av_packet_alloc</code> 呢？</p>
+<p>不是，因为 <code>AVPacket</code> 他本身是没有编码数据的，他只是管理编码数据，也就是说 <code>av_packet_alloc</code> 的时候，<code>AVPacket</code> 里面还没有编码数据的，是后面通过 <code>av_read_frame</code>把 <code>AVPacket</code> 里面的 buf 引用指向了编码数据。</p>
+<p>如果你要调多次<code>av_read_frame</code>，只需要先用 <code>av_packet_unref</code> 消除 <code>AVPacket</code> 里面对之前的编码数据的引用即可。只有最后用不到 AVPacket 的时候，才需要调 <code>av_packet_free</code> 来释放 <code>AVPacket</code> 的内存。</p>
+<p>注意:<br>AVPacket 里面有一个 stream_index 字段，代表这个 AVPacket 属于哪个流，那我们怎么知道这是一个音频包，还是视频包？<br>示例如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">for</span><span class="token punctuation">(</span>i<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span> i<span class="token operator">&lt;</span>pFormatCtx<span class="token operator">-></span>nb_streams<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> 
+ <span class="token keyword">if</span><span class="token punctuation">(</span>pFormatCtx<span class="token operator">-></span>streams<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token operator">-></span>codec<span class="token operator">-></span>codec_type<span class="token operator">==</span>AVMEDIA_TYPE_VIDEO<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+  videoindex<span class="token operator">=</span>i<span class="token punctuation">;</span>
+  <span class="token keyword">break</span><span class="token punctuation">;</span>
+ <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>fmt_ctx-&gt;streams[0]-&gt;codecpar-&gt;codec_type</code><br>通常情况下，<code>streams[0]</code> 是视频流，<code>streams[1]</code>是音频流</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/**
+ * @addtogroup lavu_media Media Type
+ * @brief Media Type
+ */</span>
+
+<span class="token keyword">enum</span> <span class="token class-name">AVMediaType</span> <span class="token punctuation">&#123;</span>
+    AVMEDIA_TYPE_UNKNOWN <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span>  <span class="token comment">///&lt; Usually treated as AVMEDIA_TYPE_DATA</span>
+    AVMEDIA_TYPE_VIDEO<span class="token punctuation">,</span>
+    AVMEDIA_TYPE_AUDIO<span class="token punctuation">,</span>
+    AVMEDIA_TYPE_DATA<span class="token punctuation">,</span>          <span class="token comment">///&lt; Opaque data information usually continuous</span>
+    AVMEDIA_TYPE_SUBTITLE<span class="token punctuation">,</span>
+    AVMEDIA_TYPE_ATTACHMENT<span class="token punctuation">,</span>    <span class="token comment">///&lt; Opaque data information usually sparse</span>
+    AVMEDIA_TYPE_NB
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>todo 待完善，，</p>
+</blockquote>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-av-register-all/">FFmpegAPI学习---av_register_all</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/FFmpeg/FFmpeg/">FFmpeg简介</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 16px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 16px;">error</a> <a href="/tags/leetcode/" style="font-size: 12px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
