@@ -96,25 +96,22 @@ candidates 的所有元素 互不相同
 <li>sum（int）为已经收集的元素的总和，也就是path里元素的总和。</li>
 <li>startIndex（int）为下一层for循环搜索的起始位置。，<strong>startIndex 就是防止出现重复的组合。</strong></li>
 </ul>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">  vector<span class="token operator">&lt;</span>vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">>></span> result<span class="token punctuation">;</span> <span class="token comment">// 存放符合条件结果的集合</span>
-  vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span> path<span class="token punctuation">;</span> <span class="token comment">// 用来存放符合条件结果</span>
-  <span class="token keyword">void</span> <span class="token function">backtracking</span><span class="token punctuation">(</span>vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token operator">&amp;</span> candidates<span class="token punctuation">,</span><span class="token keyword">int</span> target<span class="token punctuation">,</span><span class="token keyword">int</span> sum<span class="token punctuation">,</span> <span class="token keyword">int</span> startIndex<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  ```  
-
-<span class="token operator">*</span> 回溯函数终止条件
-  `sum <span class="token operator">==</span> target`   `sum <span class="token operator">></span> target`
-
-    ``` cpp
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>sum <span class="token operator">></span> target<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">vector<span class="token operator">&lt;</span>vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">>></span> result<span class="token punctuation">;</span> <span class="token comment">// 存放符合条件结果的集合</span>
+vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span> path<span class="token punctuation">;</span> <span class="token comment">// 用来存放符合条件结果</span>
+<span class="token keyword">void</span> <span class="token function">backtracking</span><span class="token punctuation">(</span>vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token operator">&amp;</span> candidates<span class="token punctuation">,</span><span class="token keyword">int</span> target<span class="token punctuation">,</span><span class="token keyword">int</span> sum<span class="token punctuation">,</span> <span class="token keyword">int</span> startIndex<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+</li>
+<li><p>回溯函数终止条件</p>
+<p><code>sum == target</code>   <code>sum &gt; target</code></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">if</span> <span class="token punctuation">(</span>sum <span class="token operator">></span> target<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span>sum <span class="token operator">==</span> target<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">return</span><span class="token punctuation">;</span>
-    <span class="token punctuation">&#125;</span>
-        <span class="token keyword">if</span><span class="token punctuation">(</span>sum <span class="token operator">==</span> target<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-            result<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token keyword">return</span><span class="token punctuation">;</span>
-        <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 </li>
 <li><p>单层搜索过程</p>
-<p>由于<strong>同一个</strong>数字可以<strong>无限制重复选择</strong><br>这里递归时，为 i，而不是i+1。</p>
+<p>由于<strong>同一个</strong>数字可以<strong>无限制重复选择</strong>,这里递归时，为 i，而不是i+1。</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">  <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> startIndex<span class="token punctuation">;</span>i <span class="token operator">&lt;</span> candidates<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">++</span>i<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
     path<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>candidates<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     sum<span class="token operator">+=</span>candidates<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
