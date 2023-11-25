@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFmpeg编码 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFmpeg编码"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFmpeg编码</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.25</time>
+            
+                <span class="category"><a class="category-link" href="/categories/FFmpeg/">FFmpeg</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h2><p>用于打开音视频编解码器并初始化相关的数据结构。它的功能是根据指定的编解码器参数，打开对应的音视频编解码器，并为后续的音视频解码或编码操作做准备。</p>
+<p>具体而言，avcodec_open2 函数会根据传入的AVCodecContext 结构体中的参数，选择并打开对应的音视频编解码器。这些参数包括编解码器的ID、解码器选项、输入&#x2F;输出格式等。函数会检查是否成功打开编解码器，并将编解码器的上下文信息填充到AVCodecContext 结构体中，以供后续的音视频处理使用。</p>
+<p>通过调用avcodec_open2 函数，你可以初始化音视频编解码器并准备进行音视频解码或编码操作。在成功打开编解码器后，你可以使用相应的函数来解码媒体文件中的音视频数据或对音视频数据进行编码。</p>
+<p>需要注意的是，avcodec_open2 函数需要在调用avformat_find_stream_info 函数之后进行，以确保在打开编解码器之前已经获取了音视频流的相关参数。</p>
+<h2 id="和编码相关的数据结构"><a href="#和编码相关的数据结构" class="headerlink" title="和编码相关的数据结构"></a>和编码相关的数据结构</h2><ol>
+<li><p>AVCodecContext，这个结构体可以是 编码器 的上下文，也可以是 解码器 的上下文，两者使用的是同一种数据结构。</p>
+</li>
+<li><p>AVCodec，编解码信息。</p>
+</li>
+<li><p>AVCodecParameters，编解码参数。</p>
+</li>
+<li><p>AVPacket ， YUV经过编码压缩之后的数据，在 《AVPacket结构体使用介绍》有介绍。</p>
+</li>
+<li><p>AVFrame ，解码之后的 YUV 数据。AVFrame 跟 AVPacket 类似，都是一个管理数据的结构体，他们本身是没有数据的，只是引用了数据</p>
+</li>
+</ol>
+<h2 id="编码相关的API函数如下"><a href="#编码相关的API函数如下" class="headerlink" title="编码相关的API函数如下"></a>编码相关的API函数如下</h2><ol>
+<li><p>avcodec_alloc_context3，通过传递 AVCodec 编解码信息来初始化上下文。</p>
+</li>
+<li><p>avcodec_open2，打开一个编码器 或者 解码器。</p>
+</li>
+<li><p>avcodec_is_open，判断 一个编码器 或者 解码器 是否打开</p>
+</li>
+<li><p>avcodec_send_frame，往 AVCodecContext 编码器 发送一个 AVFrame。</p>
+</li>
+<li><p>avcodec_receive_packet，从 AVCodecContext 编码器 读取一个 AVPacket。</p>
+</li>
+</ol>
+<h2 id="avcodec-find-decoder"><a href="#avcodec-find-decoder" class="headerlink" title="avcodec_find_decoder"></a>avcodec_find_decoder</h2><p>用于根据编解码器ID或名称查找对应的解码器<br>函数原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVCodec <span class="token operator">*</span><span class="token function">avcodec_find_decoder</span><span class="token punctuation">(</span><span class="token keyword">enum</span> <span class="token class-name">AVCodecID</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数 id 是要查找的解码器的ID，它是一个枚举类型 enum AVCodecID。你可以根据需要提供不同的解码器ID来查找对应的解码器。<br>以下是一些常见的解码器ID的示例：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AV_CODEC_ID_H264  <span class="token comment">// H.264解码器</span>
+AV_CODEC_ID_HEVC  <span class="token comment">// H.265/HEVC解码器</span>
+AV_CODEC_ID_MP3   <span class="token comment">// MP3解码器</span>
+AV_CODEC_ID_AAC   <span class="token comment">// AAC解码器</span>
+<span class="token comment">// 其他解码器ID...</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="avcodec-send-frame"><a href="#avcodec-send-frame" class="headerlink" title="avcodec_send_frame"></a>avcodec_send_frame</h2><p>用于将待解码的音视频帧发送给解码器进行解码。<br>函数原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_send_frame</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">,</span> <span class="token keyword">const</span> AVFrame <span class="token operator">*</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数 avctx 是已打开的解码器上下文（AVCodecContext）的指针，它包含了解码器的相关配置和状态信息。</p>
+<p>参数 frame 是待解码的音视频帧的指针，它是一个 AVFrame 结构体。AVFrame 结构体中包含了音视频帧的数据、格式和其他属性。</p>
+<p>函数返回一个整数值，表示操作的结果。返回值大于等于0表示成功，返回值小于0表示出现错误或结束。</p>
+<h2 id="avcodec-receive-packet"><a href="#avcodec-receive-packet" class="headerlink" title="avcodec_receive_packet"></a>avcodec_receive_packet</h2><p>用于从解码器中接收解码后的音视频数据包（packet）。<br>函数原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_receive_packet</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">,</span> AVPacket <span class="token operator">*</span>avpkt<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数 avctx 是已打开的解码器上下文（AVCodecContext）的指针，它包含了解码器的相关配置和状态信息。</p>
+<p>参数 avpkt 是用于接收解码后数据包的 AVPacket 结构体指针。AVPacket 结构体中包含了解码后的音视频数据。</p>
+<p>函数返回一个整数值，表示操作的结果。返回值大于等于0表示成功，返回值小于0表示出现错误或结束。当返回值为负数时，可能是由于解码器已经输出了所有可用的数据包或者出现了解码错误</p>
+<h2 id="avcodec-find-encoder"><a href="#avcodec-find-encoder" class="headerlink" title="avcodec_find_encoder"></a>avcodec_find_encoder</h2><p>用于根据编码器ID或名称查找对应的编码器。</p>
+<p>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVCodec <span class="token operator">*</span><span class="token function">avcodec_find_encoder</span><span class="token punctuation">(</span><span class="token keyword">enum</span> <span class="token class-name">AVCodecID</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数 id 是要查找的编码器的ID，它是一个枚举类型 enum AVCodecID。你可以根据需要提供不同的编码器ID来查找对应的编码器。</p>
+<h2 id="avcodec-open2"><a href="#avcodec-open2" class="headerlink" title="avcodec_open2"></a>avcodec_open2</h2><p>用于打开编解码器上下文（AVCodecContext）并进行初始化<br>函数原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_open2</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">,</span> <span class="token keyword">const</span> AVCodec <span class="token operator">*</span>codec<span class="token punctuation">,</span> AVDictionary <span class="token operator">*</span><span class="token operator">*</span>options<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数 avctx 是要打开的编解码器上下文（AVCodecContext）的指针，它包含了编解码器的相关配置和状态信息。</p>
+<p>参数 codec 是要使用的编解码器（AVCodec）的指针，可以通过 avcodec_find_encoder 或 avcodec_find_decoder 函数获得。</p>
+<p>参数 options 是一个指向选项字典（AVDictionary）的指针，用于传递额外的选项给编解码器。可以设置为 NULL，表示不传递任何选项。</p>
+<p>函数返回一个整数值，表示操作的结果。返回值为0表示成功，返回值小于0表示出现错误。</p>
+<hr>
+<p>示例代码:<br>此代码逻辑是把这些 YUV 数据重新编码压缩成 H264，生成 AVPacket。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+
+    <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token keyword">int</span> err<span class="token punctuation">;</span>
+    <span class="token comment">//打开输入文件</span>
+    <span class="token keyword">char</span> filename<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"juren-30s.mp4"</span><span class="token punctuation">;</span>
+    AVFormatContext <span class="token operator">*</span>fmt_ctx <span class="token operator">=</span> <span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>fmt_ctx<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span><span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ENOMEM<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">,</span> filename<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"can not open file %d \n"</span><span class="token punctuation">,</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> err<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">//打开解码器</span>
+    AVCodecContext <span class="token operator">*</span>avctx <span class="token operator">=</span> <span class="token function">avcodec_alloc_context3</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ret <span class="token operator">=</span> <span class="token function">avcodec_parameters_to_context</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    AVCodec <span class="token operator">*</span>codec <span class="token operator">=</span> <span class="token function">avcodec_find_decoder</span><span class="token punctuation">(</span>avctx<span class="token operator">-></span>codec_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">avcodec_open2</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> codec<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open codec faile %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+
+    AVCodecContext <span class="token operator">*</span>enc_ctx <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    AVPacket <span class="token operator">*</span>pkt <span class="token operator">=</span> <span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    AVFrame  <span class="token operator">*</span>frame <span class="token operator">=</span> <span class="token function">av_frame_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    AVPacket <span class="token operator">*</span>pkt_out <span class="token operator">=</span> <span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">int</span> frame_num <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> read_end <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span> <span class="token operator">==</span> read_end <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        ret <span class="token operator">=</span> <span class="token function">av_read_frame</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//跳过不处理音频包</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span> <span class="token operator">==</span> pkt<span class="token operator">-></span>stream_index <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">continue</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">//读取完文件，这时候 pkt 的 data 跟 size 应该是 null</span>
+            <span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">0</span> <span class="token operator">!=</span> ret<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"read error code %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">return</span> ENOMEM<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+                retry<span class="token operator">:</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">//这里可以考虑休眠 0.1 秒，返回 EAGAIN 通常是 ffmpeg 的内部 api 有bug</span>
+                    <span class="token keyword">goto</span> retry<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token comment">//释放 pkt 里面的编码数据</span>
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token comment">//循环不断从解码器读数据，直到没有数据可读。</span>
+        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token comment">//读取 AVFrame</span>
+            ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">/* 释放 frame 里面的YUV数据，
+             * 由于 avcodec_receive_frame 函数里面会调用 av_frame_unref，所以下面的代码可以注释。
+             * 所以我们不需要 手动 unref 这个 AVFrame
+             * */</span>
+            <span class="token comment">//av_frame_unref(frame);</span>
+
+            <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span> <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token comment">//提示 EAGAIN 代表 解码器 需要 更多的 AVPacket</span>
+                <span class="token comment">//跳出 第一层 for，让 解码器拿到更多的 AVPacket</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token comment">/* 提示 AVERROR_EOF 代表之前已经往 解码器发送了一个 data 跟 size 都是 NULL 的 AVPacket
+                 * 发送 NULL 的 AVPacket 是提示解码器把所有的缓存帧全都刷出来。
+                 * 通常只有在 读完输入文件才会发送 NULL 的 AVPacket，或者需要用现有的解码器解码另一个的视频流才会这么干。
+                 *
+                 * */</span>
+
+                <span class="token comment">/* 往编码器发送 null 的 AVFrame，让编码器把剩下的数据刷出来。
+                 * */</span>
+                ret <span class="token operator">=</span> <span class="token function">avcodec_send_frame</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    ret <span class="token operator">=</span> <span class="token function">avcodec_receive_packet</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">//这里不可能返回 EAGAIN，如果有直接退出。</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_receive_packet error code %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                       <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token comment">//编码出 AVPacket ，打印一些信息</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pkt_out size : %d \n"</span><span class="token punctuation">,</span>pkt_out<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+
+                <span class="token comment">//跳出 第二层 for，编码结束了。</span>
+                read_end <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> ret <span class="token operator">>=</span> <span class="token number">0</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token comment">//只有解码出来一个帧，才可以开始初始化编码器。</span>
+                <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token constant">NULL</span> <span class="token operator">==</span> enc_ctx <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token comment">//打开编码器，并且设置 编码信息。</span>
+                    AVCodec <span class="token operator">*</span>encode <span class="token operator">=</span> <span class="token function">avcodec_find_encoder</span><span class="token punctuation">(</span>AV_CODEC_ID_H264<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    enc_ctx <span class="token operator">=</span> <span class="token function">avcodec_alloc_context3</span><span class="token punctuation">(</span>encode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>codec_type <span class="token operator">=</span> AVMEDIA_TYPE_VIDEO<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>bit_rate <span class="token operator">=</span> <span class="token number">400000</span><span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>framerate <span class="token operator">=</span> avctx<span class="token operator">-></span>framerate<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>gop_size <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>max_b_frames <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>profile <span class="token operator">=</span> FF_PROFILE_H264_MAIN<span class="token punctuation">;</span>
+                    <span class="token comment">/*
+                     * 其实下面这些信息在容器那里也有，也可以一开始直接在容器那里打开编码器
+                     * 我从 AVFrame 里拿这些编码器参数是因为，容器的信息不一样就是最终的信息。
+                     * 因为你解码出来的 AVFrame 可能会经过 filter 滤镜，经过滤镜之后信息就会变化，但是本文没有使用滤镜。
+                     */</span>
+                    <span class="token comment">//编码器的时间基要取 AVFrame 的时间基，因为 AVFrame 是输入。</span>
+                    enc_ctx<span class="token operator">-></span>time_base <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>width <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>width<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>height <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>height<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>sample_aspect_ratio <span class="token operator">=</span> frame<span class="token operator">-></span>sample_aspect_ratio<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>pix_fmt <span class="token operator">=</span> frame<span class="token operator">-></span>format<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>color_range            <span class="token operator">=</span> frame<span class="token operator">-></span>color_range<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>color_primaries        <span class="token operator">=</span> frame<span class="token operator">-></span>color_primaries<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>color_trc              <span class="token operator">=</span> frame<span class="token operator">-></span>color_trc<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>colorspace             <span class="token operator">=</span> frame<span class="token operator">-></span>colorspace<span class="token punctuation">;</span>
+                    enc_ctx<span class="token operator">-></span>chroma_sample_location <span class="token operator">=</span> frame<span class="token operator">-></span>chroma_location<span class="token punctuation">;</span>
+
+                    <span class="token comment">/* 注意，这个 field_order 不同的视频的值是不一样的，这里我写死了。
+                     * 因为 本文的视频就是 AV_FIELD_PROGRESSIVE
+                     * 生产环境要对不同的视频做处理的
+                     */</span>
+                    enc_ctx<span class="token operator">-></span>field_order <span class="token operator">=</span> AV_FIELD_PROGRESSIVE<span class="token punctuation">;</span>
+
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">avcodec_open2</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> encode<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open codec faile %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+
+                <span class="token comment">//往编码器发送 AVFrame，然后不断读取 AVPacket</span>
+                ret <span class="token operator">=</span> <span class="token function">avcodec_send_frame</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_send_frame fail %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    ret <span class="token operator">=</span> <span class="token function">avcodec_receive_packet</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token comment">//前面没有往 编码器发 NULL,所以正常情况 ret 不会小于 0</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_receive_packet fail %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token comment">//编码出 AVPacket，打印一些信息。</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pkt_out size : %d \n"</span><span class="token punctuation">,</span>pkt_out<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                    <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+
+
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"other fail \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token function">av_frame_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">av_packet_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">av_packet_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//关闭编码器，解码器。</span>
+    <span class="token function">avcodec_close</span><span class="token punctuation">(</span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">avcodec_close</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">//释放容器内存。</span>
+    <span class="token function">avformat_free_context</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"done \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>下面是打开一个编码器的流程，打开编码器的代码量明显比打开解码器要多，这是因为打开解码器可以调 <code>avcodec_parameters_to_context</code> 把流的宽高等信息直接复制到 <code>AVCodecContext。</code></p>
+<p>而编码器，需要从 <code>AVFrame</code> 里面提取宽高，像素格式这些东西。宽高，像素之类的信息，我看到好像在打开文件的时候也能获取到，不需要解码出 <code>AVFrame。</code></p>
+<p>但是有一种情况，就是 有可能会使用滤镜，例如裁剪滤镜，这样宽高等信息就变了，所以最好是用 AVFrame 的信息来设置编码器。</p>
+<p>打开编码器跟打开解码器有以下不同的地方：</p>
+<ol>
+<li>解码器没有设置 time_base （时间基），编码器需要设置时间基。为什么要设置，我也不知道，反正设置了不会有问题。</li>
+<li>sample_aspect_ratio ，这个可以理解为像素的宽高比，现在通常是 1:1，但有些电视是矩形像素，不是正方形。</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//只有解码出来一个帧，才可以开始初始化编码器。</span>
+              <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token constant">NULL</span> <span class="token operator">==</span> enc_ctx <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                  <span class="token comment">//打开编码器，并且设置 编码信息。</span>
+                  AVCodec <span class="token operator">*</span>encode <span class="token operator">=</span> <span class="token function">avcodec_find_encoder</span><span class="token punctuation">(</span>AV_CODEC_ID_H264<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  enc_ctx <span class="token operator">=</span> <span class="token function">avcodec_alloc_context3</span><span class="token punctuation">(</span>encode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>codec_type <span class="token operator">=</span> AVMEDIA_TYPE_VIDEO<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>bit_rate <span class="token operator">=</span> <span class="token number">400000</span><span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>framerate <span class="token operator">=</span> avctx<span class="token operator">-></span>framerate<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>gop_size <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>max_b_frames <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>profile <span class="token operator">=</span> FF_PROFILE_H264_MAIN<span class="token punctuation">;</span>
+                  <span class="token comment">/*
+                   * 其实下面这些信息在容器那里也有，也可以一开始直接在容器那里打开编码器
+                   * 我从 AVFrame 里拿这些编码器参数是因为，容器的信息不一样就是最终的信息。
+                   * 因为你解码出来的 AVFrame 可能会经过 filter 滤镜，经过滤镜之后信息就会变化，但是本文没有使用滤镜。
+                   */</span>
+                  <span class="token comment">//编码器的时间基要取 AVFrame 的时间基，因为 AVFrame 是输入。</span>
+                  enc_ctx<span class="token operator">-></span>time_base <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>time_base<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>width <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>width<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>height <span class="token operator">=</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token operator">-></span>height<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>sample_aspect_ratio <span class="token operator">=</span> frame<span class="token operator">-></span>sample_aspect_ratio<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>pix_fmt <span class="token operator">=</span> frame<span class="token operator">-></span>format<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>color_range            <span class="token operator">=</span> frame<span class="token operator">-></span>color_range<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>color_primaries        <span class="token operator">=</span> frame<span class="token operator">-></span>color_primaries<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>color_trc              <span class="token operator">=</span> frame<span class="token operator">-></span>color_trc<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>colorspace             <span class="token operator">=</span> frame<span class="token operator">-></span>colorspace<span class="token punctuation">;</span>
+                  enc_ctx<span class="token operator">-></span>chroma_sample_location <span class="token operator">=</span> frame<span class="token operator">-></span>chroma_location<span class="token punctuation">;</span>
+
+                  <span class="token comment">/* 注意，这个 field_order 不同的视频的值是不一样的，这里我写死了。
+                   * 因为 本文的视频就是 AV_FIELD_PROGRESSIVE
+                   * 生产环境要对不同的视频做处理的
+                   */</span>
+                  enc_ctx<span class="token operator">-></span>field_order <span class="token operator">=</span> AV_FIELD_PROGRESSIVE<span class="token punctuation">;</span>
+
+                  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">avcodec_open2</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> encode<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open codec faile %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                      <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                  <span class="token punctuation">&#125;</span>
+              <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>下面是往编码器发数据跟收数据的代码，如下：<br>其实编码过程跟解码过程是类似，发了一个 AVFrame 后，需要循环不断读取 AVPacket 直到返回 EAGAIN 。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//往编码器发送 AVFrame，然后不断读取 AVPacket</span>
+            ret <span class="token operator">=</span> <span class="token function">avcodec_send_frame</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_send_frame fail %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                ret <span class="token operator">=</span> <span class="token function">avcodec_receive_packet</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token comment">//前面没有往 编码器发 NULL,所以正常情况 ret 不会小于 0</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_receive_packet fail %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token comment">//编码出 AVPacket，打印一些信息。</span>
+                <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pkt_out size : %d \n"</span><span class="token punctuation">,</span>pkt_out<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>当读到末尾的时候，也需要往编码器发送一个NULL，告诉编码器没有更多的 AVFrame 输入了，这样编码器内部就知道已经没有更多的输入了，只要把剩下的 AVPacket 全部刷出去，刷完就会返回 AVERROR_EOF</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token comment">/* 提示 AVERROR_EOF 代表之前已经往 解码器发送了一个 data 跟 size 都是 NULL 的 AVPacket
+     * 发送 NULL 的 AVPacket 是提示解码器把所有的缓存帧全都刷出来。
+     * 通常只有在 读完输入文件才会发送 NULL 的 AVPacket，或者需要用现有的解码器解码另一个的视频流才会这么干。
+     *
+     * */</span>
+
+    <span class="token comment">/* 往编码器发送 null 的 AVFrame，让编码器把剩下的数据刷出来。
+     * */</span>
+    ret <span class="token operator">=</span> <span class="token function">avcodec_send_frame</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_packet</span><span class="token punctuation">(</span>enc_ctx<span class="token punctuation">,</span> pkt_out<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//这里不可能返回 EAGAIN，如果有直接退出。</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"avcodec_receive_packet error code %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+           <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">//编码出 AVPacket ，打印一些信息</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pkt_out size : %d \n"</span><span class="token punctuation">,</span>pkt_out<span class="token operator">-></span>size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">//跳出 第二层 for，编码结束了。</span>
+    read_end <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E8%A7%A3%E7%A0%81/">FFmpeg解码</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E8%A7%A3%E7%A0%81/">FFmpeg解码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E7%BC%96%E7%A0%81/">FFmpeg编码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 16px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 16px;">error</a> <a href="/tags/leetcode/" style="font-size: 12px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

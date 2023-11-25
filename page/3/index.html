@@ -74,6 +74,46 @@
     
     <div class="post-item">
         <h2>
+            <a href="/2023/10/30/error/error-pointer-of-type-%E2%80%98void-%E2%80%99-used-in-arithmetic-Werror-pointer-arith/">error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]</a>
+        </h2>
+    
+        <p>void ByteArray::write(const void *buf, size_t size) &amp;#123;
+  if (size == 0) &amp;#123;
+    return;
+  ...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.30</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/10/26/sylar/c++/final%E5%92%8Coverride%E7%9A%84%E4%BD%9C%E7%94%A8/">final和override的作用</a>
+        </h2>
+    
+        <p>override关键字覆写（override）虚函数
+
+让编译器来检查我们又没有正确覆写父类的虚函数。因此，任何子类覆写虚函数后导致函数签名的变化，都会导致编译器报错。
+建议做法： 最顶层的虚函...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.26</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/c/" rel="tag">c++</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
             <a href="/2023/10/26/sylar/c++/%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E6%A8%A1%E6%9D%BF%E6%B6%88%E9%99%A4%E9%87%8D%E5%A4%8D%E4%BB%A3%E7%A0%81/">可变参数模板消除重复代码</a>
         </h2>
     
@@ -227,47 +267,6 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
         </div>
     </div>
     
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/16/sylar/%E6%A8%A1%E5%9D%97/%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97/">协程模块</a>
-        </h2>
-    
-        <p>协程协程和线程的区别协程虽然被称为轻量级线程，但在单线程内，协程并不能并发执行，只能是一个协程结束或yield后，再执行另一个协程，而线程则是可以真正并发执行的。
-其实这点也好理解，毕竟协程只是...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.16</time>
-            
-                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/14/sylar/c++/backtrace/">backtrace</a>
-        </h2>
-    
-        <p>backtrace头 文 件
-#include &amp;lt;execinfo.h&amp;gt;
-
-#include &amp;lt;execinfo.h&amp;gt;
-       int backtrace(void...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.14</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
 </section>
 
         <section class="page-navigator">
@@ -285,7 +284,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-av-register-all/">FFmpegAPI学习---av_register_all</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/18/FFmpeg/FFmpeg/">FFmpeg简介</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E8%A7%A3%E7%A0%81/">FFmpeg解码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E7%BC%96%E7%A0%81/">FFmpeg编码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>

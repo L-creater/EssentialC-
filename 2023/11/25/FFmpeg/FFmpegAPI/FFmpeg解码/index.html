@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFmpeg解码 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFmpeg解码"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFmpeg解码</h2>
+            <div class="post-meta">
+                <time class="date">2023.11.25</time>
+            
+                <span class="category"><a class="category-link" href="/categories/FFmpeg/">FFmpeg</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="解码流程"><a href="#解码流程" class="headerlink" title="解码流程"></a>解码流程</h2><h2 id="解码的数据结构"><a href="#解码的数据结构" class="headerlink" title="解码的数据结构"></a>解码的数据结构</h2><ol>
+<li><p>AVCodecContext，这个结构体可以是 编码器 的上下文，也可以是 解码器 的上下文，两者使用的是同一种数据结构。</p>
+</li>
+<li><p>AVCodec，编解码信息。</p>
+</li>
+<li><p>AVCodecParameters，编解码参数。</p>
+</li>
+<li><p>AVPacket ，数据包（已编码压缩），这里面的数据通常是一帧视频的数据，或者一帧音频的数据。AVPacket 他本身是没有编码数据的，他只是管理编码数据。</p>
+</li>
+<li><p>AVFrame ，解码之后的 YUV 数据。AVFrame 跟 AVPacket 类似，都是一个管理数据的结构体，他们本身是没有数据的，只是引用了数据。</p>
+</li>
+</ol>
+<p><img src="/../../../images/FFmpeg/FFmpeg%E8%A7%A3%E7%A0%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84.png" alt="Alt text"></p>
+<h2 id="和解码相关的API函数"><a href="#和解码相关的API函数" class="headerlink" title="和解码相关的API函数"></a>和解码相关的API函数</h2><ol>
+<li><p>avcodec_alloc_context3</p>
+<ul>
+<li>通过传递 AVCodec 编解码信息来初始化上下文。</li>
+</ul>
+</li>
+<li><p>avcodec_parameters_to_context</p>
+<ul>
+<li>把流的 AVCodecParameters 里面的 编解码参数 复制到 AVCodecContext。</li>
+</ul>
+</li>
+<li><p>avcodec_open2</p>
+<ul>
+<li>打开一个编码器 或者 解码器。</li>
+</ul>
+</li>
+<li><p>avcodec_is_open</p>
+<ul>
+<li>判断 一个编码器 或者 解码器 是否打开</li>
+</ul>
+</li>
+<li><p>avcodec_send_packet</p>
+<ul>
+<li>往 AVCodecContext 解码器 发送一个 AVPacket 。</li>
+</ul>
+</li>
+<li><p>avcodec_receive_frame</p>
+<ul>
+<li>从 AVCodecContext 解码器 读取一个 AVFrame。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<ol>
+<li><p>AVCodec 里面放的是 编解码信息 。</p>
+</li>
+<li><p>AVCodecParameters 里面放的是 编解码参数。</p>
+</li>
+</ol>
+<p>怎么理解 编解码信息 跟 编解码参数？</p>
+<p>通常 AVCodec 是使用 avcodec_find_decoder 函数找出来的，你给这个函数一个 AVCodecID，他就能返回一个解码器指针给你。这是 引入 FFmpeg 库的时候，他初始化了一堆静态的编解码变量给你。</p>
+<p>例如 AVCodecID 是 AV_CODEC_ID_H263 ，就会返回 263 相关的 AVCodec 指针， AVCodecID 是 AV_CODEC_ID_H264 ，就会返回 264 相关的 AVCodec 指针。</p>
+<p>只要是用 H264 编码 的视频，使用的<strong>解码器信息</strong>都是一样的，用的是同一个 AVCodec，但是不同的视频文件，宽高，采样这些信息，肯定会有点不一样。</p>
+<p><strong>这些不一样的东西放在哪里呢？</strong> 就是 AVCodecParameters。</p>
+<p>当 avformat_open_input 函数打开一个 MP4 的时候，编码器参数就会放在 codecpar 字段里，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar
+<span class="token comment">// 上面的 codecpar 就是一个 AVCodecParameters，只需要用 avcodec_parameters_to_context 函数把 codecpar 的参数复制给 AVCodecContext 即可，很方便。</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>带着问题读下面代码：</p>
+<ol>
+<li>如何初始化 AVCodecContext ？</li>
+<li>如何打开解码器 ？</li>
+<li>如何往解码器发数据 ？</li>
+<li>如何从解码器读取数据 ？</li>
+</ol>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"libavformat/avformat.h"</span></span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    AVFormatContext <span class="token operator">*</span>fmt_ctx <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> type <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">int</span> err<span class="token punctuation">;</span>
+    <span class="token comment">//提示，要把 juren-30s.mp4 文件放到 Debug 目录下才能找到。</span>
+    <span class="token keyword">char</span> filename<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"juren-30s.mp4"</span><span class="token punctuation">;</span>
+
+    fmt_ctx <span class="token operator">=</span> <span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>fmt_ctx<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span><span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> ENOMEM<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">avformat_open_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">,</span> filename<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"can not open file %d \n"</span><span class="token punctuation">,</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> err<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span> <span class="token operator">==</span> type <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+
+        <span class="token comment">//本文只初始化 视频解码器。音频解码器不管</span>
+        AVCodecContext <span class="token operator">*</span>avctx <span class="token operator">=</span> <span class="token function">avcodec_alloc_context3</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        ret <span class="token operator">=</span> <span class="token function">avcodec_parameters_to_context</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> fmt_ctx<span class="token operator">-></span>streams<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span>codecpar<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error code %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        AVCodec <span class="token operator">*</span>codec <span class="token operator">=</span> <span class="token function">avcodec_find_decoder</span><span class="token punctuation">(</span>avctx<span class="token operator">-></span>codec_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">avcodec_open2</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> codec<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"open codec faile %d \n"</span><span class="token punctuation">,</span>ret<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        AVPacket <span class="token operator">*</span>pkt <span class="token operator">=</span> <span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        AVFrame <span class="token operator">*</span>frame <span class="token operator">=</span> <span class="token function">av_frame_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> frame_num <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> read_end <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span> <span class="token operator">==</span> read_end <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+            ret <span class="token operator">=</span> <span class="token function">av_read_frame</span><span class="token punctuation">(</span>fmt_ctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">//跳过不处理音频包</span>
+            <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">1</span> <span class="token operator">==</span> pkt<span class="token operator">-></span>stream_index <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">continue</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">//已经读完文件</span>
+                <span class="token comment">//读取完文件，这时候 pkt 的 data 跟 size 应该是 null</span>
+                <span class="token comment">//冲刷解码器</span>
+                <span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">//释放 pkt 里面的编码数据</span>
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                <span class="token comment">//循环不断从解码器读数据，直到没有数据可读。</span>
+                <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                    <span class="token comment">//读取 AVFrame</span>
+                    ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">/* 释放 frame 里面的YUV数据，
+                     * 由于 avcodec_receive_frame 函数里面会调用 av_frame_unref，所以下面的代码可以注释。
+                     * 所以我们不需要 手动 unref 这个 AVFrame
+                     * */</span>
+                    <span class="token comment">//av_frame_unref(frame);</span>
+
+                    <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span> <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token comment">//提示 EAGAIN 代表 解码器 需要 更多的 AVPacket</span>
+                        <span class="token comment">//跳出 第一层 for，让 解码器拿到更多的 AVPacket</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token comment">/* 提示 AVERROR_EOF 代表之前已经往 解码器发送了一个 data 跟 size 都是 NULL 的 AVPacket
+                         * 发送 NULL 的 AVPacket 是提示解码器把所有的缓存帧全都刷出来。
+                         * 通常只有在 读完输入文件才会发送 NULL 的 AVPacket，或者需要用现有的解码器解码另一个的视频流才会这么干。
+                         *
+                         * */</span>
+
+                        <span class="token comment">//跳出 第二层 for，文件已经解码完毕。</span>
+                        read_end <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> ret <span class="token operator">>=</span> <span class="token number">0</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+
+                        <span class="token comment">//解码出一帧 YUV 数据，打印一些信息。</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"decode success ----\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"width : %d , height : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>width<span class="token punctuation">,</span>frame<span class="token operator">-></span>height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pts : %I64d , duration : %I64d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>pts<span class="token punctuation">,</span>frame<span class="token operator">-></span>pkt_duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"format : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>format<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"key_frame : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>key_frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"AVPictureType : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>pict_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">int</span> num <span class="token operator">=</span> <span class="token function">av_image_get_buffer_size</span><span class="token punctuation">(</span>AV_PIX_FMT_YUV420P<span class="token punctuation">,</span> <span class="token number">1920</span><span class="token punctuation">,</span> <span class="token number">1080</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"num : %d , \n"</span><span class="token punctuation">,</span>num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+                    <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+                        <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"other fail \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+
+            <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token number">0</span> <span class="token operator">==</span> ret<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                retry<span class="token operator">:</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> pkt<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">//这里可以考虑休眠 0.1 秒，返回 EAGAIN 通常是 ffmpeg 的内部 api 有bug</span>
+                    <span class="token keyword">goto</span> retry<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                    <span class="token comment">//释放 pkt 里面的编码数据</span>
+                    <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                    <span class="token comment">//循环不断从解码器读数据，直到没有数据可读。</span>
+                    <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                        <span class="token comment">//读取 AVFrame</span>
+                        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token comment">/* 释放 frame 里面的YUV数据，
+                         * 由于 avcodec_receive_frame 函数里面会调用 av_frame_unref，所以下面的代码可以注释。
+                         * 所以我们不需要 手动 unref 这个 AVFrame
+                         * */</span>
+                        <span class="token comment">//av_frame_unref(frame);</span>
+
+                        <span class="token keyword">if</span><span class="token punctuation">(</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span> <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token comment">//提示 EAGAIN 代表 解码器 需要 更多的 AVPacket</span>
+                            <span class="token comment">//跳出 第一层 for，让 解码器拿到更多的 AVPacket</span>
+                            <span class="token keyword">break</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> AVERROR_EOF <span class="token operator">==</span> ret <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+                            <span class="token comment">/* 提示 AVERROR_EOF 代表之前已经往 解码器发送了一个 data 跟 size 都是 NULL 的 AVPacket
+                             * 发送 NULL 的 AVPacket 是提示解码器把所有的缓存帧全都刷出来。
+                             * 通常只有在 读完输入文件才会发送 NULL 的 AVPacket，或者需要用现有的解码器解码另一个的视频流才会这么干。
+                             *
+                             * */</span>
+
+                            <span class="token comment">//跳出 第二层 for，文件已经解码完毕。</span>
+                            read_end <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                            <span class="token keyword">break</span><span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span> ret <span class="token operator">>=</span> <span class="token number">0</span> <span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+
+                            <span class="token comment">//解码出一帧 YUV 数据，打印一些信息。</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"decode success ----\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"width : %d , height : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>width<span class="token punctuation">,</span>frame<span class="token operator">-></span>height<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"pts : %I64d , duration : %I64d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>pts<span class="token punctuation">,</span>frame<span class="token operator">-></span>pkt_duration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"format : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>format<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"key_frame : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>key_frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"AVPictureType : %d \n"</span><span class="token punctuation">,</span>frame<span class="token operator">-></span>pict_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">int</span> num <span class="token operator">=</span> <span class="token function">av_image_get_buffer_size</span><span class="token punctuation">(</span>AV_PIX_FMT_YUV420P<span class="token punctuation">,</span> <span class="token number">1920</span><span class="token punctuation">,</span> <span class="token number">1080</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"num : %d , \n"</span><span class="token punctuation">,</span>num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+                            <span class="token comment">//打印 yuv</span>
+                            <span class="token comment">//printf(" Y size : %d \n",frame->linesize[0]);</span>
+                            <span class="token comment">//printf(" U size : %d \n",frame->linesize[1]);</span>
+                            <span class="token comment">//printf(" V size : %d \n",frame->linesize[2]);</span>
+
+
+                            <span class="token comment">/*
+                            //修改 yuv
+                            for(int tt=0; tt &lt; 5 ;tt++)&#123;
+                                frame->data[0][tt] = 0xFF;
+                            &#125;
+                            //拼接文件名
+                            char yuv_pic_name[200] = "./yuv420p_";
+                            char frame_num_str[10];
+                            itoa(frame_num, frame_num_str, 10);
+                            strcat(yuv_pic_name,frame_num_str);
+                            //写入文件
+                            FILE *fp = NULL;
+                            fp = fopen(yuv_pic_name, "w+");
+                            fwrite(frame->data[0] , 1, frame->width * frame->height, fp);
+                            fwrite(frame->data[1] , 1, frame->width/2 * frame->height/2, fp);
+                            fwrite(frame->data[2] , 1, frame->width/2 * frame->height/2, fp);
+                            fclose(fp);
+
+                            frame_num++;
+                            if( frame_num > 10 )&#123;
+                                return 99;
+                            &#125;
+                            */</span>
+
+
+                        <span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+                            <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"other fail \n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token function">av_frame_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">av_packet_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment">//释放解码器上下文。</span>
+        <span class="token function">avcodec_free_context</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">avformat_close_input</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>fmt_ctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="avformat-alloc-context"><a href="#avformat-alloc-context" class="headerlink" title="avformat_alloc_context"></a>avformat_alloc_context</h2><p>函数原型如下:</p>
+<p>用于分配并初始化一个AVFormatContext结构体，该结构体用于音视频格式的输入和输出。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVFormatContext <span class="token operator">*</span><span class="token function">avformat_alloc_context</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在音视频处理中，不同的音视频文件或流可能采用不同的格式，如MP4、AVI、FLV等。AVFormatContext结构体用于管理和表示这些不同格式的音视频数据。<br>调用avformat_alloc_context函数将会返回一个指向AVFormatContext结构体的指针，该结构体已经被分配和初始化。</p>
+<p>AVFormatContext结构体包含了音视频格式相关的信息，包括输入输出的文件名、音视频流的信息、封装格式的参数等。通过操作AVFormatContext结构体，可以进行音视频的读取、写入和处理操作。</p>
+<p>需要注意的是，使用完AVFormatContext结构体后，需要调用avformat_free_context函数来释放相关的资源。</p>
+<h2 id="avformat-open-input"><a href="#avformat-open-input" class="headerlink" title="avformat_open_input"></a>avformat_open_input</h2><p>用于打开音视频文件或流，并将其与一个AVFormatContext结构体关联起来，以便后续的音视频处理操作。<br>集体细节见—&gt;FFmpegAPI学习—avformat_open_input</p>
+<h2 id="avcodec-alloc-context3"><a href="#avcodec-alloc-context3" class="headerlink" title="avcodec_alloc_context3"></a>avcodec_alloc_context3</h2><p>用于分配并初始化一个<code>AVCodecContext</code>结构体，该结构体用于音视频编解码的参数设置和状态管理。</p>
+<p>在音视频编解码过程中，<code>AVCodecContext</code>结构体用于保存编解码器的相关参数，如编码器类型、音视频流的格式、编码参数、解码参数等。通过对<code>AVCodecContext</code>结构体的设置，可以进行编解码的配置和控制。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVCodecContext <span class="token operator">*</span><span class="token function">avcodec_alloc_context3</span><span class="token punctuation">(</span><span class="token keyword">const</span> AVCodec <span class="token operator">*</span>codec<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释：<br><code>codec</code>：要使用的编解码器。可以通过调用<code>avcodec_find_decoder</code>或<code>avcodec_find_encoder</code>等函数来获取。</p>
+<p><strong>如果将avcodec_alloc_context3函数的参数codec设置为NULL</strong>，则函数将只分配一个空的<code>AVCodecContext</code>结构体，而不会将其与特定的编解码器相关联。<br>在这种情况下，你需要手动设置<code>AVCodecContext</code>结构体的参数和配置，包括编码器类型、音视频流的格式、编码参数、解码参数等。通常情况下，你可以通过其他方式获取编解码器的信息，并通过<code>avcodec_parameters_to_context</code>函数将相关参数填充到<code>AVCodecContext</code>结构体中。</p>
+<p>调用<code>avcodec_alloc_context3</code>函数将会返回一个指向<code>AVCodecContext</code>结构体的指针，该结构体已经被分配和初始化。</p>
+<h2 id="avcodec-parameters-to-context"><a href="#avcodec-parameters-to-context" class="headerlink" title="avcodec_parameters_to_context"></a>avcodec_parameters_to_context</h2><p>用于将AVCodecParameters结构体中的参数值复制到AVCodecContext结构体中，以便进行音视频编解码的配置。</p>
+<p>在音视频处理中，AVCodecParameters结构体用于保存音视频流的参数信息，如编解码器类型、音视频流的格式、编码参数、解码参数等。而AVCodecContext结构体用于实际的编解码操作。</p>
+<p>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_parameters_to_context</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>codec<span class="token punctuation">,</span> <span class="token keyword">const</span> AVCodecParameters <span class="token operator">*</span>par<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释：</p>
+<ul>
+<li>codec：要配置的AVCodecContext结构体指针。</li>
+<li>par：包含参数信息的AVCodecParameters结构体指针。</li>
+</ul>
+<p>调用avcodec_parameters_to_context函数会将AVCodecParameters结构体中的参数值复制到AVCodecContext结构体中，从而实现参数的配置。</p>
+<h2 id="av-packet-alloc"><a href="#av-packet-alloc" class="headerlink" title="av_packet_alloc"></a>av_packet_alloc</h2><p>用于分配并初始化一个AVPacket结构体，该结构体用于存储音视频数据包。这里面的数据通常是一帧视频的数据</p>
+<p>音视频数据在处理过程中通常以数据包的形式进行传输和处理，AVPacket结构体用于表示和管理这些数据包。</p>
+<p>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVPacket <span class="token operator">*</span><span class="token function">av_packet_alloc</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>调用av_packet_alloc函数将会返回一个指向AVPacket结构体的指针，该结构体已经被分配和初始化。</p>
+<p>通过调用av_packet_alloc函数，可以方便地创建一个用于存储音视频数据包的AVPacket结构体。在使用完AVPacket结构体后，应该调用av_packet_free函数来释放相关的资源。</p>
+<p>需要注意的是，AVPacket结构体并不负责音视频数据的内存管理，它只是用于存储数据包的相关信息（如数据指针、大小、时间戳等）。<strong>实际的音视频数据存储在AVPacket结构体的data成员中</strong>，你可能需要额外的内存管理操作来分配和释放音视频数据的存储空间。</p>
+<h2 id="av-frame-alloc"><a href="#av-frame-alloc" class="headerlink" title="av_frame_alloc"></a>av_frame_alloc</h2><p>用于分配并初始化一个AVFrame结构体，该结构体用于存储音视频帧数据。</p>
+<p>音视频数据在处理过程中通常以帧的形式进行传输和处理，AVFrame结构体用于表示和管理这些帧数据。</p>
+<p>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">AVFrame <span class="token operator">*</span><span class="token function">av_frame_alloc</span><span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>调用av_frame_alloc函数将会返回一个指向AVFrame结构体的指针，该结构体已经被分配和初始化。</p>
+<p>通过调用av_frame_alloc函数，可以方便地创建一个用于存储音视频帧数据的AVFrame结构体。在使用完AVFrame结构体后，<strong>应该调用av_frame_free函数来释放相关的资源。</strong></p>
+<p>需要注意的是，AVFrame结构体并不负责音视频帧数据的内存管理，它只是用于存储帧数据的相关信息（如数据指针、宽度、高度、格式等）。<strong>实际的音视频帧数据存储在AVFrame结构体的各个平面（planes）中</strong>，你可能需要额外的内存管理操作来分配和释放音视频帧数据的存储空间。</p>
+<h2 id="av-read-frame"><a href="#av-read-frame" class="headerlink" title="av_read_frame"></a>av_read_frame</h2><p>用于从输入媒体文件中读取音视频数据帧。</p>
+<p>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">av_read_frame</span><span class="token punctuation">(</span>AVFormatContext <span class="token operator">*</span>formatContext<span class="token punctuation">,</span> AVPacket <span class="token operator">*</span>packet<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释:</p>
+<ul>
+<li>formatContext：指向AVFormatContext结构体的指针，表示输入媒体文件的上下文。</li>
+<li>packet：指向AVPacket结构体的指针，用于存储读取到的音视频数据帧。</li>
+</ul>
+<p>返回值:</p>
+<ul>
+<li>如果返回值为0，表示成功读取了一帧音视频数据。</li>
+<li>AVERROR_EOF (-542398533)：表示已达到输入媒体文件的结束，没有更多的音视频数据可供读取。</li>
+<li>AVERROR(EAGAIN) (-11)：表示当前没有音视频数据可用，可以稍后再尝试读取。</li>
+<li>其他负数值：表示发生了其他类型的错误，可以使用av_strerror函数将其转换为对应的错误信息。</li>
+</ul>
+<p>调用av_read_frame函数可以从输入媒体文件中读取下一个音视频数据帧，并将其存储在AVPacket结构体中。</p>
+<p>在使用av_read_frame函数之前，需要确保已经打开输入媒体文件并获取了流信息。然后，在循环中调用av_read_frame函数可以连续读取音视频数据帧，直到读取完毕或发生错误。每次读取后，可以对读取到的音视频数据帧进行进一步的处理。最后，需要释放音视频数据包的资源，包括调用av_packet_unref函数释放AVPacket结构体中的资源，并在完成后释放AVPacket结构体本身的内存。</p>
+<h2 id="avcodec-send-packet"><a href="#avcodec-send-packet" class="headerlink" title="avcodec_send_packet"></a>avcodec_send_packet</h2><p>用于向解码器发送音视频数据包进行解码。<br>函数原型如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">,</span> <span class="token keyword">const</span> AVPacket <span class="token operator">*</span>avpkt<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释：</p>
+<ul>
+<li>avctx：指向AVCodecContext结构体的指针，表示解码器的上下文。</li>
+<li>avpkt：指向AVPacket结构体的指针，表示待解码的音视频数据包。</li>
+</ul>
+<p>调用avcodec_send_packet函数将待解码的音视频数据包发送给解码器进行解码操作。</p>
+<h2 id="解码的数据存放在哪里了"><a href="#解码的数据存放在哪里了" class="headerlink" title="解码的数据存放在哪里了?"></a>解码的数据存放在哪里了?</h2><p><strong>解码后的数据存放在解码器的输出缓冲区中，通常是AVFrame结构体中的成员变量。</strong></p>
+<p><strong>在解码中，AVFrame 是解码器的输出；在编码中，AVFrame 是编码器的输入。</strong><br>AVFrame结构体定义了存储解码后音视频帧数据的格式和信息，包括音频样本、视频像素数据等。具体的成员变量取决于解码后的数据类型，例如：</p>
+<ul>
+<li>对于音频解码，解码后的音频样本数据存储在AVFrame的data数组中，可以通过AVFrame.data[0]获取音频样本数据的指针。</li>
+<li>对于视频解码，解码后的视频像素数据存储在AVFrame的data数组中，可以通过AVFrame.data[0]、AVFrame.data[1]、AVFrame.data[2]等获取不同颜色通道的像素数据指针。<br>此外，AVFrame结构体还包含了音频采样率、声道数、视频宽度、高度、像素格式等信息，可以通过相应的成员变量获取。</li>
+</ul>
+<blockquote>
+<p>todo AVFrame</p>
+</blockquote>
+<h2 id="avcodec-receive-frame"><a href="#avcodec-receive-frame" class="headerlink" title="avcodec_receive_frame"></a>avcodec_receive_frame</h2><p>用于从解码器接收解码后的音视频帧数据。</p>
+<p>函数的原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">,</span> AVFrame <span class="token operator">*</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释：</p>
+<ul>
+<li>avctx：指向AVCodecContext结构体的指针，表示解码器的上下文。</li>
+<li>frame：指向AVFrame结构体的指针，用于接收解码后的音视频帧数据。</li>
+</ul>
+<p>调用avcodec_receive_frame函数可以从解码器中获取解码后的音视频帧数据。</p>
+<h2 id="av-image-get-buffer-size"><a href="#av-image-get-buffer-size" class="headerlink" title="av_image_get_buffer_size"></a>av_image_get_buffer_size</h2><p>用于计算给定图像参数的图像数据缓冲区大小。</p>
+<p>函数的原型如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">av_image_get_buffer_size</span><span class="token punctuation">(</span><span class="token keyword">enum</span> <span class="token class-name">AVPixelFormat</span> pix_fmt<span class="token punctuation">,</span> <span class="token keyword">int</span> width<span class="token punctuation">,</span> <span class="token keyword">int</span> height<span class="token punctuation">,</span> <span class="token keyword">int</span> align<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>参数解释：</p>
+<ul>
+<li>pix_fmt：表示图像的像素格式，使用enum AVPixelFormat类型。</li>
+<li>width：图像的宽度。</li>
+<li>height：图像的高度。</li>
+<li>align：指定图像数据的对齐方式（以字节为单位），通常为1。</li>
+</ul>
+<p>调用av_image_get_buffer_size函数可以根据图像的像素格式、宽度、高度和对齐方式，计算出所需的图像数据缓冲区大小。</p>
+<p><code>int num = av_image_get_buffer_size(AV_PIX_FMT_YUV420P, 1920, 1080, 1);</code><br>在示例代码中，我们指定了图像的像素格式（YUV420P），宽度（1920）和高度（1080），并将对齐方式设置为1。然后调用av_image_get_buffer_size函数计算出所需的图像数据缓冲区大小，并打印结果。</p>
+<p>需要注意的是，av_image_get_buffer_size函数只计算图像数据缓冲区的大小，不会分配实际的内存。你可以使用计算出的缓冲区大小来分配足够大小的内存，用于存储图像数据。</p>
+<p>此外，图像的像素格式和对齐方式对图像数据缓冲区大小的计算影响很大。不同的像素格式和对齐方式可能导致不同的缓冲区大小，因此确保提供正确的参数以获得准确的缓冲区大小。</p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E7%BC%96%E7%A0%81/">FFmpeg编码</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E8%A7%A3%E7%A0%81/">FFmpeg解码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E7%BC%96%E7%A0%81/">FFmpeg编码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/%E8%AE%BE%E7%BD%AE%E8%A7%A3%E5%A4%8D%E7%94%A8%E5%99%A8-demuxer-%E5%8F%82%E6%95%B0/">设置解复用器(demuxer)参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">AVpacket数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-open-input/">FFmpegAPI学习---avformat_open_input</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI%E5%AD%A6%E4%B9%A0-avformat-find-stream-info/">FFmpegAPI学习---avformat_find_stream_info</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 16px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 16px;">error</a> <a href="/tags/leetcode/" style="font-size: 12px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
