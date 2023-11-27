@@ -60,6 +60,83 @@
     
     <div class="post-item">
         <h2>
+            <a href="/2023/11/16/sylar/%E6%A8%A1%E5%9D%97/hook%E6%A8%A1%E5%9D%97/">hook模块</a>
+        </h2>
+    
+        <p>hook系统底层和socket相关的API，socket IO相关的API，以及sleep系列的API。hook的开启控制是线程粒度的，可以自由选择。通过hook模块，可以使一些不具异步功能的A...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.11.16</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/11/12/sylar/%E6%A8%A1%E5%9D%97/Address%E6%A8%A1%E5%9D%97/">Address模块</a>
+        </h2>
+    
+        <p>
+Address：所有网络地址的基类，抽象类，对应sockaddr类型，但只包含抽象方法，不包含具体的成员。除此外，Address作为地址类还提供了网络地址查询及网卡地址查询功能。
+Addres...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.11.12</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/11/05/sylar/%E6%A8%A1%E5%9D%97/%E9%85%8D%E7%BD%AE%E6%A8%A1%E5%9D%97/">配置模块</a>
+        </h2>
+    
+        <p>sylar配置模块设计采用约定优于配置的思想
+维基百科：约定优于配置
+ConfigVarBase配置项基类，虚基类，定义了配置项公有的成员和方法。
+sylar对每个配置项都包括名称和描述两项成员...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.11.05</time>
+            
+                <span class="category"><a class="category-link" href="/categories/sylar/">sylar</a></span>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
+            <a href="/2023/11/02/sylar/c++/C-%E4%B8%ADstring-npos/">C++中string::npos</a>
+        </h2>
+    
+        <p>npos是一个常数，表示size_t的最大值（Maximum value for size_t）
+Type: const size_type (aka const unsigned long)
+...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.11.02</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
             <a href="/2023/11/02/sylar/%E6%A8%A1%E5%9D%97/IOManager/">IO协程调度模块</a>
         </h2>
     
@@ -173,89 +250,10 @@ IO协程调度还解决了调度器在idle状态下忙等待导致CPU占用率�
         </div>
     </div>
     
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/26/sylar/c++/%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E6%A8%A1%E6%9D%BF%E6%B6%88%E9%99%A4%E9%87%8D%E5%A4%8D%E4%BB%A3%E7%A0%81/">可变参数模板消除重复代码</a>
-        </h2>
-    
-        <p>可变参数模板和普通模板函数的语义是一样的，只是语法上稍有区别，声明可变参数模板时需要在typename或class后面带上省略号”…”。省略号作用有两个：
-
-声明一个参数包，这个参数包中可以包含...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.26</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c/" rel="tag">c++</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/25/error/error-invalid-new-expression-of-abstract-class-type-%E2%80%98sylar-IPAddress%E2%80%99/">error: invalid new-expression of abstract class type ‘sylar::IPAddress’</a>
-        </h2>
-    
-        <p>error:
-error: invalid new-expression of abstract class type ‘sylar::IPAddress’
-  162 |         &amp;#...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.25</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/23/sylar/c++/%E4%BD%8D%E5%9F%9F%E6%93%8D%E4%BD%9C/">位域操作</a>
-        </h2>
-    
-        <p>位域（bit-field）是一种在结构体或类中使用的特殊成员变量类型，它允许你将多个成员变量压缩到特定数量的位中，以节省内存空间。位域的主要目的是在存储空间有限的情况下，有效地利用位。
-在实际编...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.23</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c/" rel="tag">c++</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/23/sylar/c++/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8make-shared%E5%88%9D%E5%A7%8B%E5%8C%96/">尽量使用make_shared初始化</a>
-        </h2>
-    
-        <p>为什么尽可能使用 make_shared，这几乎总是如此？主要原因有两个：简单和高效。
-
-使用 make_shared 代码更简单。首先要确保清晰和正确。
-
-使用 make_shared 效率更...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.23</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c/" rel="tag">c++</a>，<a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
 </section>
 
         <section class="page-navigator">
-            <a class="extend prev" rel="prev" href="/archives/page/2/">«</a><a class="page-number" href="/archives/">1</a><a class="page-number" href="/archives/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/archives/page/4/">4</a><a class="page-number" href="/archives/page/5/">5</a><a class="extend next" rel="next" href="/archives/page/4/">»</a>
+            <a class="extend prev" rel="prev" href="/archives/page/2/">«</a><a class="page-number" href="/archives/">1</a><a class="page-number" href="/archives/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/archives/page/4/">4</a><a class="page-number" href="/archives/page/5/">5</a><a class="page-number" href="/archives/page/6/">6</a><a class="extend next" rel="next" href="/archives/page/4/">»</a>
         </section>
     </div>
 </main>
@@ -269,7 +267,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/131-%E5%88%86%E5%89%B2%E5%9B%9E%E6%96%87%E4%B8%B2/">131.分割回文串</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/40-%E7%BB%84%E5%90%88%E6%80%BB%E5%92%8CII/">40.组合总和II</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/17-%E7%94%B5%E8%AF%9D%E5%8F%B7%E7%A0%81%E7%BB%84%E5%90%88/">17.电话号码组合</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/8-%E7%BB%84%E5%90%88%E6%80%BB%E5%92%8C/">8.组合总和</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E8%A7%A3%E7%A0%81/">FFmpeg解码</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg%E7%BC%96%E7%A0%81/">FFmpeg编码</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/11/27/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/47-%E5%85%A8%E6%8E%92%E5%88%97II/">47.全排列II</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/27/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/46-%E5%85%A8%E6%8E%92%E5%88%97/">46.全排列</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/27/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/90-%E5%AD%90%E9%9B%86II/">90.子集II</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/27/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/78-%E5%AD%90%E9%9B%86/">78.子集</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/131-%E5%88%86%E5%89%B2%E5%9B%9E%E6%96%87%E4%B8%B2/">131.分割回文串</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/25/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/40-%E7%BB%84%E5%90%88%E6%80%BB%E5%92%8CII/">40.组合总和II</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
@@ -277,7 +275,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-tags">标签云：</h3>
-                    <a href="/tags/FFmpeg/" style="font-size: 18px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 14px;">c++</a> <a href="/tags/c-11/" style="font-size: 12px;">c++11</a> <a href="/tags/error/" style="font-size: 14px;">error</a> <a href="/tags/leetcode/" style="font-size: 16px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/c/" style="font-size: 14px;">c++</a> <a href="/tags/c-11/" style="font-size: 12px;">c++11</a> <a href="/tags/error/" style="font-size: 14px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
                 </div>
             </div>
         </section>
