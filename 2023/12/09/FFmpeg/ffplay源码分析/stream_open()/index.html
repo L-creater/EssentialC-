@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFplay源码分析---stream_open() - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFplay源码分析---stream_open()"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFplay源码分析---stream_open()</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.09</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="stream-open"><a href="#stream-open" class="headerlink" title="stream_open()"></a>stream_open()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open.png" alt="Alt text"></p>
+<h3 id="struct-VideoState"><a href="#struct-VideoState" class="headerlink" title="struct VideoState"></a>struct VideoState</h3><p>VideoState 可以说是播放器的全局管理器。字段非常多，时钟，队列，解码器，各种状态 都放在 VideoState 里面。</p>
+<p>但是本文不会把 VideoState 的所有字段都讲一遍，只会讲 stream_open() 函数用到的字段，如下是精简过的字段，顺序也经过调整，方便阅读。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">VideoState</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> last_video_stream<span class="token punctuation">,</span> last_audio_stream<span class="token punctuation">,</span> last_subtitle_stream<span class="token punctuation">;</span>
+    <span class="token keyword">char</span><span class="token operator">*</span> filename<span class="token punctuation">;</span>
+    AVInputFormat<span class="token operator">*</span> iformat<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> width<span class="token punctuation">,</span> height<span class="token punctuation">,</span> xleft<span class="token punctuation">,</span> ytop<span class="token punctuation">;</span>
+    FrameQueue pictq<span class="token punctuation">;</span>
+    FrameQueue sampq<span class="token punctuation">;</span>
+    PacketQueue videoq<span class="token punctuation">;</span>
+    PacketQueue audioq<span class="token punctuation">;</span>
+    SDL_cond <span class="token operator">*</span>continue_read_thread<span class="token punctuation">;</span>
+    SDL_Thread <span class="token operator">*</span>read_tid<span class="token punctuation">;</span>
+    Clock audclk<span class="token punctuation">;</span>
+    Clock vidclk<span class="token punctuation">;</span>
+    Clock extclk<span class="token punctuation">;</span>    
+    <span class="token keyword">int</span> audio_clock_serial<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> audio_volume<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> muted<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> av_sync_type<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> VideoState<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ol>
+<li><p>int last_video_stream 代表最后一个视频流，如果你的音视频文件 里面有多个视频流，last_video_stream 就代表最后一个视频流。另外两个 last_audio_stream, last_subtitle_stream 一样代表最后一个。</p>
+</li>
+<li><p>char* filename 存储的是打开的 音视频文件名，或者是网络地址url。</p>
+</li>
+<li><p>AVInputFormat* iformat，容器格式，ffplay 默认是根据 filename 的后缀来确定容器格式，但是你也可以指定按某种容器格式来解析文件。命令如下：</p>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">ffplay <span class="token operator">-</span>i juren<span class="token operator">-</span><span class="token number">5</span>s<span class="token punctuation">.</span>mp4 <span class="token operator">-</span>f flv<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p> 通过命令行参数指定的 -f flv 就会被存储到 AVInputFormat* iformat，当然不是存的字符，有一个根据字符串找到 AVInputFormat 的过程。</p>
+</li>
+<li><p>int width, height, xleft, ytop;，分别代表播放器窗口的 宽高 跟 位置。位置通过 xleft 跟 ytop 来定位的。</p>
+</li>
+<li><p>FrameQueue pictq， FrameQueue sampq，视频跟音频的 AVFrame 队列。</p>
+</li>
+<li><p>PacketQueue videoq，PacketQueue audioq，视频跟音频的 AVPacket 队列。</p>
+</li>
+<li><p>SDL_cond *continue_read_thread，这是一个 SDL 的条件变量，用于线程间通信的。read_thread() 线程在以下两种情况会进入休眠 10ms.</p>
+<ol>
+<li>第一种情况：PacketQueue 队列满了，无法再塞数据进去。</li>
+<li>第二种情况：超过最小缓存size。如果在 10ms 内，PacketQueue 队列全部被消耗完毕，audio_thread() 或者 video_thread() 线程 没有 AVPakcet 能读了，就需要尽快唤醒 read_thread() 线程。</li>
+<li>如果进行了 seek 操作，也需要快速把 read_thread() 线程 从休眠中唤醒。<br> 所以 SDL_cond *continue_read_thread 条件变量，主要用于 read_thread 跟 audio_thread ，video_thread 线程进行通信的。</li>
+</ol>
+</li>
+<li><p>SDL_Thread *read_tid;，read_thread 的线程ID。</p>
+<p> C++14 标准库有跨平台的线程库，但是 C语言 是没有跨平台的线程库，所以 ffplay 取巧了，使用了 SDL 库的线程跟条件变量，SDL 是跨平台的。</p>
+</li>
+<li><p>Clock audclk;，音频时钟，记录音频流的目前的播放时刻 。</p>
+</li>
+<li><p>Clock vidclk;，视频时钟，记录视频流的目前的播放时刻 。</p>
+</li>
+<li><p>Clock extclk;，外部时钟，取第一帧 音频 或 视频的 pts 作为 起始时间，然后随着物理时间的消逝增长，所以是物理时间的当前时刻。到底是以音频的第一帧，还是视频的第一帧？取决于 av_read_frame() 函数第一次读到的是音频还是视频。</p>
+</li>
+<li><p>int audio_clock_serial;，这个字段比较独特，只有音频有，视频没有，没有一个 video_clock_serial 字段。</p>
+<p>audio_clock_serial 只是一个用做临时用途的变量，实际上存储的就是 AVFrame 的 serial 字段。不用特别关注。而视频直接用的 AVFrame 的 serial。</p>
+</li>
+<li><p>int audio_volume，播放器的声音大小。</p>
+</li>
+<li><p>int muted，是否静音，C语言C99标准是没有 bool 类型的，都用 int 代替。</p>
+</li>
+<li><p>int av_sync_type，音视频同步方式，有 3 种同步方式，以音频时钟为准，以视频时钟为准，以外部时钟为准。默认方式是以音频时钟为准。</p>
+</li>
+</ol>
+<hr>
+<p>由于 FrameQueue 跟 PacketQueue 这两个数据结构非常重要，所以放一整图片方便理解。<br><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/FrameQueue_PacketQueue.png" alt="Alt text"></p>
+<p>FrameQueue 里面的 queue 是一个数组，16 在代码里是一个宏，那个宏通常等于 16。PacketQueue 里面的 pkt_list 是一个 AVFifoBuffer。</p>
+<p>FrameQueue 跟 PakcetQueue 是通过一个 pktq 指针来关联的。这两个队列都有自己的 锁 mutex 跟 条件变量 cond。操作这两个队列都需要加锁操作的。</p>
+<hr>
+<p>下面开始分析 stream_open() 函数，流程图，代码如下<br><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> VideoState <span class="token operator">*</span><span class="token function">stream_open</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>filename<span class="token punctuation">,</span> AVInputFormat <span class="token operator">*</span>iformat<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    VideoState <span class="token operator">*</span>is<span class="token punctuation">;</span>
+
+    is <span class="token operator">=</span> <span class="token function">av_mallocz</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>VideoState<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>is<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>last_video_stream <span class="token operator">=</span> is<span class="token operator">-></span>video_stream <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>last_audio_stream <span class="token operator">=</span> is<span class="token operator">-></span>audio_stream <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>last_subtitle_stream <span class="token operator">=</span> is<span class="token operator">-></span>subtitle_stream <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>filename <span class="token operator">=</span> <span class="token function">av_strdup</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>is<span class="token operator">-></span>filename<span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+    is<span class="token operator">-></span>iformat <span class="token operator">=</span> iformat<span class="token punctuation">;</span>
+    is<span class="token operator">-></span>ytop    <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>xleft   <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/* start video display */</span>
+    <span class="token comment">// 初始化 video 队列</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">frame_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>pictq<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>videoq<span class="token punctuation">,</span> VIDEO_PICTURE_QUEUE_SIZE<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+    <span class="token comment">// 初始化 subtitles 队列</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">frame_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>subpq<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>subtitleq<span class="token punctuation">,</span> SUBPICTURE_QUEUE_SIZE<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+    <span class="token comment">// 初始化 audio 队列</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">frame_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>sampq<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>audioq<span class="token punctuation">,</span> SAMPLE_QUEUE_SIZE<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">packet_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>videoq<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">||</span>
+        <span class="token function">packet_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>audioq<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">||</span>
+        <span class="token function">packet_queue_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>subtitleq<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>is<span class="token operator">-></span>continue_read_thread <span class="token operator">=</span> <span class="token function">SDL_CreateCond</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateCond(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 初始化clock</span>
+    <span class="token function">init_clock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>vidclk<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>videoq<span class="token punctuation">.</span>serial<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">init_clock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>audclk<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>audioq<span class="token punctuation">.</span>serial<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">init_clock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>extclk<span class="token punctuation">,</span> <span class="token operator">&amp;</span>is<span class="token operator">-></span>extclk<span class="token punctuation">.</span>serial<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>audio_clock_serial <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>startup_volume <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_WARNING<span class="token punctuation">,</span> <span class="token string">"-volume=%d &lt; 0, setting to 0\n"</span><span class="token punctuation">,</span> startup_volume<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>startup_volume <span class="token operator">></span> <span class="token number">100</span><span class="token punctuation">)</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_WARNING<span class="token punctuation">,</span> <span class="token string">"-volume=%d > 100, setting to 100\n"</span><span class="token punctuation">,</span> startup_volume<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    startup_volume <span class="token operator">=</span> <span class="token function">av_clip</span><span class="token punctuation">(</span>startup_volume<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    startup_volume <span class="token operator">=</span> <span class="token function">av_clip</span><span class="token punctuation">(</span>SDL_MIX_MAXVOLUME <span class="token operator">*</span> startup_volume <span class="token operator">/</span> <span class="token number">100</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> SDL_MIX_MAXVOLUME<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>audio_volume <span class="token operator">=</span> startup_volume<span class="token punctuation">;</span>
+    is<span class="token operator">-></span>muted <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>av_sync_type <span class="token operator">=</span> av_sync_type<span class="token punctuation">;</span>
+    <span class="token comment">// 新的线程 read_thread()</span>
+    is<span class="token operator">-></span>read_tid     <span class="token operator">=</span> <span class="token function">SDL_CreateThread</span><span class="token punctuation">(</span>read_thread<span class="token punctuation">,</span> <span class="token string">"read_thread"</span><span class="token punctuation">,</span> is<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>is<span class="token operator">-></span>read_tid<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateThread(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+fail<span class="token operator">:</span>
+        <span class="token function">stream_close</span><span class="token punctuation">(</span>is<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> is<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>stream_open() 函数的内部实现非常的简单。无非就是 初始化 队列，初始化时钟，然后创建一个 read_thread() 线程去跑。</p>
+<h3 id="frame-queue-init"><a href="#frame-queue-init" class="headerlink" title="frame_queue_init"></a>frame_queue_init</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">frame_queue_init</span><span class="token punctuation">(</span>FrameQueue <span class="token operator">*</span>f<span class="token punctuation">,</span> PacketQueue <span class="token operator">*</span>pktq<span class="token punctuation">,</span> <span class="token keyword">int</span> max_size<span class="token punctuation">,</span> <span class="token keyword">int</span> keep_last<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> i<span class="token punctuation">;</span>
+    <span class="token comment">// memset函数将f指向的帧队列结构体的内存空间清零。</span>
+    <span class="token function">memset</span><span class="token punctuation">(</span>f<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>FrameQueue<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 创建一个互斥锁</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>f<span class="token operator">-></span>mutex <span class="token operator">=</span> <span class="token function">SDL_CreateMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateMutex(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 创建一个条件变量，并将其赋值给帧队列结构体中的cond成员</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>f<span class="token operator">-></span>cond <span class="token operator">=</span> <span class="token function">SDL_CreateCond</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateCond(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 参数pktq赋值给帧队列结构体中的pktq成员。</span>
+    f<span class="token operator">-></span>pktq <span class="token operator">=</span> pktq<span class="token punctuation">;</span>
+    f<span class="token operator">-></span>max_size <span class="token operator">=</span> <span class="token function">FFMIN</span><span class="token punctuation">(</span>max_size<span class="token punctuation">,</span> FRAME_QUEUE_SIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 这个 !! 操作没有什么特别，实际上就是把大于 1 的数字转成 1。如果 keep_last 等于 5，取反两次之后，就会变成 1 了。</span>
+    f<span class="token operator">-></span>keep_last <span class="token operator">=</span> <span class="token operator">!</span><span class="token operator">!</span>keep_last<span class="token punctuation">;</span>
+    <span class="token comment">// 为帧队列中的每个元素分配一个AVFrame结构体，并将其赋值给帧队列结构体中的queue[i].frame成员。</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> f<span class="token operator">-></span>max_size<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>f<span class="token operator">-></span>queue<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>frame <span class="token operator">=</span> <span class="token function">av_frame_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 返回0表示初始化成功。</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="packet-queue-init"><a href="#packet-queue-init" class="headerlink" title="packet_queue_init"></a>packet_queue_init</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/* packet queue handling */</span>
+<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">packet_queue_init</span><span class="token punctuation">(</span>PacketQueue <span class="token operator">*</span>q<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token function">memset</span><span class="token punctuation">(</span>q<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>PacketQueue<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// av_fifo_alloc函数为数据包队列结构体的pkt_list成员分配一个AVFifoBuffer类型的FIFO队列。</span>
+    q<span class="token operator">-></span>pkt_list <span class="token operator">=</span> <span class="token function">av_fifo_alloc</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>MyAVPacketList<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>q<span class="token operator">-></span>pkt_list<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    q<span class="token operator">-></span>mutex <span class="token operator">=</span> <span class="token function">SDL_CreateMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>q<span class="token operator">-></span>mutex<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateMutex(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    q<span class="token operator">-></span>cond <span class="token operator">=</span> <span class="token function">SDL_CreateCond</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>q<span class="token operator">-></span>cond<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_FATAL<span class="token punctuation">,</span> <span class="token string">"SDL_CreateCond(): %s\n"</span><span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">//abort_request 字段如果置为 1， audio_thread() 跟 video_thread() 解码线程就会退出。所以在创建解码线程 之前，ffplay 会把 abort_request 置为 0 ，</span>
+    q<span class="token operator">-></span>abort_request <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="init-clock"><a href="#init-clock" class="headerlink" title="init_clock"></a>init_clock</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">init_clock</span><span class="token punctuation">(</span>Clock <span class="token operator">*</span>c<span class="token punctuation">,</span> <span class="token keyword">int</span> <span class="token operator">*</span>queue_serial<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>   <span class="token comment">// 将时钟结构体的speed成员设置为1.0，表示时钟的播放速度为正常速度。</span>
+    c<span class="token operator">-></span>speed <span class="token operator">=</span> <span class="token number">1.0</span><span class="token punctuation">;</span>
+    <span class="token comment">// 将时钟结构体的paused成员设置为0，表示时钟处于非暂停状态。</span>
+    c<span class="token operator">-></span>paused <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token comment">// 将时钟结构体的queue_serial成员指向传入的队列序列号指针，用于与其他组件共享队列序列号信息。</span>
+    c<span class="token operator">-></span>queue_serial <span class="token operator">=</span> queue_serial<span class="token punctuation">;</span>
+    <span class="token comment">// 将时钟结构体的其他成员进行初始化。其中，第一个参数是时钟结构体的指针，第二个参数是NAN（Not a Number），表示初始时钟值未知，第三个参数是-1，表示初始时钟序列号未知。</span>
+    <span class="token function">set_clock</span><span class="token punctuation">(</span>c<span class="token punctuation">,</span> NAN<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>stream_open() 函数已经讲解完毕，现在逻辑流程已经流转到新的线程 read_thread() 函数里面了，下面文章继续分析 <strong>read_thread()</strong> 函数的内部原理。</p>
+</blockquote>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: <a href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/main/">FFplay源码分析---main()</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open()/">FFplay源码分析---stream_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/main/">FFplay源码分析---main()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/30/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/491-%E9%80%92%E5%A2%9E%E5%AD%90%E5%BA%8F%E5%88%97/">491.递增子序列</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/28/cpp/practice/c-%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%8C%E6%8E%A8%E8%8D%90%E7%94%A8%E5%93%AA%E7%A7%8D%E5%86%99%E6%B3%95%EF%BC%9F%E6%9C%80%E4%B8%8D%E5%AE%B9%E6%98%93%E9%94%99/">c++局部变量初始化，推荐用哪种写法？最不容易错？</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/11/27/leetcode/%E5%9B%9E%E6%BA%AF%E7%AE%97%E6%B3%95/47-%E5%85%A8%E6%8E%92%E5%88%97II/">47.全排列II</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 12px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 14px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/error/" style="font-size: 14px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
