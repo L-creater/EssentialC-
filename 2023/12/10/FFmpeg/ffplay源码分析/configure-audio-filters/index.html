@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFplay源码分析---configure_audio_filters() - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFplay源码分析---configure_audio_filters()"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFplay源码分析---configure_audio_filters()</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.10</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure_audio_filters.png" alt="Alt text"></p>
+<h2 id="configure-audio-filters"><a href="#configure-audio-filters" class="headerlink" title="configure_audio_filters()"></a>configure_audio_filters()</h2><p>音频流的 滤镜是通过 configure_audio_filters() 函数来创建的，因为 ffplay 为了代码的通用性，即便命令行参数不使用滤镜，AVFrame 也会过一遍 空滤镜做下样子。<br>configure_audio_filters() 函数的流程图如下：<br><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure_audio_filters%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Alt text"></p>
+<p>configure_audio_filters() 函数的定义如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">configure_audio_filters</span><span class="token punctuation">(</span>VideoState <span class="token operator">*</span>is<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>afilters<span class="token punctuation">,</span> <span class="token keyword">int</span> force_output_format<span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>函数的参数:</p>
+<ul>
+<li><p>VideoState *is ，是 ffplay 播放器的全局管理器。</p>
+</li>
+<li><p>char *afilters，是滤镜字符串，例如 下面的命令：</p>
+</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ffplay <span class="token parameter variable">-af</span> <span class="token string">"atempo=2.0"</span> <span class="token parameter variable">-i</span> juren-5s.mp4<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>“atempo&#x3D;2.0” 这个字符串就会赋值给 afilters 。</p>
+<p>int force_output_format ，代表是否强制把 buffersink 出口滤镜的音频帧采样等信息 设置为 跟 is-&gt;audio_tgt 一样。</p>
+<p>之前说过 is-&gt;audio_tgt 是音响硬件设备打开的信息。is-&gt;audio_tgt 是最终要传递给 SDL 的音频格式。所有的采样率，声道数等等最后都要转成 is-&gt;audio_tgt 。</p>
+<hr>
+<p>这个函数一开始就定义了 一些只有 2 个元素的数组，这其实是 ffmpeg 项目传递参数的方式，传递一个数组进去函数，主要有两种方式。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> sample_rates<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token keyword">int64_t</span> channel_layouts<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<ol>
+<li>传递数组的大小。就是有多少个元素。</li>
+<li>传递数组的结尾，只要读到结尾元素 (-1)，就算结束了。</li>
+</ol>
+<p>ffmpeg 大部分函数采用的是第二种方式。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">configure_audio_filters</span><span class="token punctuation">(</span>VideoState <span class="token operator">*</span>is<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>afilters<span class="token punctuation">,</span> <span class="token keyword">int</span> force_output_format<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">static</span> <span class="token keyword">const</span> <span class="token keyword">enum</span> <span class="token class-name">AVSampleFormat</span> sample_fmts<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> AV_SAMPLE_FMT_S16<span class="token punctuation">,</span> AV_SAMPLE_FMT_NONE <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> sample_rates<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    <span class="token keyword">int64_t</span> channel_layouts<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> channels<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    AVFilterContext <span class="token operator">*</span>filt_asrc <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token operator">*</span>filt_asink <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">char</span> aresample_swr_opts<span class="token punctuation">[</span><span class="token number">512</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+    AVDictionaryEntry <span class="token operator">*</span>e <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">char</span> asrc_args<span class="token punctuation">[</span><span class="token number">256</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> ret<span class="token punctuation">;</span>
+
+    <span class="token function">avfilter_graph_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>is<span class="token operator">-></span>agraph <span class="token operator">=</span> <span class="token function">avfilter_graph_alloc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>ENOMEM<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    is<span class="token operator">-></span>agraph<span class="token operator">-></span>nb_threads <span class="token operator">=</span> filter_nbthreads<span class="token punctuation">;</span>
+
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> <span class="token function">av_dict_get</span><span class="token punctuation">(</span>swr_opts<span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">,</span> e<span class="token punctuation">,</span> AV_DICT_IGNORE_SUFFIX<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token function">av_strlcatf</span><span class="token punctuation">(</span>aresample_swr_opts<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>aresample_swr_opts<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"%s=%s:"</span><span class="token punctuation">,</span> e<span class="token operator">-></span>key<span class="token punctuation">,</span> e<span class="token operator">-></span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>aresample_swr_opts<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        aresample_swr_opts<span class="token punctuation">[</span><span class="token function">strlen</span><span class="token punctuation">(</span>aresample_swr_opts<span class="token punctuation">)</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token char">'\0'</span><span class="token punctuation">;</span>
+    <span class="token function">av_opt_set</span><span class="token punctuation">(</span>is<span class="token operator">-></span>agraph<span class="token punctuation">,</span> <span class="token string">"aresample_swr_opts"</span><span class="token punctuation">,</span> aresample_swr_opts<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    ret <span class="token operator">=</span> <span class="token function">snprintf</span><span class="token punctuation">(</span>asrc_args<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>asrc_args<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                   <span class="token string">"sample_rate=%d:sample_fmt=%s:channels=%d:time_base=%d/%d"</span><span class="token punctuation">,</span>
+                   is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>freq<span class="token punctuation">,</span> <span class="token function">av_get_sample_fmt_name</span><span class="token punctuation">(</span>is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>fmt<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                   is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channels<span class="token punctuation">,</span>
+                   <span class="token number">1</span><span class="token punctuation">,</span> is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>freq<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channel_layout<span class="token punctuation">)</span>
+        <span class="token function">snprintf</span><span class="token punctuation">(</span>asrc_args <span class="token operator">+</span> ret<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>asrc_args<span class="token punctuation">)</span> <span class="token operator">-</span> ret<span class="token punctuation">,</span>
+                 <span class="token string">":channel_layout=0x%"</span>PRIx64<span class="token punctuation">,</span>  is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channel_layout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    ret <span class="token operator">=</span> <span class="token function">avfilter_graph_create_filter</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>filt_asrc<span class="token punctuation">,</span>
+                                       <span class="token function">avfilter_get_by_name</span><span class="token punctuation">(</span><span class="token string">"abuffer"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"ffplay_abuffer"</span><span class="token punctuation">,</span>
+                                       asrc_args<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+
+
+    ret <span class="token operator">=</span> <span class="token function">avfilter_graph_create_filter</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>filt_asink<span class="token punctuation">,</span>
+                                       <span class="token function">avfilter_get_by_name</span><span class="token punctuation">(</span><span class="token string">"abuffersink"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"ffplay_abuffersink"</span><span class="token punctuation">,</span>
+                                       <span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int_list</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"sample_fmts"</span><span class="token punctuation">,</span> sample_fmts<span class="token punctuation">,</span>  AV_SAMPLE_FMT_NONE<span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"all_channel_counts"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>force_output_format<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        channel_layouts<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> is<span class="token operator">-></span>audio_tgt<span class="token punctuation">.</span>channel_layout<span class="token punctuation">;</span>
+        channels       <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> is<span class="token operator">-></span>audio_tgt<span class="token punctuation">.</span>channel_layout <span class="token operator">?</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">:</span> is<span class="token operator">-></span>audio_tgt<span class="token punctuation">.</span>channels<span class="token punctuation">;</span>
+        sample_rates   <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> is<span class="token operator">-></span>audio_tgt<span class="token punctuation">.</span>freq<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"all_channel_counts"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+            <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int_list</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"channel_layouts"</span><span class="token punctuation">,</span> channel_layouts<span class="token punctuation">,</span>  <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+            <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int_list</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"channel_counts"</span> <span class="token punctuation">,</span> channels       <span class="token punctuation">,</span>  <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+            <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">av_opt_set_int_list</span><span class="token punctuation">(</span>filt_asink<span class="token punctuation">,</span> <span class="token string">"sample_rates"</span>   <span class="token punctuation">,</span> sample_rates   <span class="token punctuation">,</span>  <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> AV_OPT_SEARCH_CHILDREN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+            <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">configure_filtergraph</span><span class="token punctuation">(</span>is<span class="token operator">-></span>agraph<span class="token punctuation">,</span> afilters<span class="token punctuation">,</span> filt_asrc<span class="token punctuation">,</span> filt_asink<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+
+    is<span class="token operator">-></span>in_audio_filter  <span class="token operator">=</span> filt_asrc<span class="token punctuation">;</span>
+    is<span class="token operator">-></span>out_audio_filter <span class="token operator">=</span> filt_asink<span class="token punctuation">;</span>
+
+end<span class="token operator">:</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token function">avfilter_graph_free</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> ret<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="avfilter-graph-free"><a href="#avfilter-graph-free" class="headerlink" title="avfilter_graph_free()"></a>avfilter_graph_free()</h3><p><code>avfilter_graph_free()</code> 释放滤镜容器（FilterGraph），有些同学可能会疑惑，is-&gt;agraph 一开始不是 NULL 吗？ 为什么需要释放？</p>
+<p><code>is-&gt;agraph</code> 一开始确实是 <code>NULL</code>，但是 <code>configure_audio_filters()</code> 这个函数可能会调用第二次，第二次的时候 <code>is-&gt;agraph</code>就不是 <code>NULL</code>了。</p>
+<p>configure_audio_filters() 第一次调用是在 <code>stream_component_open()</code> 里面，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">CONFIG_AVFILTER</span></span>
+        <span class="token punctuation">&#123;</span>
+            AVFilterContext <span class="token operator">*</span>sink<span class="token punctuation">;</span>
+            <span class="token comment">// 从解码器出来的音频信息</span>
+            is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>freq           <span class="token operator">=</span> avctx<span class="token operator">-></span>sample_rate<span class="token punctuation">;</span>
+            is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channels       <span class="token operator">=</span> avctx<span class="token operator">-></span>channels<span class="token punctuation">;</span>
+            is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channel_layout <span class="token operator">=</span> <span class="token function">get_valid_channel_layout</span><span class="token punctuation">(</span>avctx<span class="token operator">-></span>channel_layout<span class="token punctuation">,</span> avctx<span class="token operator">-></span>channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>fmt            <span class="token operator">=</span> avctx<span class="token operator">-></span>sample_fmt<span class="token punctuation">;</span>
+            <span class="token comment">// 创建音频流的滤镜。</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">configure_audio_filters</span><span class="token punctuation">(</span>is<span class="token punctuation">,</span> afilters<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                <span class="token keyword">goto</span> fail<span class="token punctuation">;</span>
+            sink <span class="token operator">=</span> is<span class="token operator">-></span>out_audio_filter<span class="token punctuation">;</span>
+            sample_rate    <span class="token operator">=</span> <span class="token function">av_buffersink_get_sample_rate</span><span class="token punctuation">(</span>sink<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            nb_channels    <span class="token operator">=</span> <span class="token function">av_buffersink_get_channels</span><span class="token punctuation">(</span>sink<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            channel_layout <span class="token operator">=</span> <span class="token function">av_buffersink_get_channel_layout</span><span class="token punctuation">(</span>sink<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>第二次调用是在 <code>audio_thread()</code> 里面，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>reconfigure<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">char</span> buf1<span class="token punctuation">[</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">,</span> buf2<span class="token punctuation">[</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token function">av_get_channel_layout_string</span><span class="token punctuation">(</span>buf1<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>buf1<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channel_layout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">av_get_channel_layout_string</span><span class="token punctuation">(</span>buf2<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>buf2<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> dec_channel_layout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_DEBUG<span class="token punctuation">,</span>
+               <span class="token string">"Audio frame changed from rate:%d ch:%d fmt:%s layout:%s serial:%d to rate:%d ch:%d fmt:%s layout:%s serial:%d\n"</span><span class="token punctuation">,</span>
+               is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>freq<span class="token punctuation">,</span> is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channels<span class="token punctuation">,</span> <span class="token function">av_get_sample_fmt_name</span><span class="token punctuation">(</span>is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>fmt<span class="token punctuation">)</span><span class="token punctuation">,</span> buf1<span class="token punctuation">,</span> last_serial<span class="token punctuation">,</span>
+               frame<span class="token operator">-></span>sample_rate<span class="token punctuation">,</span> frame<span class="token operator">-></span>channels<span class="token punctuation">,</span> <span class="token function">av_get_sample_fmt_name</span><span class="token punctuation">(</span>frame<span class="token operator">-></span>format<span class="token punctuation">)</span><span class="token punctuation">,</span> buf2<span class="token punctuation">,</span> is<span class="token operator">-></span>auddec<span class="token punctuation">.</span>pkt_serial<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>fmt            <span class="token operator">=</span> frame<span class="token operator">-></span>format<span class="token punctuation">;</span>
+        is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channels       <span class="token operator">=</span> frame<span class="token operator">-></span>channels<span class="token punctuation">;</span>
+        is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>channel_layout <span class="token operator">=</span> dec_channel_layout<span class="token punctuation">;</span>
+        is<span class="token operator">-></span>audio_filter_src<span class="token punctuation">.</span>freq           <span class="token operator">=</span> frame<span class="token operator">-></span>sample_rate<span class="token punctuation">;</span>
+        last_serial                         <span class="token operator">=</span> is<span class="token operator">-></span>auddec<span class="token punctuation">.</span>pkt_serial<span class="token punctuation">;</span>
+        <span class="token comment">// 这里 </span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">configure_audio_filters</span><span class="token punctuation">(</span>is<span class="token punctuation">,</span> afilters<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+            <span class="token keyword">goto</span> the_end<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>第二次调用 configure_audio_filters() 是因为实际解码出来的 AVFrame 的采样率，声道等，跟容器里面记录的不一致，之前 is-&gt;audio_filter_src 是直接从容器，封装层取的数据。封装层记录的音频采样率等，可能是错的，需要以实际解码出来的 AVFrame 为准。</p>
+<p>而且，注意，第二次的时候，force_output_format 参数会置为 1，这样会强制 buffersink 出口滤镜的采样信息等 设置为 is-&gt;audio_tgt 一样。</p>
+<p>其实configure_audio_filters() 必然会调第二次的，因为 is-&gt;auddec.pkt_serial !&#x3D; last_serial 这个条件肯定是真。</p>
+<h3 id="filter-nbthreads"><a href="#filter-nbthreads" class="headerlink" title="filter_nbthreads"></a>filter_nbthreads</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">is<span class="token operator">-></span>agraph<span class="token operator">-></span>nb_threads <span class="token operator">=</span> filter_nbthreads<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>接着就是设置 滤镜使用的线程数量，0 为自动选择线程数量，如下：</p>
+<h3 id="aresample-swr-opts"><a href="#aresample-swr-opts" class="headerlink" title="aresample_swr_opts"></a>aresample_swr_opts</h3><p>设置重采样选项（aresample_swr_opts），如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">av_opt_set</span><span class="token punctuation">(</span>is<span class="token operator">-></span>agraph<span class="token punctuation">,</span> <span class="token string">"aresample_swr_opts"</span><span class="token punctuation">,</span> aresample_swr_opts<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>什么样的命令行参数才是重采样选项的，在<code>libswresample/options.c</code> 里面可以找到，如下：</p>
+<p>举个例子，如下：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ffpaly <span class="token parameter variable">-ich</span> <span class="token number">1</span> <span class="token parameter variable">-i</span> juren-5s.mp4<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>ich 1 就会被解析拷贝进去 <code>ffplay.c</code>里面的 <code>swr_opts</code> 变量里面。</p>
+<p>这里还用到了一个新的函数<code>av_opt_set()</code>，这个函数其实不只可以设置滤镜的属性字段，还可以设置大多数数据结构的属性字段，例如解码器，封装器 等等，只要内部有 AVClass 的数据结构，都能用 <code>av_opt_set()</code> 来设置属性，todo   av_opt_set</p>
+<h3 id="avfilter-graph-create-filter"><a href="#avfilter-graph-create-filter" class="headerlink" title="avfilter_graph_create_filter()"></a>avfilter_graph_create_filter()</h3><p>出口滤镜还设置了 sample_fmts 为 AV_SAMPLE_FMT_S16，这是 ffpaly 播放器自己的特性，就是说无论MP4文件里面的音频格式是怎样的，他都会转成 AV_SAMPLE_FMT_S16 格式丢给 SDL 播放，而且它在用 SDL_OpenAudioDevice 打开音频设备的时候，就是用的 S16 格式，这是写死的。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 入口滤镜</span>
+ret <span class="token operator">=</span> <span class="token function">avfilter_graph_create_filter</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>filt_asrc<span class="token punctuation">,</span>
+                                   <span class="token function">avfilter_get_by_name</span><span class="token punctuation">(</span><span class="token string">"abuffer"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"ffplay_abuffer"</span><span class="token punctuation">,</span>
+                                   asrc_args<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+
+<span class="token comment">// 出口滤镜</span>
+ret <span class="token operator">=</span> <span class="token function">avfilter_graph_create_filter</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>filt_asink<span class="token punctuation">,</span>
+                                   <span class="token function">avfilter_get_by_name</span><span class="token punctuation">(</span><span class="token string">"abuffersink"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"ffplay_abuffersink"</span><span class="token punctuation">,</span>
+                                   <span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> is<span class="token operator">-></span>agraph<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="force-output-format"><a href="#force-output-format" class="headerlink" title="force_output_format()"></a>force_output_format()</h3><p>force_output_format 的逻辑主要是 强制 buffersink 出口滤镜的采样信息等 设置为跟 is-&gt;audio_tgt 一样。audio_tgt 是 SDL 接受音频帧的最终格式。</p>
+<p>第一次调用 configure_audio_filters() 函数，force_output_format 为 0，不会跑进去这块逻辑。</p>
+<h3 id="configure-filtergraph"><a href="#configure-filtergraph" class="headerlink" title="configure_filtergraph()"></a>configure_filtergraph()</h3><p>调 configure_filtergraph() 函数来链接入口跟出口滤镜，同时创建滤镜容器（FilterGraph），如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>ret <span class="token operator">=</span> <span class="token function">configure_filtergraph</span><span class="token punctuation">(</span>is<span class="token operator">-></span>agraph<span class="token punctuation">,</span> afilters<span class="token punctuation">,</span> filt_asrc<span class="token punctuation">,</span> filt_asink<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">goto</span> end<span class="token punctuation">;</span>
+<span class="token comment">// 入口与出口滤镜，赋值到全局管理器</span>
+is<span class="token operator">-></span>in_audio_filter  <span class="token operator">=</span> filt_asrc<span class="token punctuation">;</span>
+is<span class="token operator">-></span>out_audio_filter <span class="token operator">=</span> filt_asink<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>重要的是，入口滤镜 跟 出口滤镜 被赋值到全局管理器 is 了。后面只要把解码器输出的 AVFrame 往入口滤镜丢，然后往出口滤镜读就行了。</p>
+<blockquote>
+<p>todo configure_filtergraph()</p>
+</blockquote>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream-component-open/">FFplay源码分析---stream_component_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open()/">FFplay源码分析---stream_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/main/">FFplay源码分析---main()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 15px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 12.5px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 12.5px;">c++11</a> <a href="/tags/error/" style="font-size: 12.5px;">error</a> <a href="/tags/leetcode/" style="font-size: 17.5px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
