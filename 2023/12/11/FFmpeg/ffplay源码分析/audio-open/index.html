@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFplay源码分析---audio_open() - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFplay源码分析---audio_open()"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFplay源码分析---audio_open()</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.11</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="audio-open"><a href="#audio-open" class="headerlink" title="audio_open()"></a>audio_open()</h2><p>audio_open() 的作用，就如同它的名字那样，就是打开音频设备。流程图如下：<br>    <img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio_open%E6%B5%81%E7%A8%8B.png" alt="Alt text"></p>
+<p>SDL 库播放音频数据有两种方式。</p>
+<p>1，调用层定时往 SDL 接口塞数据。</p>
+<p>2，设置SDL回调函数，让 SDL 来主动执行回调函数来取数据。</p>
+<p>第二种方式的实时性更好，ffplay 也是用的第二种。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">audio_open</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span>opaque<span class="token punctuation">,</span> <span class="token keyword">int64_t</span> wanted_channel_layout<span class="token punctuation">,</span> <span class="token keyword">int</span> wanted_nb_channels<span class="token punctuation">,</span> <span class="token keyword">int</span> wanted_sample_rate<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">AudioParams</span> <span class="token operator">*</span>audio_hw_params<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>函数参数:</p>
+<ol>
+<li><p>void *opaque，传递给 SDL 回调函数的参数。</p>
+</li>
+<li><p>wanted_channel_layout，wanted_nb_channels，wanted_sample_rate，希望用 这样的采样率，声道数，声道布局打开音频硬件设备。</p>
+</li>
+<li><p>struct AudioParams *audio_hw_params，实际打开的音频硬件设备的音频格式信息。这里的 hw 是 Hardware 的意思，也就是硬件，不过不是指硬件编解码加速，而是指打开的硬件设备。</p>
+</li>
+</ol>
+<p>这些参数是这样的，想要的音频格式 跟 实际打开的音频格式 不一定一样，例如，MP4 里面的音频流是 48000 采样的，肯定想要用 48000 的格式打开音响设备，这样才能听到最好的音质。但是难免有些音响设备太差，只支持 44100。</p>
+<h3 id="audio-open-分析"><a href="#audio-open-分析" class="headerlink" title="audio_open()分析"></a>audio_open()分析</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">audio_open</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span>opaque<span class="token punctuation">,</span> <span class="token keyword">int64_t</span> wanted_channel_layout<span class="token punctuation">,</span> <span class="token keyword">int</span> wanted_nb_channels<span class="token punctuation">,</span> <span class="token keyword">int</span> wanted_sample_rate<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">AudioParams</span> <span class="token operator">*</span>audio_hw_params<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    SDL_AudioSpec wanted_spec<span class="token punctuation">,</span> spec<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>env<span class="token punctuation">;</span>
+    <span class="token comment">// 这 其实是一个map表，声道切换映射表。</span>
+    <span class="token comment">// 如果音响设备不支持 7 声道的数据播放，肯定不能直接报错，还要尝试一下其他声道能不能成功打开设备吧。这个其他声道就是 next_nb_channels[]。</span>
+    <span class="token comment">// next_nb_channels[7] = 6，从7声道切换到6声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[6] = 4，从6声道切换到4声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[5] = 6，从5声道切换到6声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[4] = 2，从4声道切换到2声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[3] = 6，从3声道切换到6声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[2] = 1，从双声道切换到单声道打开音频设备</span>
+    <span class="token comment">// next_nb_channels[1] = 0，单声道都打不开音频设备，无法再切换，需要降低采样率播放。</span>
+    <span class="token comment">// next_nb_channels[0] = 0，0声道都打不开音频设备，无法再切换，需要降低采样率播放</span>
+    <span class="token keyword">static</span> <span class="token keyword">const</span> <span class="token keyword">int</span> next_nb_channels<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    <span class="token comment">// next_sample_rates[] 存储的仅仅是采样率，当切换所有声道都无法成功打开音频设备，就需要从 next_sample_rates[] 取一个比当前更小的采样率来尝试。</span>
+    <span class="token keyword">static</span> <span class="token keyword">const</span> <span class="token keyword">int</span> next_sample_rates<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">44100</span><span class="token punctuation">,</span> <span class="token number">48000</span><span class="token punctuation">,</span> <span class="token number">96000</span><span class="token punctuation">,</span> <span class="token number">192000</span><span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> next_sample_rate_idx <span class="token operator">=</span> <span class="token function">FF_ARRAY_ELEMS</span><span class="token punctuation">(</span>next_sample_rates<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+    env <span class="token operator">=</span> <span class="token function">SDL_getenv</span><span class="token punctuation">(</span><span class="token string">"SDL_AUDIO_CHANNELS"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>env<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        wanted_nb_channels <span class="token operator">=</span> <span class="token function">atoi</span><span class="token punctuation">(</span>env<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wanted_channel_layout <span class="token operator">=</span> <span class="token function">av_get_default_channel_layout</span><span class="token punctuation">(</span>wanted_nb_channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 声道数，声道布局等参数的校验，ffplay 经常会校验 声道布局 跟 声道数是否一致，可能是担心用户在命令行输入错误的参数。</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>wanted_channel_layout <span class="token operator">||</span> wanted_nb_channels <span class="token operator">!=</span> <span class="token function">av_get_channel_layout_nb_channels</span><span class="token punctuation">(</span>wanted_channel_layout<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        wanted_channel_layout <span class="token operator">=</span> <span class="token function">av_get_default_channel_layout</span><span class="token punctuation">(</span>wanted_nb_channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        wanted_channel_layout <span class="token operator">&amp;=</span> <span class="token operator">~</span>AV_CH_LAYOUT_STEREO_DOWNMIX<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    wanted_nb_channels <span class="token operator">=</span> <span class="token function">av_get_channel_layout_nb_channels</span><span class="token punctuation">(</span>wanted_channel_layout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    wanted_spec<span class="token punctuation">.</span>channels <span class="token operator">=</span> wanted_nb_channels<span class="token punctuation">;</span>
+    wanted_spec<span class="token punctuation">.</span>freq <span class="token operator">=</span> wanted_sample_rate<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>wanted_spec<span class="token punctuation">.</span>freq <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token operator">||</span> wanted_spec<span class="token punctuation">.</span>channels <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span> <span class="token string">"Invalid sample rate or channel count!\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 注意一下 next_sample_rate_idx 变量，这个变量存的是比 想要打开的音频采样率 更小一点的采样率的索引。</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>next_sample_rate_idx <span class="token operator">&amp;&amp;</span> next_sample_rates<span class="token punctuation">[</span>next_sample_rate_idx<span class="token punctuation">]</span> <span class="token operator">>=</span> wanted_spec<span class="token punctuation">.</span>freq<span class="token punctuation">)</span>
+        next_sample_rate_idx<span class="token operator">--</span><span class="token punctuation">;</span>
+    <span class="token comment">// 设置打开参数，设置回调函数 ，如下：</span>
+    <span class="token comment">// ffpaly 是写死了采样格式，写死成了 AUDIO_S16SYS 格式。也就是说，无论MP4里面的音频采样格式是 64 还是 32 位，还是其他，统统都会先提前转成 AUDIO_S16SYS，然后再丢给 SDL 播放。</span>
+    wanted_spec<span class="token punctuation">.</span>format <span class="token operator">=</span> AUDIO_S16SYS<span class="token punctuation">;</span>
+    wanted_spec<span class="token punctuation">.</span>silence <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token comment">// wanted_spec.samples 的作用是告诉 SDL 每次回调取多少样本数来播放，实际上就是控制 SDL 每秒调用回调函数的次数。</span>
+    <span class="token comment">// 因为播放采样率是固定的，例如 48000。也就是音频设备每秒要播放 48000 个样本，如果调一次 sdl_audio_callback 只能取4800个样本，那他一秒内就需要调 10 次 sdl_audio_callback。</span>
+    wanted_spec<span class="token punctuation">.</span>samples <span class="token operator">=</span> <span class="token function">FFMAX</span><span class="token punctuation">(</span>SDL_AUDIO_MIN_BUFFER_SIZE<span class="token punctuation">,</span> <span class="token number">2</span> <span class="token operator">&lt;&lt;</span> <span class="token function">av_log2</span><span class="token punctuation">(</span>wanted_spec<span class="token punctuation">.</span>freq <span class="token operator">/</span> SDL_AUDIO_MAX_CALLBACKS_PER_SEC<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    wanted_spec<span class="token punctuation">.</span>callback <span class="token operator">=</span> sdl_audio_callback<span class="token punctuation">;</span>
+    wanted_spec<span class="token punctuation">.</span>userdata <span class="token operator">=</span> opaque<span class="token punctuation">;</span>
+    <span class="token comment">// 用 while 循环不断尝试各种 声道 跟 采样的组合来打开音频硬件设备，如下：</span>
+    <span class="token comment">// SDL_OpenAudioDevice() 函数打开音频设备之后，回调函数是不会立即执行的，需要调 SDL_PauseAudioDevice() 来启动音频设备，这样回调函数才会执行。</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>audio_dev <span class="token operator">=</span> <span class="token function">SDL_OpenAudioDevice</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>wanted_spec<span class="token punctuation">,</span> <span class="token operator">&amp;</span>spec<span class="token punctuation">,</span> SDL_AUDIO_ALLOW_FREQUENCY_CHANGE <span class="token operator">|</span> SDL_AUDIO_ALLOW_CHANNELS_CHANGE<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_WARNING<span class="token punctuation">,</span> <span class="token string">"SDL_OpenAudio (%d channels, %d Hz): %s\n"</span><span class="token punctuation">,</span>
+               wanted_spec<span class="token punctuation">.</span>channels<span class="token punctuation">,</span> wanted_spec<span class="token punctuation">.</span>freq<span class="token punctuation">,</span> <span class="token function">SDL_GetError</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// next_nb_channels[FFMIN(7, 7)] == next_nb_channels[7] = 6</span>
+        <span class="token comment">// 可以看到，如果 7 声道打开失败，就会切换成 6 声道进行尝试，跟上面说的那个映射是一致的。</span>
+        wanted_spec<span class="token punctuation">.</span>channels <span class="token operator">=</span> next_nb_channels<span class="token punctuation">[</span><span class="token function">FFMIN</span><span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">,</span> wanted_spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>wanted_spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 而 next_sample_rates[next_sample_rate_idx--] 就是进行降低采样率，再尝试打开音频设备，之前说过，next_sample_rate_idx 是比 想要的采样率更小一点的值。</span>
+            wanted_spec<span class="token punctuation">.</span>freq <span class="token operator">=</span> next_sample_rates<span class="token punctuation">[</span>next_sample_rate_idx<span class="token operator">--</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+            wanted_spec<span class="token punctuation">.</span>channels <span class="token operator">=</span> wanted_nb_channels<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>wanted_spec<span class="token punctuation">.</span>freq<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span>
+                       <span class="token string">"No more combinations to try, audio open failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        wanted_channel_layout <span class="token operator">=</span> <span class="token function">av_get_default_channel_layout</span><span class="token punctuation">(</span>wanted_spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>spec<span class="token punctuation">.</span>format <span class="token operator">!=</span> AUDIO_S16SYS<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span>
+               <span class="token string">"SDL advised audio format %d is not supported!\n"</span><span class="token punctuation">,</span> spec<span class="token punctuation">.</span>format<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>spec<span class="token punctuation">.</span>channels <span class="token operator">!=</span> wanted_spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        wanted_channel_layout <span class="token operator">=</span> <span class="token function">av_get_default_channel_layout</span><span class="token punctuation">(</span>spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>wanted_channel_layout<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span>
+                   <span class="token string">"SDL advised channel count %d is not supported!\n"</span><span class="token punctuation">,</span> spec<span class="token punctuation">.</span>channels<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 打开硬件设备成功之后，要记录一下是以什么样的采样率，声道数等等格式打开硬件设备的。</span>
+    <span class="token comment">// 当 AVFrame 与 硬件音频格式不一致时候需要进行转换。</span>
+    audio_hw_params<span class="token operator">-></span>fmt <span class="token operator">=</span> AV_SAMPLE_FMT_S16<span class="token punctuation">;</span>
+    audio_hw_params<span class="token operator">-></span>freq <span class="token operator">=</span> spec<span class="token punctuation">.</span>freq<span class="token punctuation">;</span>
+    audio_hw_params<span class="token operator">-></span>channel_layout <span class="token operator">=</span> wanted_channel_layout<span class="token punctuation">;</span>
+    audio_hw_params<span class="token operator">-></span>channels <span class="token operator">=</span>  spec<span class="token punctuation">.</span>channels<span class="token punctuation">;</span>
+    <span class="token comment">// 一个音频样本占多少内存。</span>
+    audio_hw_params<span class="token operator">-></span>frame_size <span class="token operator">=</span> <span class="token function">av_samples_get_buffer_size</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> audio_hw_params<span class="token operator">-></span>channels<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> audio_hw_params<span class="token operator">-></span>fmt<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// audio_hw_params->freq 数量的音频样本占多少内存。也就是一秒钟要播放多少内存的音频数据。</span>
+    audio_hw_params<span class="token operator">-></span>bytes_per_sec <span class="token operator">=</span> <span class="token function">av_samples_get_buffer_size</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> audio_hw_params<span class="token operator">-></span>channels<span class="token punctuation">,</span> audio_hw_params<span class="token operator">-></span>freq<span class="token punctuation">,</span> audio_hw_params<span class="token operator">-></span>fmt<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>audio_hw_params<span class="token operator">-></span>bytes_per_sec <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token operator">||</span> audio_hw_params<span class="token operator">-></span>frame_size <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span> <span class="token string">"av_samples_get_buffer_size failed\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> spec<span class="token punctuation">.</span>size<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>wanted_spec.samples</code> 的计算方式有点难懂，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">wanted_spec<span class="token punctuation">.</span>samples <span class="token operator">=</span> <span class="token function">FFMAX</span><span class="token punctuation">(</span>SDL_AUDIO_MIN_BUFFER_SIZE<span class="token punctuation">,</span> <span class="token number">2</span> <span class="token operator">&lt;&lt;</span> <span class="token function">av_log2</span><span class="token punctuation">(</span>wanted_spec<span class="token punctuation">.</span>freq <span class="token operator">/</span> SDL_AUDIO_MAX_CALLBACKS_PER_SEC<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>首先，SDL_AUDIO_MIN_BUFFER_SIZE 宏是 512，所以最小值是 512。但是 后面的用 av_log2 取指数，又 &lt;&lt; 位移，是干什么呢？</p>
+<p>答：wanted_spec.freq 是采样率，而 SDL_AUDIO_MAX_CALLBACKS_PER_SEC 代表 SDL 每秒调多少次回调函数。两者相除就能得出每次回调需要读取多少个样本数。这个逻辑非常容易理解。</p>
+<p>av_log2() 函数是求对数，也就是 2 乘以 自身多少次等于括号里面的结果，这个多少次会进行取整操作的，av_log2() 不会返回小数。</p>
+<p>然后 2 &lt;&lt; 位移只是想把 样本数数量 变成 2 的指数。</p>
+<h3 id="spec-size"><a href="#spec-size" class="headerlink" title="spec.size"></a>spec.size</h3><p>我们可以看一些，SDL 头文件对这个 spec.size 的定义，如下</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">SDL_AudioSpec</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> freq<span class="token punctuation">;</span>                   <span class="token comment">/**&lt; DSP frequency -- samples per second */</span>
+    SDL_AudioFormat format<span class="token punctuation">;</span>     <span class="token comment">/**&lt; Audio data format */</span>
+    Uint8 channels<span class="token punctuation">;</span>             <span class="token comment">/**&lt; Number of channels: 1 mono, 2 stereo */</span>
+    Uint8 silence<span class="token punctuation">;</span>              <span class="token comment">/**&lt; Audio buffer silence value (calculated) */</span>
+    Uint16 samples<span class="token punctuation">;</span>             <span class="token comment">/**&lt; Audio buffer size in sample FRAMES (total samples divided by channel count) */</span>
+    Uint16 padding<span class="token punctuation">;</span>             <span class="token comment">/**&lt; Necessary for some compile environments */</span>
+    Uint32 size<span class="token punctuation">;</span>                <span class="token comment">/**&lt; Audio buffer size in bytes (calculated) */</span>
+    SDL_AudioCallback callback<span class="token punctuation">;</span> <span class="token comment">/**&lt; Callback that feeds the audio device (NULL to use SDL_QueueAudio()). */</span>
+    <span class="token keyword">void</span> <span class="token operator">*</span>userdata<span class="token punctuation">;</span>             <span class="token comment">/**&lt; Userdata passed to callback (ignored for NULL callbacks). */</span>
+<span class="token punctuation">&#125;</span> SDL_AudioSpec<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>Audio buffer size in bytes</code> 指的是 SDL 内部音频数据缓存的大小，代表 SDL线程执行<code>sdl_audio_callback()</code> 的时候，SDL 硬件内部还有多少字节音频的数据没有播放。</p>
+<p>没错，SDL线程并不是没有音频数据可以播放了才调<code>sdl_audio_callback()</code>来拿数据，而是他内部还剩 <code>audio_hw_buf_size</code> 长度的数据就会调<code>sdl_audio_callback()</code> 来拿数据，是提前拿数据的。这个 概念 以及 <code>audio_hw_buf_size</code> 变量 都特别重要，后面会用到。<code>Audio buffer size in bytes</code>指的是 SDL 内部音频数据缓存的大小，代表 SDL线程执行 <code>sdl_audio_callback()</code>的时候，SDL 硬件内部还有多少字节音频的数据没有播放。</p>
+<p>没错，SDL线程并不是没有音频数据可以播放了才调<code>sdl_audio_callback()</code> 来拿数据，而是他内部还剩 <code>audio_hw_buf_size</code> 长度的数据就会调<code>sdl_audio_callback()</code>来拿数据，是提前拿数据的。这个 概念 以及 <code>audio_hw_buf_size</code> 变量 都特别重要，后面会用到。</p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream-component-open/">FFplay源码分析---stream_component_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open()/">FFplay源码分析---stream_open()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 14px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12px;">c++</a> <a href="/tags/c-11/" style="font-size: 12px;">c++11</a> <a href="/tags/error/" style="font-size: 12px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
