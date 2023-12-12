@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>FFplay源码分析---decoder_decode_frame() - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="FFplay源码分析---decoder_decode_frame()"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>FFplay源码分析---decoder_decode_frame()</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.12</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="decoder-decode-frame"><a href="#decoder-decode-frame" class="headerlink" title="decoder_decode_frame()"></a>decoder_decode_frame()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder_decode_frame().png" alt="Alt text"><br><code>decoder_decode_frame()</code> 其实是一个通用的解码函数，可以解码 音频，视频，字幕的 AVPacket。不过本文主要侧重于分析音频流的解码，但其他的流也是类似的逻辑。</p>
+<h3 id="函数参数分析"><a href="#函数参数分析" class="headerlink" title="函数参数分析"></a>函数参数分析</h3><ol>
+<li><p><code>Decoder *d</code>，这个 <code>Decoder</code> 结构，我把它称为解码管理实例。由于 <code>Decoder</code> 结构里面有解码器实例 跟 <code>PacketQueue</code> 队列，所以只需要传递 <code>Decoder</code> 给<code>decoder_decode_frame()</code> 函数就能进行解码了。如下：</p>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">Decoder</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    PacketQueue <span class="token operator">*</span>queue<span class="token punctuation">;</span> <span class="token comment">// AVPacket 队列</span>
+    AVCodecContext <span class="token operator">*</span>avctx<span class="token punctuation">;</span> <span class="token comment">//解码器实例</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span> Decoder<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+</li>
+<li><p><code>AVFrame *frame</code> ，用来存储解码出来的音频或者视频的 <code>AVFrame</code>。</p>
+</li>
+<li><p><code>AVSubtitle *sub</code> ，用来存储解码出来的字幕数据，字幕流的使用的数据结构不是 <code>AVFrame</code>，而是 <code>AVSubtitle</code> 。</p>
+</li>
+</ol>
+<h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder_decode_frame()%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Alt text"></p>
+<h3 id="函数如下"><a href="#函数如下" class="headerlink" title="函数如下"></a>函数如下</h3><p><strong>一个for循环结束</strong>————————</p>
+<p>两个<code>do while</code></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">decoder_decode_frame</span><span class="token punctuation">(</span>Decoder <span class="token operator">*</span>d<span class="token punctuation">,</span> AVFrame <span class="token operator">*</span>frame<span class="token punctuation">,</span> AVSubtitle <span class="token operator">*</span>sub<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token punctuation">;</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// if---因为已经跳转到别的时间播放了，解码器的缓存是以前的时间点缓存的。如果还继续取，窗口画面就有短暂的不准确。</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>serial <span class="token operator">==</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 第一次，必然会跳出此循环</span>
+            <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>abort_request<span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+
+                <span class="token keyword">switch</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token operator">-></span>codec_type<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">case</span> AVMEDIA_TYPE_VIDEO<span class="token operator">:</span>
+                        <span class="token comment">// 第一次时，必然返回 `EAGAIN` </span>
+                        <span class="token comment">// 后面调用时,仍然可能还是会返回`EAGAIN`，因为不是往解码器发一个`AVPacket`，就一定有数据可读的。有些是 B 帧，还需要多一个P帧来解码。</span>
+                        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>decoder_reorder_pts <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> frame<span class="token operator">-></span>best_effort_timestamp<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>decoder_reorder_pts<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> frame<span class="token operator">-></span>pkt_dts<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token keyword">case</span> AVMEDIA_TYPE_AUDIO<span class="token operator">:</span>
+                        <span class="token comment">// 第一次时，必然返回 `EAGAIN` </span>
+                        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            AVRational tb <span class="token operator">=</span> <span class="token punctuation">(</span>AVRational<span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token number">1</span><span class="token punctuation">,</span> frame<span class="token operator">-></span>sample_rate<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>frame<span class="token operator">-></span>pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> <span class="token function">av_rescale_q</span><span class="token punctuation">(</span>frame<span class="token operator">-></span>pts<span class="token punctuation">,</span> d<span class="token operator">-></span>avctx<span class="token operator">-></span>pkt_timebase<span class="token punctuation">,</span> tb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>next_pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> <span class="token function">av_rescale_q</span><span class="token punctuation">(</span>d<span class="token operator">-></span>next_pts<span class="token punctuation">,</span> d<span class="token operator">-></span>next_pts_tb<span class="token punctuation">,</span> tb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>frame<span class="token operator">-></span>pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                d<span class="token operator">-></span>next_pts <span class="token operator">=</span> frame<span class="token operator">-></span>pts <span class="token operator">+</span> frame<span class="token operator">-></span>nb_samples<span class="token punctuation">;</span>
+                                d<span class="token operator">-></span>next_pts_tb <span class="token operator">=</span> tb<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> AVERROR_EOF<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    d<span class="token operator">-></span>finished <span class="token operator">=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">;</span>
+                    <span class="token function">avcodec_flush_buffers</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span>ret <span class="token operator">!=</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>nb_packets <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                <span class="token comment">// 唤醒read_thread线程</span>
+                <span class="token function">SDL_CondSignal</span><span class="token punctuation">(</span>d<span class="token operator">-></span>empty_queue_cond<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>packet_pending<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                d<span class="token operator">-></span>packet_pending <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">int</span> old_serial <span class="token operator">=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">packet_queue_get</span><span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token punctuation">,</span> d<span class="token operator">-></span>pkt<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+                <span class="token comment">// 清空解码器缓存,从队列取出来的 AVPacket 跟上一次取的 AVPacket 序列号不一样，就会刷新解码器的缓存。</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>old_serial <span class="token operator">!=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token function">avcodec_flush_buffers</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    d<span class="token operator">-></span>finished <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                    d<span class="token operator">-></span>next_pts <span class="token operator">=</span> d<span class="token operator">-></span>start_pts<span class="token punctuation">;</span>
+                    d<span class="token operator">-></span>next_pts_tb <span class="token operator">=</span> d<span class="token operator">-></span>start_pts_tb<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 如果不相等，就会直接 `av_packet_unref()` 释放，然后再进入 `while` 循环再从队列取`AVPacket`,快进时,丢弃数据.</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>serial <span class="token operator">==</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token operator">-></span>codec_type <span class="token operator">==</span> AVMEDIA_TYPE_SUBTITLE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">int</span> got_frame <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            ret <span class="token operator">=</span> <span class="token function">avcodec_decode_subtitle2</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> sub<span class="token punctuation">,</span> <span class="token operator">&amp;</span>got_frame<span class="token punctuation">,</span> d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                ret <span class="token operator">=</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>got_frame <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>d<span class="token operator">-></span>pkt<span class="token operator">-></span>data<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token comment">// 发送解码器失败，把AVPacket缓存起来，下次继续发送。</span>
+                    d<span class="token operator">-></span>packet_pending <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                ret <span class="token operator">=</span> got_frame <span class="token operator">?</span> <span class="token number">0</span> <span class="token operator">:</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token operator">-></span>data <span class="token operator">?</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span> <span class="token operator">:</span> AVERROR_EOF<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> d<span class="token operator">-></span>pkt<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token function">av_log</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span> <span class="token string">"Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// 发送解码器失败，把AVPacket缓存起来，下次继续发送。</span>
+                d<span class="token operator">-></span>packet_pending <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="第一个-do-while"><a href="#第一个-do-while" class="headerlink" title="第一个 do while"></a>第一个 <code>do while</code></h3><p>一开始就会用 <code>avcodec_receive_frame()</code>去解码器读数据，这里读者可能会有疑问，明明都还没往解码器发送 <code>AVPacket</code>， <code>avcodec_receive_frame()</code> 函数怎么可能读取到 <code>AVFrame</code> 呢？</p>
+<p>答：没错，就是读取不到，因为还没发 <code>AVPacket</code> 给解码器解码。所以，首次 <code>avcodec_receive_frame()</code>必然返回 <code>EAGAIN</code>，所以就会跳出这个<code>do&#123;&#125;while&#123;&#125;</code> 循环。</p>
+<h3 id="第二个-do-while"><a href="#第二个-do-while" class="headerlink" title="第二个 do while"></a>第二个 <code>do while</code></h3><ol>
+<li><p><code>SDL_CondSignal(d-&gt;empty_queue_cond)</code>，首先，如果 <code>PacketQueue</code> 队列里面如果没有数据可读了，就需要唤醒<code>read_thread()</code> 线程来读数据，之前说过， <code>empty_queue_cond</code> 实际上就是 <code>continue_read_thread</code>，这两个指针都指向同一个条件变量。</p>
+</li>
+<li><p>判断之前发送 <code>AVPacket</code> 给解码器是否失败了？如果失败，<code>d-&gt;packet_peding</code> 会是 1。如果上次失败了，<code>d-&gt;pkt</code>本身就是有值的，就不需要重队列里面拿数据，直接把<code>d-&gt;pkt</code> 发送给解码器即可。</p>
+</li>
+<li><p>调用 <code>packet_queue_get()</code> 从 队列读取 AVPacket。简单讲解一下 <code>packet_queue_get()</code> 函数的参数，定义如下：</p>
+<ul>
+<li><code>int block</code> 是控制 <code>packet_queue_get()</code> 函数阻塞读取的，如果 <code>PacketQueue</code> 队列里面如果没有数据可读，可以一直阻塞等到 <code>read_thread()</code>线程读到数据放进去队列 为止。</li>
+<li><code>AVPacket *pkt</code>，用来放从队列读取到的 <code>AVPacket。</code></li>
+<li><code>int *serial</code>，读取到的 <code>AVPacket</code> 的序列号，这是一个返回值。传的是指针。</li>
+</ul>
+</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">packet_queue_get</span><span class="token punctuation">(</span>PacketQueue <span class="token operator">*</span>q<span class="token punctuation">,</span> AVPacket <span class="token operator">*</span>pkt<span class="token punctuation">,</span> <span class="token keyword">int</span> block<span class="token punctuation">,</span> <span class="token keyword">int</span> <span class="token operator">*</span>serial<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><code>PacketQueue</code> 队列是一个 <code>FIFO</code> 的内存管理器，存的是 <code>MyAVPacketList</code>，如下：<br>也就是说，队列里的每一个 <code>AVPacket</code> 都有一个序列号的。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">MyAVPacketList</span> <span class="token punctuation">&#123;</span>
+    AVPacket <span class="token operator">*</span>pkt<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> serial<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> MyAVPacketList<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>再回到<code>decoder_decode_frame()</code>调用 <code>packet_queue_get()</code> 时的传参，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> old_serial <span class="token operator">=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">;</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">packet_queue_get</span><span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token punctuation">,</span> d<span class="token operator">-></span>pkt<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>可以看到从队列取出来的 <code>AVPacket</code> 就放在 <code>d-&gt;pkt</code>里面，而序列号就放在<code>d-&gt;pkt_serial</code>。<br>FFplay播放器其实有 3 种序列号：</p>
+<ol>
+<li><p><code>MyAVPacketList</code> 的 <code>serial</code> ，队列里面的 <code>AVPacket</code> 的序列号。可以看成是临时值，旧值。</p>
+</li>
+<li><p><code>PackeQueue</code> 的 <code>serial</code> ，这是队列本身的序列号。可以看成是最新的序列号的值。</p>
+</li>
+<li><p><code>Frame</code> 的 <code>serial</code>，本文不需要关注这个, todo — 序列号分析</p>
+</li>
+</ol>
+<p><code>MyAVPacketList</code> 的 <code>serial</code> 就是用<code>PackeQueue</code> 队列的 <code>serial</code> 来赋值的 。如下代码：<strong>只要不进行跳转播放，他们的序列号就是一样的。</strong></p>
+<p>当快进快退，或者跳转播放时间点的时候，<code>PackeQueue</code>队列的序列号就会 +1，而之前已经放进去队列的 <code>MyAVPacketList</code> 的序列号则保持不变。</p>
+<p><strong>举个例子</strong>，当前MP4已经播放到了 第20秒的时刻，此时 <code>PackeQueue</code> 队列缓存了 5 帧第 21秒的数据，此时，我快进30秒，跳转到第 50 秒的时刻播放。</p>
+<p>由于跳转了，所以队列的序列号会 +1，变成了 2，而之前的 5 帧 <code>MyAVPacketList</code> 的序列号还是 1。两者就会不一样。</p>
+<p>因为要开始播放第 50 秒的数据，所以 <code>PackeQueue</code> 队列之前缓存的 5 帧数据就不可用了。丢弃这 5 帧数据就是由下面的代码实现的。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>serial <span class="token operator">==</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span>
+    <span class="token keyword">break</span><span class="token punctuation">;</span>
+<span class="token function">av_packet_unref</span><span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>注意看上面圈出来的代码，只有两者相等，才会 <code>break</code> 退出，如果不相等，就会直接 <code>av_packet_unref()</code> 释放，然后再进入 <code>while</code> 循环再从队列取<code>AVPacket</code>。</p>
+<p>这样，就能把无效的 5 帧数据全部丢弃，直到从队列读取到序列号一致的 <code>AVPacket</code> 为止。</p>
+<h3 id="刷新缓存"><a href="#刷新缓存" class="headerlink" title="刷新缓存"></a>刷新缓存</h3><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">if</span> <span class="token punctuation">(</span>old_serial <span class="token operator">!=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">avcodec_flush_buffers</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    d<span class="token operator">-></span>finished <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    d<span class="token operator">-></span>next_pts <span class="token operator">=</span> d<span class="token operator">-></span>start_pts<span class="token punctuation">;</span>
+    d<span class="token operator">-></span>next_pts_tb <span class="token operator">=</span> d<span class="token operator">-></span>start_pts_tb<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>就是当从队列取出来的 <code>AVPacket</code> 跟上一次取的 <code>AVPacket</code> 序列号不一样，就会刷新解码器的缓存。</p>
+<p>序列号不一样，肯定是因为跳转了播放时间点，而解码器要按顺序解码的，如果不清空缓存，可能会导致马赛克。</p>
+<h3 id="avcodec-send-packet"><a href="#avcodec-send-packet" class="headerlink" title="avcodec_send_packet()"></a>avcodec_send_packet()</h3><p>假设现在已经从队列读取到 序列号跟队列一样的<code>AVPacket</code>，就会把 <code>AVPacket</code> 发送给解码器，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">avcodec_send_packet</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> d<span class="token operator">-></span>pkt<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_log</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> AV_LOG_ERROR<span class="token punctuation">,</span> <span class="token string">"Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        d<span class="token operator">-></span>packet_pending <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">av_packet_unref</span><span class="token punctuation">(</span>d<span class="token operator">-></span>pkt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>由于发送解码器可能会失败，所以 <code>ffplay</code> 做了一下处理，如果失败，就不<code>unref</code>，直接标记一下 <code>d-&gt;packet_pending</code>，下次再继续发送。</p>
+<hr>
+<p>此时，已经成功发送 <code>AVPacket</code> 给解码器了。这时候，<code>decoder_decode_frame()</code> 还没有结束，此时此刻还没跳出 最开始的 <code>for (;;) &#123;&#125;</code> 循环。</p>
+<p>所以又会重新进入一开始的往解码器读 <code>AVFrame</code> 的逻辑，<code>decoder_decode_frame()</code>函数的逻辑可以说是反着来的，所以看起来有点奇怪。</p>
+<p>现在回到一开始的逻辑，如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// if---因为已经跳转到别的时间播放了，解码器的缓存是以前的时间点缓存的。如果还继续取，窗口画面就有短暂的不准确。</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>serial <span class="token operator">==</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>abort_request<span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+
+                <span class="token keyword">switch</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token operator">-></span>codec_type<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">case</span> AVMEDIA_TYPE_VIDEO<span class="token operator">:</span>
+                    <span class="token comment">// 仍然可能还是会返回`EAGAIN`，因为不是往解码器发一个`AVPacket`，就一定有数据可读的。有些是 B 帧，还需要多一个P帧来解码。</span>
+                        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>decoder_reorder_pts <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> frame<span class="token operator">-></span>best_effort_timestamp<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>decoder_reorder_pts<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> frame<span class="token operator">-></span>pkt_dts<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                    <span class="token keyword">case</span> AVMEDIA_TYPE_AUDIO<span class="token operator">:</span>
+                        ret <span class="token operator">=</span> <span class="token function">avcodec_receive_frame</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">,</span> frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            AVRational tb <span class="token operator">=</span> <span class="token punctuation">(</span>AVRational<span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token number">1</span><span class="token punctuation">,</span> frame<span class="token operator">-></span>sample_rate<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>frame<span class="token operator">-></span>pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> <span class="token function">av_rescale_q</span><span class="token punctuation">(</span>frame<span class="token operator">-></span>pts<span class="token punctuation">,</span> d<span class="token operator">-></span>avctx<span class="token operator">-></span>pkt_timebase<span class="token punctuation">,</span> tb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>next_pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span>
+                                frame<span class="token operator">-></span>pts <span class="token operator">=</span> <span class="token function">av_rescale_q</span><span class="token punctuation">(</span>d<span class="token operator">-></span>next_pts<span class="token punctuation">,</span> d<span class="token operator">-></span>next_pts_tb<span class="token punctuation">,</span> tb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>frame<span class="token operator">-></span>pts <span class="token operator">!=</span> AV_NOPTS_VALUE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                                d<span class="token operator">-></span>next_pts <span class="token operator">=</span> frame<span class="token operator">-></span>pts <span class="token operator">+</span> frame<span class="token operator">-></span>nb_samples<span class="token punctuation">;</span>
+                                d<span class="token operator">-></span>next_pts_tb <span class="token operator">=</span> tb<span class="token punctuation">;</span>
+                            <span class="token punctuation">&#125;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">==</span> AVERROR_EOF<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    d<span class="token operator">-></span>finished <span class="token operator">=</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">;</span>
+                    <span class="token function">avcodec_flush_buffers</span><span class="token punctuation">(</span>d<span class="token operator">-></span>avctx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span>ret <span class="token operator">!=</span> <span class="token function">AVERROR</span><span class="token punctuation">(</span>EAGAIN<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="avcodec-receive-frame"><a href="#avcodec-receive-frame" class="headerlink" title="avcodec_receive_frame()"></a>avcodec_receive_frame()</h3><p><code>avcodec_receive_frame()</code> 仍然可能还是会返回<code>EAGAIN</code>，因为不是往解码器发一个<code>AVPacket</code>，就一定有数据可读的。有些是 B 帧，还需要多一个P帧来解码。所以如果 <code>avcodec_receive_frame()</code> 返回 <code>EAGAIN</code>，就会从 <code>PacketQueue</code> 队列再拿出一个 <code>AVPacket</code> 往解码器丢。</p>
+<p>现在我们假设<code>avcodec_receive_frame()</code> 能读出数据了，可以看到，它赋值给了参数 <code>frame</code>，也就是第二个参数。</p>
+<p>读到 <code>AVFrame</code> 之后，<code>decoder_decode_frame()</code>就会直接 <code>return 1</code> 退出了。</p>
+<p>注意，<code>decoder_decode_frame()</code> 只从解码器读取到一个 <code>AVFrame</code> 就返回了，如果解码器里面还有缓存的<code>AVFrame</code>，下次就可以直接取，而不用再从队列拿 <code>AVPacket</code> 再发送给解码器。</p>
+<p><strong>这就是为什么从解码器读 AVFrame 要加上这个 if 判断：</strong></p>
+<p>因为已经跳转到别的时间播放了，解码器的缓存是以前的时间点缓存的。如果还继续取，窗口画面就有短暂的不准确。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>d<span class="token operator">-></span>queue<span class="token operator">-></span>serial <span class="token operator">==</span> d<span class="token operator">-></span>pkt_serial<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<hr>
+<p>总结:</p>
+<p><code>decoder_decode_frame()</code> 函数的逻辑就是从解码器读取到 一个<code>AVFrame</code>，为了解码出一个<code>AVFrame</code>，它会从 <code>PacketQueue</code> 队列取 <code>AVPacekt</code> 发送给解码器，需要多少个就取多少个 <code>AVPacekt</code>，直至到能解码出一个 <code>AVFrame。</code></p>
+<p><code>decoder_decode_frame()</code> 函数有 3 个返回值:</p>
+<ul>
+<li>返回 1，获取到 <code>AVFrame</code> 。</li>
+<li>返回 0 ，获取不到 <code>AVFrame</code> ，0 代表已经解码完<code>MP4</code>的所有<code>AVPacket</code>。这种情况一般是 <code>ffplay</code> 播放完了整个 <code>MP4</code> 文件，窗口画面停在最后一帧。但是由于你可以按<code>C</code> 键重新循环播放，所以即便返回 0 也不能退出 <code>audio_thread</code> 线程。</li>
+<li>返回 -1，代表 <code>PacketQueue</code> 队列关闭了<code>(abort_request)</code>。返回 -1 会导致 <code>audio_thread()</code> 函数用 <code>goto the_end</code> 跳出 <code>do&#123;&#125;whlle&#123;&#125;</code> 循环，跳出循环之后，<code>audio_thread</code> 线程就会自己结束了。返回<code>-1</code> 通常是因为关闭了 <code>ffplay</code> 播放器。</li>
+</ul>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream-component-open/">FFplay源码分析---stream_component_open()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 15px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 12.5px;">c++11</a> <a href="/tags/error/" style="font-size: 12.5px;">error</a> <a href="/tags/leetcode/" style="font-size: 17.5px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
