@@ -60,6 +60,23 @@
     
     <div class="post-item">
         <h2>
+            <a href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a>
+        </h2>
+    
+        <p>audio_thread()在 stream_component_open() 里面的 decode_start() 函数开启了 audio_thread 线程，如下：
+if ((ret = d...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.12.12</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
             <a href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a>
         </h2>
     
@@ -180,7 +197,7 @@ struct VideoStateVideoState 可以说是播放器的全局管理器。字段非�
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream-component-open/">FFplay源码分析---stream_component_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream_open()/">FFplay源码分析---stream_open()</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/vscode%E9%85%8D%E7%BD%AE/vscode%E9%85%8D%E7%BD%AE/">vscode配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/stream-component-open/">FFplay源码分析---stream_component_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/09/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread()/">FFplay源码分析---read_thread()</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
