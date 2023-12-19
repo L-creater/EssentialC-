@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>自己实现STL之vector - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="自己实现STL之vector"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>自己实现STL之vector</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.19</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <p>这里的 <code>m_size</code> 是实际数据占用的大小。<code>m_capacity</code>是目前所能够容纳数据的大小，<code>m_size &lt;= m_capacity</code>。</p>
+<p><code>clear()</code> 清空的是 <code>m_data</code>和<code>m_size</code>,<code>reverse()</code>改变的是 <code>m_capacity</code></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token punctuation">,</span> <span class="token keyword">class</span> <span class="token class-name">Alloc</span> <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>allocator<span class="token operator">&lt;</span>T<span class="token operator">>></span>
+<span class="token keyword">struct</span> <span class="token class-name">Vector</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">using</span> value_type <span class="token operator">=</span> T<span class="token punctuation">;</span>
+  <span class="token keyword">using</span> allocator_type <span class="token operator">=</span> Alloc<span class="token punctuation">;</span>
+  <span class="token keyword">using</span> size_type <span class="token operator">=</span> size_t<span class="token punctuation">;</span>
+  <span class="token keyword">using</span> difference_type <span class="token operator">=</span> ptrdiff_t<span class="token punctuation">;</span>
+  <span class="token keyword">using</span> pointer <span class="token operator">=</span> T<span class="token operator">*</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> const_pointer <span class="token operator">=</span> T <span class="token keyword">const</span><span class="token operator">*</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> reference <span class="token operator">=</span> T<span class="token operator">&amp;</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> const_reference <span class="token operator">=</span> T <span class="token keyword">const</span><span class="token operator">&amp;</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> iterator <span class="token operator">=</span> T<span class="token operator">*</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> const_iterator <span class="token operator">=</span> T <span class="token keyword">const</span><span class="token operator">*</span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> reverse_iterator <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>reverse_iterator<span class="token operator">&lt;</span>T<span class="token operator">*</span><span class="token operator">></span><span class="token punctuation">;</span>
+  <span class="token keyword">using</span> const_reverse_iterator <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>reverse_iterator<span class="token operator">&lt;</span>T <span class="token keyword">const</span><span class="token operator">*</span><span class="token operator">></span><span class="token punctuation">;</span>
+
+  <span class="token keyword">int</span><span class="token operator">*</span> m_data<span class="token punctuation">;</span>
+  size_t m_size<span class="token punctuation">;</span> <span class="token comment">// 实际数据大小</span>
+  size_t m_capacity<span class="token punctuation">;</span> <span class="token comment">// 所能容纳的大小</span>
+  <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="重载"><a href="#重载" class="headerlink" title="重载[]"></a>重载[]</h2><p>这里重载[]，是为了实现 <code>arr[i] = i;</code></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//   // 这里返回纯右值</span>
+<span class="token comment">//   int operator[](size_t i) const &#123;</span>
+<span class="token comment">//     return m_data[i];</span>
+<span class="token comment">//   &#125;  // 这里添加const ， 否则 const Vector &amp;v = v; 无法赋值</span>
+
+<span class="token comment">// 这里返回纯右值 , 防止多余拷贝 ，和上面功能是一样的</span>
+<span class="token keyword">int</span> <span class="token keyword">const</span><span class="token operator">&amp;</span> <span class="token keyword">operator</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>size_t i<span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>  <span class="token comment">// 这里添加const ， 否则  Vector &amp;v = v; 无法赋值</span>
+
+<span class="token comment">// 这里返回左值引用</span>
+<span class="token keyword">int</span><span class="token operator">&amp;</span> <span class="token keyword">operator</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>size_t i<span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token comment">//</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="std-destroy-at"><a href="#std-destroy-at" class="headerlink" title="std::destroy_at()"></a>std::destroy_at()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">定义于头文件 <span class="token operator">&lt;</span>memory<span class="token operator">></span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">T</span> <span class="token operator">></span>
+<span class="token keyword">void</span> <span class="token function">destroy_at</span><span class="token punctuation">(</span> T<span class="token operator">*</span> p <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">17</span> 起<span class="token punctuation">)</span> <span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">T</span> <span class="token operator">></span>
+<span class="token keyword">constexpr</span> <span class="token keyword">void</span> <span class="token function">destroy_at</span><span class="token punctuation">(</span> T<span class="token operator">*</span> p <span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span>
+
+参数：
+
+p <span class="token operator">-</span> 指向要被销毁的对象的指针<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>destroy_at</code> 函数模板通过调用对象的析构函数来执行销毁操作。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;memory></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;new></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
+ 
+<span class="token keyword">struct</span> <span class="token class-name">Tracer</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> value<span class="token punctuation">;</span>
+    <span class="token operator">~</span><span class="token function">Tracer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> value <span class="token operator">&lt;&lt;</span> <span class="token string">" destructed\n"</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+ 
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">alignas</span><span class="token punctuation">(</span>Tracer<span class="token punctuation">)</span> <span class="token keyword">unsigned</span> <span class="token keyword">char</span> buffer<span class="token punctuation">[</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>Tracer<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">8</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">8</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span>
+        <span class="token keyword">new</span><span class="token punctuation">(</span>buffer <span class="token operator">+</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>Tracer<span class="token punctuation">)</span> <span class="token operator">*</span> i<span class="token punctuation">)</span> Tracer<span class="token punctuation">&#123;</span>i<span class="token punctuation">&#125;</span><span class="token punctuation">;</span> <span class="token comment">// 手工构造对象</span>
+ 
+    <span class="token keyword">auto</span> ptr <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">launder</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">reinterpret_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Tracer<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>buffer<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">8</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span>
+        std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span>ptr <span class="token operator">+</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="std-construct-at"><a href="#std-construct-at" class="headerlink" title="std::construct_at()"></a>std::construct_at()</h2><p><code>std::construct_at</code> 是 C++ 中的一个函数模板，用于在指定位置构造对象。<br>函数模板的声明如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">它位于 <span class="token operator">&lt;</span>memory<span class="token operator">></span> 头文件中，并定义在命名空间 std 中。
+<span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token punctuation">,</span> <span class="token keyword">class</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Args<span class="token operator">></span>
+T<span class="token operator">*</span> <span class="token function">construct_at</span><span class="token punctuation">(</span>T<span class="token operator">*</span> location<span class="token punctuation">,</span> Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>参数 <code>location</code> 是指向要构造对象的位置的指针。参数 <code>args</code> 是传递给对象构造函数的参数列表。</p>
+<p><code>construct_at</code> 函数模板将在指定位置调用对象的构造函数来构造对象。它返回指向构造的对象的指针。<br>在给定地址 <code>p</code> 创建一个使用参数<code>args...</code> 初始化的<code>T</code> 对象。</p>
+<p>示例:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;memory></span></span>
+ 
+<span class="token keyword">struct</span> <span class="token class-name">S</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> x<span class="token punctuation">;</span>
+    <span class="token keyword">float</span> y<span class="token punctuation">;</span>
+    <span class="token keyword">double</span> z<span class="token punctuation">;</span>
+ 
+    <span class="token function">S</span><span class="token punctuation">(</span><span class="token keyword">int</span> x<span class="token punctuation">,</span> <span class="token keyword">float</span> y<span class="token punctuation">,</span> <span class="token keyword">double</span> z<span class="token punctuation">)</span> <span class="token operator">:</span> x<span class="token punctuation">&#123;</span>x<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> y<span class="token punctuation">&#123;</span>y<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> z<span class="token punctuation">&#123;</span>z<span class="token punctuation">&#125;</span> <span class="token punctuation">&#123;</span> std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"S::S();\n"</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+ 
+    <span class="token operator">~</span><span class="token function">S</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"S::~S();\n"</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+ 
+    <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span>
+    <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"S &#123; x="</span> <span class="token operator">&lt;&lt;</span> x <span class="token operator">&lt;&lt;</span> <span class="token string">"; y="</span> <span class="token operator">&lt;&lt;</span> y <span class="token operator">&lt;&lt;</span> <span class="token string">"; z="</span> <span class="token operator">&lt;&lt;</span> z <span class="token operator">&lt;&lt;</span> <span class="token string">"; &#125;;\n"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+ 
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">alignas</span><span class="token punctuation">(</span>S<span class="token punctuation">)</span> <span class="token keyword">unsigned</span> <span class="token keyword">char</span> storage<span class="token punctuation">[</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>S<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+ 
+    S<span class="token operator">*</span> ptr <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">reinterpret_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>S<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>storage<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">42</span><span class="token punctuation">,</span> <span class="token number">2.71828f</span><span class="token punctuation">,</span> <span class="token number">3.1415</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ptr<span class="token operator">-></span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span>ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="clear"><a href="#clear" class="headerlink" title="clear()"></a>clear()</h2><p>清空全部内容</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="resize"><a href="#resize" class="headerlink" title="resize()"></a>resize()</h2><p>这里<code>resize()</code>两种情况。这里改变的只是m_size大小</p>
+<ol>
+<li><code>arr.resize(6)</code>之后，<code>arr.resize(3)</code>。容量比之前小了，这里会销毁掉3后面的数据。</li>
+<li>第二种就是容量比之前变大了，那么我们会对后面增加的容量进行初始化，默认初始化为0。</li>
+<li><code>resize()</code>,有两种resize方式，一种是不指定初始化的value，一种是指定初始化的value。</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">resize</span><span class="token punctuation">(</span>size_t n<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">&lt;</span> m_size<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> n<span class="token punctuation">;</span> i <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">></span> m_size<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">reserve</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// m_data[i] = 0</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">=</span> n<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">void</span> <span class="token function">resize</span><span class="token punctuation">(</span>size_t n<span class="token punctuation">,</span> T <span class="token keyword">const</span><span class="token operator">&amp;</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">&lt;</span> m_size<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// resize 变小了，需要删除</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> n<span class="token punctuation">;</span> i <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">></span> m_size<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">reserve</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 扩大部分置为value</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// m_data[i] = value;</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">=</span> n<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="std-move-if-noexcept"><a href="#std-move-if-noexcept" class="headerlink" title="std::move_if_noexcept()"></a>std::move_if_noexcept()</h2><p><strong>对于移动构造函数来说，抛出异常是很危险的。</strong><br>因为移动语义还没完成，一个异常就抛出来，可能会造成悬挂指针。因此，应尽量通过noexcept声明不抛出异常，而一旦出现异常就可以直接调用std::terminate终止程序。</p>
+<p><code>std::move_if_noexcept</code>模板来替代<code>move</code>函数。<br>该函数在类的<strong>移动构造函数没有声明<code>noxcept</code>关键字时返回一个左值引用</strong>从而使变量通过拷贝语义，<br>在<strong>移动构造函数有noexcept时返回一个右值引用</strong>，从而使变量可以使用移动语义。移动操作未加noexcept时，编译器仍会强制调用一个复制操作。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Defined in header <span class="token operator">&lt;</span>utility<span class="token operator">></span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">T</span> <span class="token operator">></span>
+<span class="token keyword">constexpr</span> <span class="token keyword">typename</span> <span class="token class-name">std</span><span class="token double-colon punctuation">::</span>conditional<span class="token operator">&lt;</span>  
+    <span class="token operator">!</span>std<span class="token double-colon punctuation">::</span>is_nothrow_move_constructible<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token double-colon punctuation">::</span>value <span class="token operator">&amp;&amp;</span> std<span class="token double-colon punctuation">::</span>is_copy_constructible<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token double-colon punctuation">::</span>value<span class="token punctuation">,</span>
+    <span class="token keyword">const</span> T<span class="token operator">&amp;</span><span class="token punctuation">,</span>
+    T<span class="token operator">&amp;&amp;</span>
+<span class="token operator">></span><span class="token double-colon punctuation">::</span>type <span class="token function">move_if_noexcept</span><span class="token punctuation">(</span> T<span class="token operator">&amp;</span> x <span class="token punctuation">)</span> <span class="token keyword">noexcept</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span>since C<span class="token operator">++</span><span class="token number">14</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>如果<code>T</code> 类型的对象 <code>x</code><strong>满足以下条件</strong>：</p>
+<ul>
+<li>T 类型具有移动构造函数（<code>is_move_constructible_v&lt;T&gt;</code> 为 <code>true</code>）。</li>
+<li>T 类型的移动构造函数不会抛出异常（<code>is_nothrow_move_constructible_v&lt;T&gt;</code> 为 <code>true</code>）。</li>
+</ul>
+<p>那么 std::move_if_noexcept(x) 将返回 T&amp;&amp; 类型的右值引用，表示可以安全地执行移动操作。</p>
+<p><strong>不满足上面的条件时,返回 const T &amp;</strong><br>如果<code>T</code> 类型的对象<code>x</code> 不满足上述条件，但具有拷贝构造函数（<code>is_copy_constructible_v&lt;T&gt;</code> 为 <code>true</code>）。</p>
+<p>那么 <code>std::move_if_noexcept(x)</code> 将返回<code>const T&amp;</code>类型的左值引用，表示无法安全地执行移动操作，但可以使用拷贝操作。</p>
+<p><strong>这样，<code>std::move_if_noexcept</code> 可以根据类型的移动构造函数是否抛出异常来选择性地将对象转移为右值引用，以提高性能。</strong></p>
+<p>示例:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;utility></span></span>
+ 
+<span class="token keyword">struct</span> <span class="token class-name">Bad</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token function">Bad</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    <span class="token function">Bad</span><span class="token punctuation">(</span>Bad<span class="token operator">&amp;&amp;</span><span class="token punctuation">)</span> <span class="token comment">// may throw</span>
+    <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Throwing move constructor called\n"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token function">Bad</span><span class="token punctuation">(</span><span class="token keyword">const</span> Bad<span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token comment">// may throw as well</span>
+    <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Throwing copy constructor called\n"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+ 
+<span class="token keyword">struct</span> <span class="token class-name">Good</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token function">Good</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    <span class="token function">Good</span><span class="token punctuation">(</span>Good<span class="token operator">&amp;&amp;</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token comment">// will NOT throw</span>
+    <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Non-throwing move constructor called\n"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token function">Good</span><span class="token punctuation">(</span><span class="token keyword">const</span> Good<span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token comment">// will NOT throw</span>
+    <span class="token punctuation">&#123;</span>
+        std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Non-throwing copy constructor called\n"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+ 
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    Good g<span class="token punctuation">;</span>
+    Bad b<span class="token punctuation">;</span>
+    <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> Good g2 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move_if_noexcept</span><span class="token punctuation">(</span>g<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> Bad b2 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move_if_noexcept</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>结果:<br>Non-throwing move constructor called<br>Throwing copy constructor called</p>
+<h2 id="reserve"><a href="#reserve" class="headerlink" title="reserve()"></a>reserve()</h2><p><code>reverse</code>这里实现的方式为，超过原来的<code>m_capacity</code>时，进行<code>m_capacity*2</code>的扩容，实现push_back的复杂度为O(N)。</p>
+<p><strong>实现</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//   // size =0 cap =0</span>
+<span class="token comment">//   // size =1 cap =1 *</span>
+<span class="token comment">//   // size = 2 cap = 2 *</span>
+<span class="token comment">//   // size = 3 cap = 4</span>
+<span class="token comment">//   // size = 4 cap = 4</span>
+<span class="token comment">//   // size = 5 cap = 8 *</span>
+<span class="token comment">//   // ...</span>
+<span class="token comment">//   // size =9 cap = 16 *</span>
+<span class="token comment">//   // 平均复杂度，o(n);</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token keyword">void</span> <span class="token function">reserve</span><span class="token punctuation">(</span>size_t n<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">&lt;=</span> m_capacity<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>likely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  n <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span>n<span class="token punctuation">,</span> m_capacity <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// printf("grow from %zd to %zd\n", m_capacity, n);</span>
+  <span class="token keyword">auto</span> old_data <span class="token operator">=</span> m_data<span class="token punctuation">;</span>
+  <span class="token keyword">auto</span> old_capacity <span class="token operator">=</span> m_capacity<span class="token punctuation">;</span>
+  <span class="token comment">// resize(0)</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_data <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+    m_capacity <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    m_data <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    m_capacity <span class="token operator">=</span> n<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>old_capacity <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> m_size<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// memcpy(m_data, old_data, std::min(old_size, m_size) * sizeof(int));</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move_if_noexcept</span><span class="token punctuation">(</span>old_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> m_size<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// delete[] old_data;</span>
+    m_alloc<span class="token punctuation">.</span><span class="token function">deallocate</span><span class="token punctuation">(</span>old_data<span class="token punctuation">,</span> old_capacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="shrink-to-fit"><a href="#shrink-to-fit" class="headerlink" title="shrink_to_fit()"></a>shrink_to_fit()</h2><p>请求移除未使用的容量。</p>
+<p>它是减少 capacity() 到 size()非强制性请求。请求是否达成依赖于实现。</p>
+<p>如果发生重分配，那么所有迭代器（包括 end() 迭代器）和所有到元素的引用都会失效。如果没有发生重分配，那么没有迭代器或引用会失效。<br>示例：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;vector></span></span>
+ 
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+  Vector<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span> bar<span class="token punctuation">;</span>    
+  bar<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Capacity of a 100-element vector is "</span> <span class="token operator">&lt;&lt;</span> bar<span class="token punctuation">.</span><span class="token function">capacity</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token char">'\n'</span><span class="token punctuation">;</span>
+  bar<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Capacity after resize(50) is "</span> <span class="token operator">&lt;&lt;</span> bar<span class="token punctuation">.</span><span class="token function">capacity</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token char">'\n'</span><span class="token punctuation">;</span>
+  bar<span class="token punctuation">.</span><span class="token function">shrink_to_fit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Capacity after shrink_to_fit() is "</span> <span class="token operator">&lt;&lt;</span> bar<span class="token punctuation">.</span><span class="token function">capacity</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token char">'\n'</span><span class="token punctuation">;</span>
+  bar<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Capacity after clear() is "</span> <span class="token operator">&lt;&lt;</span> bar<span class="token punctuation">.</span><span class="token function">capacity</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token char">'\n'</span><span class="token punctuation">;</span>
+  bar<span class="token punctuation">.</span><span class="token function">shrink_to_fit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Capacity after shrink_to_fit() is "</span> <span class="token operator">&lt;&lt;</span> bar<span class="token punctuation">.</span><span class="token function">capacity</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token char">'\n'</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>实现</strong></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 请求移除未使用的容量。</span>
+<span class="token comment">// 它是减少 capacity() 到 size() 非强制性请求。请求是否达成依赖于实现。</span>
+<span class="token keyword">void</span> <span class="token function">shrink_to_fit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> old_data <span class="token operator">=</span> m_data<span class="token punctuation">;</span>
+  <span class="token keyword">auto</span> old_capacity <span class="token operator">=</span> m_capacity<span class="token punctuation">;</span>
+  m_capacity <span class="token operator">=</span> m_size<span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>m_size <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_data <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+   m_data <span class="token operator">=</span> m_alloc<span class="token punctuation">.</span><span class="token function">allocate</span><span class="token punctuation">(</span>m_size<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>old_capacity <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// memcpy(m_data, old_data, m_size);</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span>
+          <span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move_if_noexcept</span><span class="token punctuation">(</span>
+                       old_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// m_data[i] = std::move(old_data[i]);</span>
+      std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>old_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// delete old_data;</span>
+    m_alloc<span class="token punctuation">.</span><span class="token function">deallocate</span><span class="token punctuation">(</span>old_data<span class="token punctuation">,</span> old_capacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="at"><a href="#at" class="headerlink" title="at()"></a>at()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">T <span class="token keyword">const</span><span class="token operator">&amp;</span> <span class="token function">at</span><span class="token punctuation">(</span>size_t i<span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>i <span class="token operator">>=</span> m_size<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">out_of_range</span><span class="token punctuation">(</span><span class="token string">"index out of range(vector::at)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T<span class="token operator">&amp;</span> <span class="token function">at</span><span class="token punctuation">(</span>size_t i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 小概率事件，编译器优化</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>i <span class="token operator">>=</span> m_size<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">out_of_range</span><span class="token punctuation">(</span><span class="token string">"index out of range(vector::at)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="std-as-const"><a href="#std-as-const" class="headerlink" title="std::as_const()"></a>std::as_const()</h2><p>std::as_const 是 C++ 中的一个函数模板，用于将对象转换为常量引用。</p>
+<p>函数模板的声明如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Defined in header <span class="token operator">&lt;</span>utility<span class="token operator">></span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">T</span> <span class="token operator">></span>
+<span class="token keyword">constexpr</span> std<span class="token double-colon punctuation">::</span>add_const_t<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token operator">&amp;</span> <span class="token function">as_const</span><span class="token punctuation">(</span> T<span class="token operator">&amp;</span> t <span class="token punctuation">)</span> <span class="token keyword">noexcept</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>since C<span class="token operator">++</span><span class="token number">17</span><span class="token punctuation">)</span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">T</span> <span class="token operator">></span>
+<span class="token keyword">void</span> <span class="token function">as_const</span><span class="token punctuation">(</span> <span class="token keyword">const</span> T<span class="token operator">&amp;&amp;</span> <span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">delete</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>since C<span class="token operator">++</span><span class="token number">17</span><span class="token punctuation">)</span>
+
+<span class="token number">1</span><span class="token punctuation">)</span> Forms lvalue reference to <span class="token keyword">const</span> type of t<span class="token punctuation">.</span>
+<span class="token number">2</span><span class="token punctuation">)</span> <span class="token keyword">const</span> rvalue reference overload is deleted to disallow rvalue arguments<span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>示例:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;cassert></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;string></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;type_traits></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;utility></span></span>
+ 
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span>string mutableString <span class="token operator">=</span> <span class="token string">"Hello World!"</span><span class="token punctuation">;</span>
+    <span class="token keyword">auto</span><span class="token operator">&amp;&amp;</span> constRef <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">as_const</span><span class="token punctuation">(</span>mutableString<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    mutableString<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// OK</span>
+    <span class="token comment">//  constRef.clear(); // Error: 'constRef' is 'const' qualified,</span>
+                          <span class="token comment">//        but 'clear' is not marked const</span>
+    <span class="token comment">//  您正在尝试调用一个非常量成员函数</span>
+    <span class="token comment">//  clear，但是该函数的调用对象是一个常量对象，因此产生了错误。</span>
+    <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>constRef <span class="token operator">==</span> <span class="token operator">&amp;</span>mutableString<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>std<span class="token double-colon punctuation">::</span><span class="token function">as_const</span><span class="token punctuation">(</span>mutableString<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token operator">&amp;</span>mutableString<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">using</span> ExprType <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>remove_reference_t<span class="token operator">&lt;</span><span class="token keyword">decltype</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">as_const</span><span class="token punctuation">(</span>mutableString<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">static_assert</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>remove_const_t<span class="token operator">&lt;</span>ExprType<span class="token operator">></span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>string<span class="token operator">></span><span class="token punctuation">,</span>
+                  <span class="token string">"ExprType should be some kind of string."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">static_assert</span><span class="token punctuation">(</span><span class="token operator">!</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>ExprType<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>string<span class="token operator">></span><span class="token punctuation">,</span>
+                  <span class="token string">"ExprType shouldn't be a mutable string."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="date"><a href="#date" class="headerlink" title="date()"></a>date()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">T <span class="token operator">*</span><span class="token function">data</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> m_data<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T <span class="token keyword">const</span> <span class="token operator">*</span><span class="token function">data</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> m_data<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T <span class="token keyword">const</span> <span class="token operator">*</span><span class="token function">cdata</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">const</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> m_data<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="is-nothrow-move-assignable-v"><a href="#is-nothrow-move-assignable-v" class="headerlink" title="is_nothrow_move_assignable_v()"></a>is_nothrow_move_assignable_v()</h2><p><code>is_nothrow_move_assignable_v</code> 是一个 C++ 类型特性(trait)，用于检查类型是否具有不抛出异常的移动赋值操作符<code>（move assignment operator）</code>。</p>
+<h2 id="noexcept"><a href="#noexcept" class="headerlink" title="noexcept"></a>noexcept</h2><p>noexcept 关键字用于在函数或操作符后面的括号内声明异常规约。它可以接受一个 <code>bool</code> 类型的常量表达式作为参数，用于指定函数或操作符是否可能抛出异常。如果参数表达式为<code>true</code>，则表示函数或操作符不会抛出异常；如果参数表达式为 <code>false</code>，则表示函数或操作符可能抛出异常。</p>
+<p>因此，<code>noexcept(std::is_nothrow_move_assignable_v&lt;T&gt;)</code>的作用是在函数或操作符上声明其是否具有不抛出异常的移动赋值操作符。如果 <code>std::is_nothrow_move_assignable_v&lt;T&gt;</code> 为 <code>true</code>，则整个表达式的结果为 <code>noexcept(true)</code>，表示函数或操作符不会抛出异常；如果 <code>std::is_nothrow_move_assignable_v&lt;T&gt;</code>为<code>false</code>，则整个表达式的结果为<code>noexcept(false)</code>，表示函数或操作符可能抛出异常。</p>
+<h2 id="erase"><a href="#erase" class="headerlink" title="erase()"></a>erase()</h2><p>erase实现有两种情况:</p>
+<ol>
+<li>删除单个元素，需要输入对应元素的迭代器</li>
+<li>删除区间内的元素，则需要输入删除元素区间的起始迭代器和最后元素的迭代器。<code>[first, last)</code></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">T<span class="token operator">*</span> <span class="token function">erase</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">)</span> <span class="token keyword">noexcept</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_nothrow_move_assignable_v<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t i <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t j <span class="token operator">=</span> i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span> j <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_data<span class="token punctuation">[</span>j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">-=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>m_size<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T<span class="token operator">*</span> <span class="token function">erase</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> first<span class="token punctuation">,</span>
+         T <span class="token keyword">const</span><span class="token operator">*</span> last<span class="token punctuation">)</span> <span class="token keyword">noexcept</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_nothrow_move_assignable_v<span class="token operator">&lt;</span>T<span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t i <span class="token operator">=</span> first <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+  size_t j <span class="token operator">=</span> last <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+  size_t diff <span class="token operator">=</span> j <span class="token operator">-</span> i<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token punctuation">;</span> j <span class="token operator">!=</span> m_size<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m_data<span class="token punctuation">[</span>j <span class="token operator">-</span> diff<span class="token punctuation">]</span> <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">-=</span> diff<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t j <span class="token operator">=</span> m_size<span class="token punctuation">;</span> j <span class="token operator">!=</span> m_size <span class="token operator">+</span> diff<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> <span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>first<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="push-back"><a href="#push-back" class="headerlink" title="push_back()"></a>push_back()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">push_back</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">&amp;</span> val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">>=</span> m_capacity<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>m_size<span class="token punctuation">]</span><span class="token punctuation">,</span> val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_size <span class="token operator">=</span> m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+  <span class="token comment">// back() = val;</span>
+  <span class="token comment">// m_data[m_size] = val; // todo 有问题</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="pop-back"><a href="#pop-back" class="headerlink" title="pop_back()"></a>pop_back()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">noexcept</span> <span class="token punctuation">&#123;</span>
+  m_size <span class="token operator">-=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>m_size<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="emplace-back"><a href="#emplace-back" class="headerlink" title="emplace_back()"></a>emplace_back()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Args<span class="token operator">></span>
+T<span class="token operator">&amp;</span> <span class="token function">emplace_back</span><span class="token punctuation">(</span>Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">>=</span> m_capacity<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  T<span class="token operator">*</span> p <span class="token operator">=</span> <span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>m_size<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">forward</span><span class="token generic class-name"><span class="token operator">&lt;</span>Args<span class="token operator">></span></span></span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_size <span class="token operator">=</span> m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> <span class="token operator">*</span>p<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="emplace-back-和-push-back-区别"><a href="#emplace-back-和-push-back-区别" class="headerlink" title="emplace_back 和 push_back() 区别"></a>emplace_back 和 push_back() 区别</h2><p><code>emplace_back</code> 和<code>push_back</code>的区别在于：</p>
+<ul>
+<li><code>push_back()</code>向容器尾部添加元素时，首先会创建这个元素，然后再将这个元素拷贝或移动到容器中（如果是拷贝的话，事后会自行销毁先前创建的这个元素）</li>
+<li><code>emplace_back()</code>则直接在容器尾部创建这个元素省去了拷贝或移动元素的过程，所以在效率上更优。</li>
+</ul>
+<h2 id="emplace"><a href="#emplace" class="headerlink" title="emplace()"></a>emplace()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>T<span class="token punctuation">,</span>Allocator<span class="token operator">></span><span class="token double-colon punctuation">::</span>emplace
+
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Args <span class="token operator">></span>
+iterator <span class="token function">emplace</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span>since C<span class="token operator">++</span><span class="token number">11</span><span class="token punctuation">)</span>
+<span class="token punctuation">(</span>until C<span class="token operator">++</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Args <span class="token operator">></span>
+<span class="token keyword">constexpr</span> iterator <span class="token function">emplace</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span>since C<span class="token operator">++</span><span class="token number">20</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>实现:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Args<span class="token operator">></span>
+T<span class="token operator">*</span> <span class="token function">emplace</span><span class="token punctuation">(</span><span class="token keyword">int</span> <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t j <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+  <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>j <span class="token operator">>=</span> m_size<span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> std<span class="token double-colon punctuation">::</span><span class="token function">out_of_range</span><span class="token punctuation">(</span><span class="token string">"out of range"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token comment">// j ~ m_size => j + 1 ~ m_size + 1</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">!=</span> j<span class="token punctuation">;</span> <span class="token operator">--</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">forward</span><span class="token generic class-name"><span class="token operator">&lt;</span>Args<span class="token operator">></span></span></span><span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token operator">++</span>m_size<span class="token punctuation">;</span>
+  <span class="token keyword">return</span> m_data <span class="token operator">+</span> j<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="assign"><a href="#assign" class="headerlink" title="assign()"></a>assign()</h2><p>替换容器的内容。</p>
+<ol>
+<li>以 count 份 value 的副本替换内容。</li>
+<li>以范围<code>[first, last)</code>中元素的副本替换内容。</li>
+<li>以来自 <code>initializer_list ilist</code> 的元素替换内容。</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">assign</span><span class="token punctuation">(</span>size_t n<span class="token punctuation">,</span> T value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">reserve</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_size <span class="token operator">=</span> n<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//   m_data[i] = value;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>random_access_iterator InputIt<span class="token operator">></span>  <span class="token comment">// todo</span>
+<span class="token keyword">void</span> <span class="token function">assign</span><span class="token punctuation">(</span>InputIt first<span class="token punctuation">,</span> InputIt last<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  size_t n <span class="token operator">=</span> last <span class="token operator">-</span> first<span class="token punctuation">;</span>
+  <span class="token function">reserve</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  m_size <span class="token operator">=</span> n<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//   m_data[i] = *first++;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token operator">*</span>first<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">void</span> <span class="token function">assign</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>initializer_list<span class="token operator">&lt;</span>T<span class="token operator">></span> ilist<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token function">assign</span><span class="token punctuation">(</span>ilist<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ilist<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="std-random-access-iterator"><a href="#std-random-access-iterator" class="headerlink" title="std::random_access_iterator()"></a>std::random_access_iterator()</h2><h2 id="insert"><a href="#insert" class="headerlink" title="insert()"></a>insert()</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> <span class="token keyword">const</span> T<span class="token operator">&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">constexpr</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> <span class="token keyword">const</span> T<span class="token operator">&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span>
+<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> T<span class="token operator">&amp;&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">11</span> 起<span class="token punctuation">)</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">constexpr</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> T<span class="token operator">&amp;&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span>
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> size_type count<span class="token punctuation">,</span> <span class="token keyword">const</span> T<span class="token operator">&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">constexpr</span> iterator
+    <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> size_type count<span class="token punctuation">,</span> <span class="token keyword">const</span> T<span class="token operator">&amp;</span> value <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span>
+<span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">InputIt</span> <span class="token operator">></span>
+iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> InputIt first<span class="token punctuation">,</span> InputIt last <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span> <span class="token keyword">class</span> <span class="token class-name">InputIt</span> <span class="token operator">></span>
+<span class="token keyword">constexpr</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> InputIt first<span class="token punctuation">,</span> InputIt last <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span>
+<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>initializer_list<span class="token operator">&lt;</span>T<span class="token operator">></span> ilist <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">11</span> 起<span class="token punctuation">)</span>
+<span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 前<span class="token punctuation">)</span>
+<span class="token keyword">constexpr</span> iterator <span class="token function">insert</span><span class="token punctuation">(</span> const_iterator pos<span class="token punctuation">,</span>
+                           std<span class="token double-colon punctuation">::</span>initializer_list<span class="token operator">&lt;</span>T<span class="token operator">></span> ilist <span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">(</span>C<span class="token operator">++</span><span class="token number">20</span> 起<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>插入元素到容器中的指定位置。<br>1,2)  在 <code>pos</code> 前插入 <code>value</code>。<br>3)  在 <code>pos</code> 前插入 <code>value</code> 的 <code>count</code> 个副本。<br>4) 在 <code>pos</code> 前插入来自范围<code>[first, last)</code> 的元素。<br>如果 <code>InputIt</code> 是整数类型，那么此重载与重载 (3) 的效果相同。</p>
+<p>(C++11 前)<br>此重载只有在<code>InputIt</code> 足以为输入迭代器时才会参与重载决议，以避免与重载 (3) 有歧义。</p>
+<p>(C++11 起)<br>如果 <code>first</code> 和 <code>last</code> 是指向<code>*this</code>中的迭代器，那么行为未定义。<br>5) 在 <code>pos</code> 前插入来自 <code>initializer_list ilist</code> 的元素。<br>如果操作后新的 <code>size()</code>大于原<code>capacity()</code> 则会发生重分配，这种情况下，指代元素的所有迭代器（包括 <code>end()</code>迭代器）和所有引用均会失效。否则，仅插入点之前的迭代器和引用保持有效。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">参数
+pos <span class="token operator">-</span> 将内容插入到它前面的迭代器。pos 可以是 <span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span> 迭代器
+value <span class="token operator">-</span> 要插入的元素值
+count <span class="token operator">-</span> 要插入的元素数量
+first<span class="token punctuation">,</span> last <span class="token operator">-</span> 要插入的元素范围，不能是指向调用 insert 所用的容器中的迭代器
+ilist <span class="token operator">-</span> 要插入的值来源的 initializer_list
+
+返回值
+<span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> 指向被插入 value 的迭代器。
+<span class="token number">3</span><span class="token punctuation">)</span> 指向首个被插入元素的迭代器，或者在 count <span class="token operator">==</span> <span class="token number">0</span> 时返回 pos。
+<span class="token number">4</span><span class="token punctuation">)</span> 指向首个被插入元素的迭代器，或者在 first <span class="token operator">==</span> last 时返回 pos。
+<span class="token number">5</span><span class="token punctuation">)</span> 指向首个被插入元素的迭代器，或者在 ilist 为空时返回 pos。
+
+复杂度
+<span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span> 常数，加上 pos 与容器结尾的距离成线性。
+<span class="token number">3</span><span class="token punctuation">)</span> 与 count 成线性，加上 pos 与容器结尾的距离成线性。
+<span class="token number">4</span><span class="token punctuation">)</span> 与 std<span class="token double-colon punctuation">::</span><span class="token function">distance</span><span class="token punctuation">(</span>first<span class="token punctuation">,</span> last<span class="token punctuation">)</span> 成线性，加上 pos 与容器结尾的距离成线性。
+<span class="token number">5</span><span class="token punctuation">)</span> 与 ilist<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> 成线性，加上 pos 与容器结尾的距离成线性。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// insert 一个</span>
+T<span class="token operator">*</span> <span class="token function">insert</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> T<span class="token operator">&amp;&amp;</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t j <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+
+  <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// j ~ m_size => j + 1 ~ m_size + n</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">!=</span> j<span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">+=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> m_data <span class="token operator">+</span> j<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T<span class="token operator">*</span> <span class="token function">insert</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> T <span class="token keyword">const</span><span class="token operator">&amp;</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t j <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+
+  <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// j ~ m_size => j + 1 ~ m_size + n</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">!=</span> j<span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">+=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> m_data <span class="token operator">+</span> j<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T<span class="token operator">*</span> <span class="token function">insert</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> size_t n<span class="token punctuation">,</span> T <span class="token keyword">const</span><span class="token operator">&amp;</span> val<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t j <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span>
+    <span class="token keyword">return</span> <span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// j ~ m_size => j + n ~ m_size + n</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">!=</span> j<span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">+</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">+=</span> n<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> j<span class="token punctuation">;</span> i <span class="token operator">!=</span> j <span class="token operator">+</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> m_data <span class="token operator">+</span> j<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">template</span> <span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>random_access_iterator InputIt<span class="token operator">></span>
+T<span class="token operator">*</span> <span class="token function">insert</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> InputIt first<span class="token punctuation">,</span> InputIt last<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  size_t j <span class="token operator">=</span> it <span class="token operator">-</span> m_data<span class="token punctuation">;</span>
+  size_t n <span class="token operator">=</span> last <span class="token operator">-</span> first<span class="token punctuation">;</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>n <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>unlikely<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">*</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token function">reserve</span><span class="token punctuation">(</span>m_size <span class="token operator">+</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// j ~ m_size => j + 1 ~ m_size + n</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> m_size<span class="token punctuation">;</span> i <span class="token operator">!=</span> j<span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">+</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">destroy_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  m_size <span class="token operator">+=</span> n<span class="token punctuation">;</span>
+  <span class="token keyword">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> j<span class="token punctuation">;</span> i <span class="token operator">!=</span> j <span class="token operator">+</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    std<span class="token double-colon punctuation">::</span><span class="token function">construct_at</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m_data<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token operator">*</span>first<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token keyword">return</span> m_data <span class="token operator">+</span> j<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+T<span class="token operator">*</span> <span class="token function">insert</span><span class="token punctuation">(</span>T <span class="token keyword">const</span><span class="token operator">*</span> it<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>initializer_list<span class="token operator">&lt;</span>T<span class="token operator">></span> ilist<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">return</span> <span class="token function">insert</span><span class="token punctuation">(</span>it<span class="token punctuation">,</span> ilist<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ilist<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>arr.capacity arr.size() front back data 见源码</p>
+</blockquote>
+<h2 id="no-unique-address"><a href="#no-unique-address" class="headerlink" title="[[no_unique_address]]"></a>[[no_unique_address]]</h2><p><code>[[no_unique_address]]</code>是 C++11 中的一个属性（attribute），用于指示编译器在某些情况下可以对成员进行优化，以减少对象的大小和内存开销。</p>
+<h2 id="std-allocator"><a href="#std-allocator" class="headerlink" title="std::allocator"></a>std::allocator</h2><p>首先什么是Allocator？Allocator有什么用？</p>
+<p>分配器是负责封装堆内存管理的对象，它们在整个标准库中使用，特别是STL容器使用它们来管理r容器内部的所有内存分配,大部份情况下,程序员不用理会,标准容器使用默认的分配器称为<code>std :: allocator</code>,例如当你声明一个简单的<code>vector</code>对象时，C++编译器默认已经使用了内置的<code>std::allocator</code>,在标准库的<code>vector</code>模板当中，第二个模板参数<code>_Alloc</code>就是<code>std::allocator</code>，实际上，<code>std::allocator</code>也是一个类模板</p>
+<h2 id="std-destroy-at-1"><a href="#std-destroy-at-1" class="headerlink" title="std::destroy_at"></a>std::destroy_at</h2><p><code>std::destroy_at</code> 函数用于销毁（析构）一个对象，但它不会释放先前分配的内存。</p>
+<p><a href="https://lyt-s.github.io/2023/12/18/std-allocator/"><code>std::allocator</code> 、<code>std::destroy_at</code>、 <code>std::construct_at</code>具体细节见std::allocator</a></p>
+<h2 id="std-numeric-limits"><a href="#std-numeric-limits" class="headerlink" title="std::numeric_limits&lt;&gt;"></a>std::numeric_limits&lt;&gt;</h2><p> 在C&#x2F;C++11中，std::numeric_limits为模板类，在库编译平台提供基础算术类型的极值等属性信息，取代传统C语言，所采用的预处理常数。比较常用的使用是对于给定的基础类型用来判断在当前系统上的最大值、最小值。若使用此类，需包含<code>&lt;limits&gt;</code>头文件。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;limits></span>  <span class="token comment">// std::numeric_limits&lt;T></span></span>
+
+<span class="token comment">//</span>
+<span class="token comment">/* reference:
+        http://www.cplusplus.com/reference/limits/numeric_limits/
+        https://msdn.microsoft.com/en-us/library/c707ct0t.aspx
+*/</span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Max value for size_t: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span>size_t<span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"max number of int : "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span>size_t<span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  <span class="token comment">// std::boolalpha 用于将 std::cout 的输出格式设置为以字符串 "true" 或 "false"</span>
+  <span class="token comment">// 的形式输出布尔值，而不是默认的 1 或 0。</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>boolalpha<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Minimum value for int: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">min</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Maximum value for int: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"int is signed: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_signed
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Non-sign bits in int: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>digits
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"int has infinity: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_infinity
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Minimum value for float: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">min</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>  <span class="token comment">// min returns the smallest positive value the type</span>
+                           <span class="token comment">// can encode, not the lowest</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Lowest value for float: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">lowest</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>  <span class="token comment">// the lowest value</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Maximum value for float: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"float is signed: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_signed
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Non-sign bits in float: "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>digits
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"float has infinity: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_infinity <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Minimum value for unsigned short: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">unsigned</span> <span class="token keyword">short</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">min</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Maximum value for unsigned short: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">unsigned</span> <span class="token keyword">short</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_specialized(float): "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_specialized <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_integer(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_integer
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_exact(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_exact
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_bounded(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_bounded
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_modulo(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_modulo
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"is_iec559(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>is_iec559
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"digits10(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>digits10
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"radix(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>radix
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"min_exponent(float): "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>min_exponent <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"max_exponent(float): "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>max_exponent <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"min_exponent10(float): "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>min_exponent10 <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"max_exponent10(float): "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>max_exponent10 <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"epsilon(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">epsilon</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"round_style(float): "</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>round_style
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The smallest nonzero denormalized value for float: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">denorm_min</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The difference between 1 and the smallest value greater than 1 "</span>
+               <span class="token string">"for float: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">epsilon</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float objects allow denormalized values: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_denorm <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float objects can detect denormalized loss: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_denorm_loss <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float objects have quiet_NaN: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_quiet_NaN <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float objects have a signaling_NaN: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>has_signaling_NaN <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The base for type float is:  "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>radix <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The maximum rounding error for type float is:  "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">round_error</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The rounding style for a double type is: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">double</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>round_style <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"The signaling NaN for type float is:  "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span><span class="token class-name">numeric_limits</span><span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">signaling_NaN</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float types can detect tinyness before rounding: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>tinyness_before <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Whether float types have implemented trapping: "</span>
+            <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>numeric_limits<span class="token operator">&lt;</span><span class="token keyword">float</span><span class="token operator">></span><span class="token double-colon punctuation">::</span>traps <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/my-stl/" rel="tag">my_stl</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 16px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/error/" style="font-size: 12px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
