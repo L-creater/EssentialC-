@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>小小的operator=竟有这么多细节 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="小小的operator=竟有这么多细节"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>小小的operator=竟有这么多细节</h2>
+            <div class="post-meta">
+                <time class="date">2023.12.22</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="operator"><a href="#operator" class="headerlink" title="operator&#x3D;"></a>operator&#x3D;</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">class</span> <span class="token class-name">MyString</span><span class="token punctuation">&#123;</span>
+<span class="token keyword">public</span><span class="token operator">:</span>
+    <span class="token function">MyString</span><span class="token punctuation">(</span><span class="token keyword">char</span> <span class="token operator">*</span> pData <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">MyString</span><span class="token punctuation">(</span><span class="token keyword">const</span> MyString<span class="token operator">&amp;</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">private</span><span class="token operator">:</span>
+        <span class="token keyword">char</span> <span class="token operator">*</span> m_pData<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>TODO:<br><strong>添加赋值运算符</strong></p>
+<ul>
+<li>是否把返回值类型声明为该类型的引用，并在函数返回时，返回实例自己的引用(*this)。 <strong>只有返回一个引用，才允许连续赋值。</strong>  否则，如果函数自身返回值是void，则应用该赋值运算符将不能进行连续赋值。假设有3个MyString的对象，<code>str1</code>,<code>str2</code>,<code>str3</code>,在程序中语句<code>str1 = str2 = str3</code>将不能通过编译。</li>
+<li>是否把传入的参数的类型声明为常量引用。如果传入的参数不是引用而是实例，那么从形参到实参会调用一次复制构造函数，把参数设为引用可以避免无谓的消耗，能提高代码的效率。同时我们在赋值运算符函数内不会改变传入的实例的状态，因此应该为传入的引用参数上加入const关键字。</li>
+<li>是否释放自己的内存。如果我们忘记在分配新内存之前释放自身已有的空间，则会造成内存泄漏。</li>
+<li>判断传入的参数和当前的实例(*this)是不是指向同一个实例。如果是同一个，则不进行操作，直接返回。如果事先不判断就进行赋值，那么在释放实际内存的时候就会导致严重的问题：当<code>*this</code>和传入的参数是同一个实例时，一旦释放了自身的内存，传入的参数的内存同时被释放了，因此就再也找不到需要赋值的内容了。</li>
+</ul>
+<h2 id="经典做法"><a href="#经典做法" class="headerlink" title="经典做法"></a>经典做法</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">MyString<span class="token operator">&amp;</span> MyString<span class="token double-colon punctuation">::</span><span class="token keyword">operator</span><span class="token operator">=</span><span class="token punctuation">(</span><span class="token keyword">const</span> MyString<span class="token operator">&amp;</span> other<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">this</span> <span class="token operator">==</span> <span class="token operator">&amp;</span>other<span class="token punctuation">)</span> <span class="token keyword">return</span> <span class="token operator">*</span><span class="token keyword">this</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">delete</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>m_pData<span class="token punctuation">;</span>
+    m_pData <span class="token operator">=</span> <span class="token keyword">nullptr</span><span class="token punctuation">;</span>
+
+    m_pData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">char</span><span class="token punctuation">[</span><span class="token function">strlen</span><span class="token punctuation">(</span>other<span class="token punctuation">.</span>m_pData<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token function">strcpy</span><span class="token punctuation">(</span>m_pData<span class="token punctuation">,</span> other<span class="token punctuation">.</span>m_pData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token operator">*</span><span class="token keyword">this</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="考虑异常安全性"><a href="#考虑异常安全性" class="headerlink" title="考虑异常安全性"></a>考虑异常安全性</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">MyString<span class="token operator">&amp;</span> MyString<span class="token double-colon punctuation">::</span><span class="token keyword">operator</span><span class="token operator">=</span><span class="token punctuation">(</span><span class="token keyword">const</span> MyString<span class="token operator">&amp;</span> other<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">this</span> ！<span class="token operator">=</span> <span class="token operator">&amp;</span>other<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       MyString <span class="token function">strTemp</span><span class="token punctuation">(</span>other<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+       <span class="token keyword">char</span> <span class="token operator">*</span>pTemp <span class="token operator">=</span> strTemp<span class="token punctuation">.</span>m_pData<span class="token punctuation">;</span>
+       strTemp<span class="token punctuation">.</span>m_pData <span class="token operator">=</span> m_pData<span class="token punctuation">;</span>
+       m_pData <span class="token operator">=</span> pTemp<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token operator">*</span><span class="token keyword">this</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在之前的函数，我们再分配之前，先用<code>delete</code>释放了实例<code>m_pData</code>的内存。如果此时内存不足导致<code>new char</code> 抛出异常，则<code>m_pData</code>将是一个空指针，这样非常容易导致程序崩溃。违背了异常安全性原则。</p>
+<p>这里改进，先创建一个临时实例，在交换临时实例和原来的实例。</p>
+<p>在这个函数中，我们先创建，一个临时实例strTemp, 接着把<code>strTemp.m_pData</code>和实例自身的<code>m_pData</code>进行交换。由于<code>strTemp</code>是一个局部变量，但程序运行到if外面时，也就处理该变量的作用域，就会自动调用<code>strTemp</code>的析构函数，把<code>strTemp.m_pData</code>所指向的内存释放掉。由于<code>strTemp.m_pData</code>指向的内存就是实例之前m_pData的内存，这就相当于自动调用析构函数释放实例的内存。</p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/19/vector/">自己实现STL之vector</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 16px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/error/" style="font-size: 12px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2023 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>

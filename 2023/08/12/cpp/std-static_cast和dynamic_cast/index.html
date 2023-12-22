@@ -69,6 +69,7 @@
 
 <span class="token keyword">int</span> x <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
 <span class="token keyword">double</span> y <span class="token operator">=</span> <span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword">double</span><span class="token operator">></span></span></span><span class="token punctuation">(</span>x<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 转换正确</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>static_cast 没有运行时类型检查来保证转换的安全性，需要程序员来判断转换是否安全。<br>static_cast 进行下行转换由于没有动态类型检查，所以是不安全的。</p>
 <ul>
 <li>上行转换（把子类的指针或引用转换成基类表示）是安全的；</li>
@@ -113,6 +114,7 @@
 <span class="token punctuation">&#125;</span>
 <span class="token comment">// 这是因为派生类包含基类信息，所以上行转换（只能调用基类的方法和成员变量），一般是安全的；</span>
 <span class="token comment">// 而基类没有派生类的任何信息，而下行转换后会用到派生类的方法和成员变量，这些基类都没有，很容易“指鹿为马”，或指向不存在的空间。</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <h1 id="基类和派生类的智能指针转换"><a href="#基类和派生类的智能指针转换" class="headerlink" title="基类和派生类的智能指针转换"></a>基类和派生类的智能指针转换</h1><p>基类和派生类的智能指针转换要使用std::dynamic_pointer_cast和std::static_pointer_cast。<br>具体示例如下：</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;iostream></span></span>
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;memory></span></span>
@@ -172,6 +174,7 @@
         downcastedPtr<span class="token operator">-></span><span class="token function">f</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <blockquote>
 <p>output:<br>    Base pointer says: I am base!<br>    Derived pointer says: I am derived!<br>    Base pointer to derived says: I am derived!<br>    Downcasted pointer says: I am derived!<br>    Pointers to underlying derived: 3<br>    0x204f030<br>    0</p>
 </blockquote>
@@ -217,7 +220,7 @@
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>

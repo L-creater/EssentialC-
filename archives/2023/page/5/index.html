@@ -60,6 +60,22 @@
     
     <div class="post-item">
         <h2>
+            <a href="/2023/10/30/sylar/c++/builtin-expect-%E8%AF%B4%E6%98%8E/">__builtin_expect 说明</a>
+        </h2>
+    
+        <p>从GCC的说明中可知，__builtin_expect的主要作用就是：帮助编译器判断条件跳转的预期值，避免因执行jmp跳转指令造成时间浪费。作用是允许程序员将最有可能执行的分支告诉编译器。这个指...</p>
+    
+        <div class="post-meta">
+            <time class="date">2023.10.30</time>
+            
+            
+                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
+            
+        </div>
+    </div>
+    
+    <div class="post-item">
+        <h2>
             <a href="/2023/10/30/sylar/%E6%A8%A1%E5%9D%97/%E5%AE%9A%E6%97%B6%E5%99%A8%E6%A8%A1%E5%9D%97/">定时器模块</a>
         </h2>
     
@@ -234,24 +250,6 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
         </div>
     </div>
     
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/19/sylar/c++/set%E8%87%AA%E5%AE%9A%E4%B9%89%E6%AF%94%E8%BE%83%E5%87%BD%E6%95%B0/">set自定义比较函数</a>
-        </h2>
-    
-        <p>使用insert()将元素插入到集合中去的时候，集合会根据设定的比较函数将该元素放到该放的节点上去。在定义集合的时候，如果没有指定比较函数，那么采用默认的比较函数(按键值由小到大的顺序插入元素)...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.19</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
 </section>
 
         <section class="page-navigator">
@@ -269,7 +267,7 @@ error: invalid new-expression of abstract class type ‘sylar::IPAddress’
             <div class="row">
                 <div class="col-m-4">
                     <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/10/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure-audio-filters/">FFplay源码分析---configure_audio_filters()</a></li></ul>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/11/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-open/">FFplay源码分析---audio_open()</a></li></ul>
                 </div>
                 <div class="col-m-4">
                     <h3 class="title-date">时光机：</h3>
