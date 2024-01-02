@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>对象生命周期 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="对象生命周期"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>对象生命周期</h2>
+            <div class="post-meta">
+                <time class="date">2024.01.02</time>
+            
+                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h1 id="对象生命周期"><a href="#对象生命周期" class="headerlink" title="对象生命周期"></a>对象生命周期</h1><p>总结:</p>
+<ol>
+<li>函数对象会在其作用域的<strong>右括号</strong>处进行析构。</li>
+<li><code>func2(Test(&quot;t&quot;)),puts(&quot;---&quot;);</code>函数会在其 <strong>;</strong> 处进行析构，此时Test的作用域已结束。</li>
+</ol>
+<h2 id="第一种情况"><a href="#第一种情况" class="headerlink" title="第一种情况"></a>第一种情况</h2><p>对象会在其作用域 “}” 释放</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token punctuation">&#123;</span>
+    <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Test <span class="token function">t</span><span class="token punctuation">(</span><span class="token string">"t"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#123;</span> Test <span class="token function">t2</span><span class="token punctuation">(</span><span class="token string">"t2"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+    <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>  <span class="token comment">// t.~Test() 自动调用析构函数 , 加括号后析构提前,作用域</span>
+  <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"---"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>  <span class="token comment">// t.~Test() 自动调用析构函数</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="第二种情况"><a href="#第二种情况" class="headerlink" title="第二种情况"></a>第二种情况</h2><p>一行语句结束，是以 <strong>“ ; “</strong> 结尾。</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">//   Test t("t");  // 这个传入下面的函数时，才会在main结束后析构。</span>
+
+  <span class="token function">func2</span><span class="token punctuation">(</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token string">"t"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"---"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+      <span class="token comment">// t 在此进行析构</span>
+      <span class="token comment">// 此语句和下面括号内的内容等价</span>
+  <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"&#123;-----------&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#123;</span>
+    Test <span class="token function">t1</span><span class="token punctuation">(</span><span class="token string">"t1"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">func2</span><span class="token punctuation">(</span>t1<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"---"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>  
+  <span class="token comment">// 出 &#125; 后，t1 会在此进行析构</span>
+  <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// 当在main 定义  Test t("t");  会在语句结束后，将Test t 析构掉</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="第三种情况"><a href="#第三种情况" class="headerlink" title="第三种情况"></a>第三种情况</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">void</span> <span class="token function">func3</span><span class="token punctuation">(</span>Test t<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">//</span>
+  <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"func(Test t)"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 测试 3</span>
+  Test <span class="token function">t</span><span class="token punctuation">(</span><span class="token string">"t"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">func3</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+  <span class="token comment">// func(test t) 时，会多一次拷贝和析构,</span>
+  <span class="token comment">// 上面的和括号中的语句等价， t 会在main 结束 时 析构。</span>
+  <span class="token punctuation">&#123;</span>
+    Test <span class="token function">t_copy</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">func</span><span class="token punctuation">(</span>t_copy<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+  <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// t_copy 在 &#125; 时， 析构。</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>结果</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t
+<span class="token function">Test</span><span class="token punctuation">(</span>Test <span class="token keyword">const</span> <span class="token operator">&amp;</span><span class="token punctuation">)</span> t_copy
+<span class="token function">func</span><span class="token punctuation">(</span>Test t<span class="token punctuation">)</span>
+<span class="token operator">==</span><span class="token operator">=</span>
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t_copy
+<span class="token function">Test</span><span class="token punctuation">(</span>Test <span class="token keyword">const</span> <span class="token operator">&amp;</span><span class="token punctuation">)</span> t_copy
+<span class="token function">func</span><span class="token punctuation">(</span>Test <span class="token keyword">const</span> <span class="token operator">&amp;</span>t<span class="token punctuation">)</span>
+<span class="token operator">==</span><span class="token operator">=</span>
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t_copy
+<span class="token operator">==</span><span class="token operator">=</span>
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="第四种情况-–move"><a href="#第四种情况-–move" class="headerlink" title="第四种情况 –move"></a>第四种情况 –move</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Test <span class="token function">t</span><span class="token punctuation">(</span><span class="token string">"t"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 调用Test的构造函数 ，会在main &#125; 处析构，delete 空指针</span>
+<span class="token function">func</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 调用 func(Test &amp;&amp;t)</span>
+<span class="token punctuation">&#123;</span>
+  Test <span class="token function">t_move</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 调用Test的移动构造函数</span>
+  <span class="token comment">// 移动就是创建了一个一模一样的对象，仅此而已，还是会再次析构t</span>
+  <span class="token comment">//  此时 t 已经没了</span>
+  <span class="token function">func</span><span class="token punctuation">(</span>t_move<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"==="</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>测试结果</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t
+<span class="token function">func</span><span class="token punctuation">(</span>Test <span class="token operator">&amp;&amp;</span>t<span class="token punctuation">)</span>
+<span class="token operator">==</span><span class="token operator">=</span>
+<span class="token function">Test</span><span class="token punctuation">(</span>Test <span class="token operator">&amp;&amp;</span><span class="token punctuation">)</span> t_move
+<span class="token function">func</span><span class="token punctuation">(</span>Test <span class="token keyword">const</span> <span class="token operator">&amp;</span>t<span class="token punctuation">)</span>
+<span class="token operator">==</span><span class="token operator">=</span>
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t_move
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> null<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="unique-ptr-和-std-move"><a href="#unique-ptr-和-std-move" class="headerlink" title="unique_ptr 和 std::move"></a>unique_ptr 和 std::move</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 这里移动的是智能指针本身，不是指针指向的内容</span>
+<span class="token comment">// 默认unique_ptr不会调用调用test的拷贝和移动构造函数</span>
+std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>Test<span class="token operator">></span> <span class="token function">t</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">Test</span><span class="token punctuation">(</span><span class="token string">"t"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">/*所以move 时，不会调用移动构造函数，这里移动的是，指针
+移动的只是房产证，不是房子
+不能拷贝
+*/</span>
+<span class="token function">func</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>测试结果</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t
+func
+<span class="token operator">~</span><span class="token function">Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span> t<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="生命周期分析练习"><a href="#生命周期分析练习" class="headerlink" title="生命周期分析练习"></a>生命周期分析练习</h2><ol>
+<li></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>string s<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 会将 hello 拷贝一份 --s</span>
+  <span class="token keyword">return</span> s<span class="token punctuation">;</span>  <span class="token comment">// s 出作用域时自动析构,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> ret <span class="token operator">=</span> <span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// segmentation fault 这里 std::string("hello"), 出作用域 时， 会自动析构</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> ret <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ol start="2">
+<li></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 会将 hello 拷贝一份 --s</span>
+  <span class="token keyword">return</span> s<span class="token punctuation">;</span>  <span class="token comment">// s 出作用域时自动析构,</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> ret <span class="token operator">=</span> <span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// release 和 debug</span>
+  <span class="token comment">// 模式下都显示正常，但是存在泄露，但是却显示正常</span>
+  <span class="token comment">// 在返回时，它被以引用的形式返回。这意味着在main函数中，ret变量实际上引用了一个临时std::string对象，该对象是由std::string("hello")复制构造而来。</span>
+  std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> ret <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 这种情况下Debug显示正常，Release出现问题，和下面的情况类似。</span>
+<span class="token keyword">auto</span> ret <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token operator">*</span>ret <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ol start="3">
+<li></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">// 会将 hello 拷贝一份 --s</span>
+  <span class="token keyword">return</span> s<span class="token punctuation">;</span>  <span class="token comment">// s 出作用域时自动析构,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> s <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token string">"test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">auto</span> ret <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 正常的 ret 和 s 是同一个对象</span>
+  <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"%s\n"</span><span class="token punctuation">,</span> ret<span class="token operator">-></span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ol start="4">
+<li>这里 <code>cout</code> 时，会出现 <code>166120 segmentation fault (core dumped)</code>，<br><code>printf</code> 时 会出现乱码 <code>�3�]�</code>。并且 <strong>Release 出现异常 Debug模式正常</strong></li>
+</ol>
+ <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>string <span class="token keyword">const</span> <span class="token operator">*</span>ret<span class="token punctuation">;</span>
+<span class="token punctuation">&#123;</span>
+  <span class="token keyword">auto</span> s <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">string</span><span class="token punctuation">(</span><span class="token string">"test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  ret <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token function">func_test</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// s 出了作用域，析构。但是 ret 持有 s的指针</span>
+  <span class="token comment">//  未定义行为 内存泄漏</span>
+  <span class="token comment">// ，变量未初始化，调试模式未初始化变量为0</span>
+  <span class="token comment">// ，但是发布模式未初始化变量则有可能不是0. msvc</span>
+<span class="token punctuation">&#125;</span>
+std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token operator">*</span>ret <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+<span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"%s\n"</span><span class="token punctuation">,</span> ret<span class="token operator">-></span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Release 出现异常 Debug模式正常</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="lambda-何时使用"><a href="#lambda-何时使用" class="headerlink" title="lambda 何时使用 &amp; &#x3D;"></a>lambda 何时使用 &amp; &#x3D;</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token keyword">void</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">>></span> g_funcs<span class="token punctuation">;</span>
+
+<span class="token keyword">void</span> <span class="token function">fun</span><span class="token punctuation">(</span><span class="token keyword">auto</span> f<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> g_funcs<span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>f<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+<span class="token keyword">void</span> <span class="token function">bao</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">auto</span> <span class="token operator">&amp;</span>f <span class="token operator">:</span> g_funcs<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+   <span class="token function">f</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">void</span> <span class="token function">foo</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">// int i = 1;</span>
+std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span><span class="token keyword">int</span><span class="token operator">></span> <span class="token function">i</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">fun</span><span class="token punctuation">(</span><span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"1_i = %d\n"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">fun</span><span class="token punctuation">(</span><span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"2_i = %d\n"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">// lambda 函数合适传&amp; =</span>
+<span class="token comment">// 这里会出错， 将 i  推到了全局， 其实已经析构</span>
+<span class="token comment">// i 来计数，lambda 和shared_ptr 结合使用</span>
+<span class="token function">foo</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// [&amp;]这里会乱打印i, = 会正常打印,</span>
+<span class="token comment">// 但是计数时，需要引用--》这里采用 lambda 和shared_ptr 结合使用</span>
+<span class="token function">bao</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>代码地址 <a target="_blank" rel="noopener" href="https://github.com/lyt-s/my_stl/tree/master/cpplifetimetest">https://github.com/lyt-s/my_stl/tree/master/cpplifetimetest</a></p>
+</blockquote>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/std-allocator/">std::allocator堆内存管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder-decode-frame/">FFplay源码分析---decoder_decode_frame()</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 15px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/error/" style="font-size: 12.5px;">error</a> <a href="/tags/leetcode/" style="font-size: 17.5px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
