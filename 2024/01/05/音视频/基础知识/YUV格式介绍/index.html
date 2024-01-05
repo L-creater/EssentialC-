@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>YUV格式介绍 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="YUV格式介绍"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/cmake/">cmake</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>YUV格式介绍</h2>
+            <div class="post-meta">
+                <time class="date">2024.01.05</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <!-- # YUV数据格式 -->
+
+<p>YCbCr颜色空间，又常被称作YUV颜色空间，是用于数字电视的颜色空间，在ITU-R BT.601、BT.709、BT.2020标准中被明确定义，这三种标准分别针对标清、高清、超高清数字电视。Y是亮度，Cb（U）、Cr（V）表示色度，描述颜色的色调与饱和度。其中Cr反映RGB中红色部分与Y亮度值之间的差异；Cb则反映蓝色部分与亮度值之间的差异。在广播电视中，使用YCbCr可解决黑白电视和彩色电视之间的信号兼容问题。</p>
+<p>HVS （Human Visual System）人类视觉系统 对 色彩空间的感知能力。</p>
+<p>视觉心理学研究表明，人的视觉系统对光的感知程度可以用两个属性来描述：亮度（luminance）跟 色度（chrominance），这里的色度也叫做 饱和度或彩度，总之 色度的叫法有很多，要注意上下文来区分语义。</p>
+<p>然后 色度感知 包含两个维度：<strong>色调</strong>（Hue）和 <strong>色饱和度</strong>（saturation）。色调是由光波的峰值定义的，描述的是光的颜色。色饱和度是由光波的谱宽定义的，描述的是光的纯度。</p>
+<p>因此 HVS 对色彩的感知主要有 3个属性：<strong>亮度</strong>（luminance），<strong>色调</strong>（Hue）和 <strong>色饱和度</strong>（saturation）。也就是 YUV 色彩空间，Y 代表 亮度，U代表色调，V代表色饱和度。</p>
+<p>经过大量研究实验表明，<strong>视觉系统 对 色度 的敏感度 是远小于 亮度的。所以可以对 色度 采用更小的采样率来压缩数据，对亮度采用正常的采样率即可，这样压缩数据不会对视觉体验产生太大的影响。</strong> 简单来说就是用更少的数据&#x2F;信息来表达 色度（chroma），用更多的数据&#x2F;信息来表达 亮度（luminance）。</p>
+<h2 id="YUV-格式"><a href="#YUV-格式" class="headerlink" title="YUV 格式"></a>YUV 格式</h2><ol>
+<li><p>planner ：平面格式， 先连续存储所有像素点的Y，紧接着存储所有像素点的U，随后是所有像素点的V。<br>注意：这里的连续存储，不是一行像素里面连续存储，是整张图片的连续存储，例如一张图片是 6075kb 大小，那第 1~ 2025kb 都是 Y 的数据， 2026 ~ 4050kb 都是 像素点的 U 数据，以此类推。</p>
+</li>
+<li><p>semi-Planar：半平面的YUV格式，Y分量单独存储，但是UV分量交叉存储。</p>
+</li>
+<li><p>packed ：每个像素点的Y,U,V是连续交错存储的。</p>
+</li>
+</ol>
+<h2 id="YUV-4-4-4-存储格式"><a href="#YUV-4-4-4-存储格式" class="headerlink" title="YUV 4:4:4 存储格式"></a>YUV 4:4:4 存储格式</h2><p>基于YUV 4:4:4采样，每一个Y对应一组UV分量,一个YUV占8+8+8 &#x3D; 24bits 3个字节。</p>
+<p>YUV4:4:4在存储格式上和RGB图像的存储方法一致，Y、U、V三个分量连续存放，如下图所示。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/YUV_444.png" alt="Alt text"></p>
+<h2 id="YUV-4-2-2-存储格式"><a href="#YUV-4-2-2-存储格式" class="headerlink" title="YUV 4:2:2 存储格式"></a>YUV 4:2:2 存储格式</h2><p>基于YUV 4:2:2采样，每两个Y共用一组UV分量,一个YUV占8+4+4 &#x3D; 16bits 2个字节。</p>
+<h3 id="YUYV"><a href="#YUYV" class="headerlink" title="YUYV"></a>YUYV</h3><p>YUYV格式为YUV422采样的存储格式中的一种，遵循YUV422存储格式的基本原则，相邻的两个像素点的Y共用其相邻的两个U、V。对于相邻两个像素点的Y00、Y01而言，其U、V的值均为 U00、V00，其他的像素点的YUV取值依此类推。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/YUYV_422.png" alt="Alt text"></p>
+<h3 id="YVYU"><a href="#YVYU" class="headerlink" title="YVYU"></a>YVYU</h3><p>UYVY格式也是YUV422采样的存储格式中的一种，与YUYV不同的是UV排列顺序不一样，UV共用方法与上述一致。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/YVYU_422.png" alt="Alt text"></p>
+<h3 id="YUV422P"><a href="#YUV422P" class="headerlink" title="YUV422P"></a>YUV422P</h3><p>YUV422P格式也属于YUV422采样的存储格式中的一种，它是一种Plane模式，即平面模式。与上述两种存储方式的区别在于并不是将YUV数据交错存储，而是先存放所有的Y分量，然后再存储所有的U分量，最后存储所有的V分量。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/YUV422P.png" alt="Alt text"></p>
+<h2 id="YUV-4-2-0-存储格式"><a href="#YUV-4-2-0-存储格式" class="headerlink" title="YUV 4:2:0 存储格式"></a>YUV 4:2:0 存储格式</h2><p>每四个Y共用一组UV分量,一个YUV占8+2+2 &#x3D; 12bits 1.5个字节。</p>
+<h3 id="YU12，YV12"><a href="#YU12，YV12" class="headerlink" title="YU12，YV12"></a>YU12，YV12</h3><p>YU12格式和YV12格式均属于YUV420格式，也是一种Plane模式，将Y、U、V分开依次存储。其中每一个像素点的YUV数据遵循YUV420存储格式的基本原则，即4个Y分量共用一组UV。如下图所示。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/YU12_YV12.png" alt="Alt text"></p>
+<h3 id="NV12，NV21"><a href="#NV12，NV21" class="headerlink" title="NV12，NV21"></a>NV12，NV21</h3><p>V12格式和NV21格式也属于YUV420格式，是一种two-plane格式，即Y分量和UV分量各自占一部分， UV分量交错存储。</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/NV12_NV21.png" alt="Alt text"></p>
+<p><strong>重点：YUV420 比 YUV444 少了一半数据，视觉体验几乎没有变化。</strong></p>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/gbRKy2b-ujDRLM63L6ReRA">https://mp.weixin.qq.com/s/gbRKy2b-ujDRLM63L6ReRA</a><br><a target="_blank" rel="noopener" href="https://feater.top/ffmpeg/the-introduction-of-yuv">https://feater.top/ffmpeg/the-introduction-of-yuv</a><br><a target="_blank" rel="noopener" href="https://ffmpeg-vip.xianwaizhiyin.net/base-knowledge/raw-yuv.html">https://ffmpeg-vip.xianwaizhiyin.net/base-knowledge/raw-yuv.html</a><br><a target="_blank" rel="noopener" href="https://github.com/lyt-s/digital_video_introduction/blob/master/README-cn.md">https://github.com/lyt-s/digital_video_introduction/blob/master/README-cn.md</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2024/01/04/cmake/cmake/">cmake</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">音视频基础知识</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/04/cmake/cmake/">cmake</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/my_stl/vector/">自己实现STL之vector</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/18/cpp/c++11/std-allocator/">std::allocator堆内存管理器</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 15px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12.5px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/cmake/" style="font-size: 10px;">cmake</a> <a href="/tags/error/" style="font-size: 12.5px;">error</a> <a href="/tags/leetcode/" style="font-size: 17.5px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 10px;">音视频基础知识</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
