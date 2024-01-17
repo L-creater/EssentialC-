@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>ffmepg常用命令 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="ffmepg常用命令"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/cmake/">cmake</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>ffmepg常用命令</h2>
+            <div class="post-meta">
+                <time class="date">2024.01.17</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="帮助命令的帮助"><a href="#帮助命令的帮助" class="headerlink" title="帮助命令的帮助"></a>帮助命令的帮助</h2><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-h</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">usage<span class="token operator">:</span> ffmpeg <span class="token punctuation">[</span>options<span class="token punctuation">]</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>infile options<span class="token punctuation">]</span> <span class="token operator">-</span>i infile<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">&#123;</span><span class="token punctuation">[</span>outfile options<span class="token punctuation">]</span> outfile<span class="token punctuation">&#125;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+简单来讲就是
+
+ffmpeg <span class="token punctuation">[</span>一些选项<span class="token punctuation">]</span> <span class="token punctuation">[</span><span class="token punctuation">[</span>输入文件的选项<span class="token punctuation">]</span> <span class="token operator">-</span>i 输出文件的路径<span class="token punctuation">]</span> <span class="token punctuation">&#123;</span><span class="token punctuation">[</span>输出文件的选项<span class="token punctuation">]</span> 输出文件路径<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="查看支持的formats-decoders"><a href="#查看支持的formats-decoders" class="headerlink" title="查看支持的formats&#x2F;decoders"></a>查看支持的formats&#x2F;decoders</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//支持的封装格式<span class="token punctuation">(</span>合并<span class="token operator">&amp;&amp;</span>分离<span class="token punctuation">)</span>
+ffmpeg <span class="token parameter variable">-formats</span> 
+//合并
+ffmpeg <span class="token parameter variable">-muxers</span>
+//分离
+ffmpeg <span class="token parameter variable">-demuxers</span>
+
+//支持的过滤器
+ffmpeg <span class="token parameter variable">-filters</span>
+
+//支持的编解码器
+ffmepg <span class="token parameter variable">-codecs</span>
+//支持的解码器
+ffmpeg <span class="token parameter variable">-decoders</span>
+//支持的编码器
+ffmpeg <span class="token parameter variable">-encoders</span>
+
+//支持的硬编解列表
+ffmpeg <span class="token parameter variable">-hwaccels</span>
+
+//位流格式
+ffmpeg <span class="token parameter variable">-bsfs</span>
+
+//像素格式
+ffmpeg <span class="token parameter variable">-pix_fmts</span>
+
+//采样格式
+ffmpeg <span class="token parameter variable">-sample_fmts</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="查看具体支持某一种格式，类似这样"><a href="#查看具体支持某一种格式，类似这样" class="headerlink" title="查看具体支持某一种格式，类似这样"></a>查看具体支持某一种格式，类似这样</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-h</span> <span class="token assign-left variable">muxer</span><span class="token operator">=</span>flv<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>如果不支持 就是unknown了<br><img src="/../../images/FFmpeg/ffmpeg_unknown.png" alt="Alt text"></p>
+<p>其他的还有</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ffmpeg <span class="token parameter variable">-h</span> <span class="token assign-left variable">filter</span><span class="token operator">=</span>atempo
+
+ffmpeg <span class="token parameter variable">-h</span> <span class="token assign-left variable">encoder</span><span class="token operator">=</span>libx264<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="FFPlay"><a href="#FFPlay" class="headerlink" title="FFPlay"></a>FFPlay</h2><h3 id="命令格式"><a href="#命令格式" class="headerlink" title="命令格式"></a>命令格式</h3><p>ffplay 是一个播放器 他的命令格式为： <code>ffplay [options] [input_url]</code></p>
+<h3 id="主要命令"><a href="#主要命令" class="headerlink" title="主要命令"></a>主要命令</h3><h3 id="主要选项有"><a href="#主要选项有" class="headerlink" title="主要选项有"></a>主要选项有</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">选项 说明
+<span class="token parameter variable">-x</span> width 强制显示宽带。
+<span class="token parameter variable">-y</span> height 强制显示高度。
+<span class="token parameter variable">-s</span> size 帧尺寸 设置显示帧存储<span class="token punctuation">(</span>WxH格式<span class="token punctuation">)</span>，仅适用于类似原始YUV等没有包含帧大小<span class="token punctuation">(</span>WxH<span class="token punctuation">)</span>的视频。该参数已经被废弃，请尝试用-video_size代替
+<span class="token parameter variable">-fs</span> 以全屏模式启动。
+<span class="token parameter variable">-an</span> 禁用音频（不播放声音）
+<span class="token parameter variable">-vn</span> 禁用视频（不播放视频）
+<span class="token parameter variable">-sn</span> 禁用字幕（不显示字幕）
+<span class="token parameter variable">-ss</span> pos 根据设置的秒进行定位拖动，注意时间单位：比如<span class="token string">'55'</span> <span class="token number">55</span> seconds, <span class="token string">'12:03:45'</span> ,12 hours, 03 minutes and <span class="token number">45</span> seconds, <span class="token string">'23.189'</span> <span class="token number">23.189</span> second
+<span class="token parameter variable">-t</span> duration 设置播放视频/音频长度，时间单位如 -ss选项
+<span class="token parameter variable">-bytes</span> 按字节进行定位拖动。
+<span class="token parameter variable">-seek_interval</span> interval 自定义左/右键定位拖动间隔（以秒为单位），默认值为10秒
+<span class="token parameter variable">-nodisp</span> 关闭图形化显示窗口，视频将不显示
+<span class="token parameter variable">-noborder</span> 无边框窗口
+<span class="token parameter variable">-volume</span> vol 设置起始音量。音量范围<span class="token punctuation">[</span><span class="token number">0</span> ~100<span class="token punctuation">]</span>
+<span class="token parameter variable">-f</span> <span class="token function">fmt</span> 强制使用设置的格式进行解析。比如-f s16le
+<span class="token parameter variable">-window_title</span> title 设置窗口标题（默认为输入文件名）
+<span class="token parameter variable">-loop</span> number 设置播放循环次数
+<span class="token parameter variable">-showmode</span> mode 设置显示模式，可用的模式值：0 显示视频，1 显示音频波形，2 显示音频频谱。缺省为0，如果视频不存在则自动选择2
+<span class="token parameter variable">-vf</span> filtergraph 设置视频滤镜
+<span class="token parameter variable">-af</span> filtergraph 设置音频滤镜<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="高级命令"><a href="#高级命令" class="headerlink" title="高级命令"></a>高级命令</h3><p><strong>高级选项</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token parameter variable">-pix_fmt</span> <span class="token function">format</span> 格式设置像素格式。此选项已被弃用，有利于私有选项，try <span class="token parameter variable">-pixel_format</span>
+<span class="token parameter variable">-stats</span> 打印多个回放统计信息，包括显示流持续时间，编解码器参数，流中的当前位置，以及音频/视频同步差值。默认情况下处于启用状态，要显式禁用它则需要指定-nostats。
+<span class="token parameter variable">-fast</span> 非标准化规范的多媒体兼容优化
+<span class="token parameter variable">-genpts</span> 生成pts。
+<span class="token parameter variable">-sync</span> <span class="token builtin class-name">type</span> 同步类型 将主时钟设置为audio（type<span class="token operator">=</span>audio），video（type<span class="token operator">=</span>video）或external（type<span class="token operator">=</span>ext），默认是音频为主时钟。
+<span class="token parameter variable">-ast</span> audio_stream_specifier 指定音频流索引，比如-ast <span class="token number">3</span>，播放流索引为3的音频流
+<span class="token parameter variable">-vst</span> video_stream_specifier 指定视频流索引，比如-vst <span class="token number">4</span>，播放流索引为4的视频流
+<span class="token parameter variable">-sst</span> subtitle_stream_specifier 指定字幕流索引，比如-sst <span class="token number">5</span>，播放流索引为5的字幕流
+<span class="token parameter variable">-autoexit</span> 视频播放完毕后退出。
+<span class="token parameter variable">-exitonkeydown</span> 键盘按下任何键退出播放
+<span class="token parameter variable">-exitonmousedown</span> 鼠标按下任何键退出播放
+<span class="token parameter variable">-codec:media_specifier</span> codec_name 强制使用设置的多媒体解码器，media_specifier可用值为a（音频）， v（视频）和s字幕。比如-codec:v h265 强制视频采用h265解码
+<span class="token parameter variable">-acodec</span> codec_name 强制使用设置的音频解码器进行音频解码
+<span class="token parameter variable">-vcodec</span> codec_name 强制使用设置的视频解码器进行视频解码
+<span class="token parameter variable">-scodec</span> codec_name 强制使用设置的字幕解码器进行字幕解码
+<span class="token parameter variable">-autorotate</span> 根据文件元数据自动旋转视频。默认情况下启用，若需禁用则使用-noautorotate
+<span class="token parameter variable">-framedrop</span> 如果视频不同步则丢弃视频帧。当主时钟非视频时钟时默认开启。若需禁用则使用 <span class="token parameter variable">-noframedrop</span>
+<span class="token parameter variable">-infbuf</span> 不限制输入缓冲区大小。尽可能快地从输入中读取尽可能多的数据。播放实时流时默认启用，如果未及时读取数据，则可能会丢弃数据。此选项将不限制缓冲区的大小。若需禁用则使用-noinfbuf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="播放控制"><a href="#播放控制" class="headerlink" title="播放控制"></a>播放控制</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">选项 说明
+q, ESC 退出播放
+f 全屏切换
+p, SPC 暂停
+m 静音切换
+<span class="token number">9</span>, <span class="token number">0</span> <span class="token number">9</span>减少音量，0增加音量
+/, * /减少音量，*增加音量
+a 循环切换音频流
+<span class="token function">v</span> 循环切换视频流
+t 循环切换字幕流
+c 循环切换节目
+w 循环切换过滤器或显示模式
+s 逐帧播放
+left/right 向后/向前拖动10秒
+down/up 向后/向前拖动1分钟
+page down/page up 拖动上一个/下一个。或者如果没有章节向后/向前拖动10分钟。
+鼠标右键单击 拖动与显示宽度对应百分比的文件进行播放
+鼠标左键双击 全屏切换
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="举个🌰？"><a href="#举个🌰？" class="headerlink" title="举个🌰？"></a>举个🌰？</h3><h4 id="播放本地文件"><a href="#播放本地文件" class="headerlink" title="播放本地文件"></a>播放本地文件</h4><p>最直接：<code>ffplay test_video.mp4</code></p>
+<p><code>ffplay -window_title &quot;mirs ffplay&quot; -ss 2 -t 10 -autoexit test.mp4</code></p>
+<h4 id="播放网络流"><a href="#播放网络流" class="headerlink" title="播放网络流"></a>播放网络流</h4><p><code>ffplay rtmp://live.hkstv.hk.lxdns.com/live/hks1</code></p>
+<h4 id="视频旋转播放"><a href="#视频旋转播放" class="headerlink" title="视频旋转播放"></a>视频旋转播放</h4><p><code>ffplay -i test_video.mp4 -vf transpose=1</code></p>
+<h4 id="视频反转播放"><a href="#视频反转播放" class="headerlink" title="视频反转播放"></a>视频反转播放</h4><p>(镜面)<code>ffplay test_video.mp4 -vf hflip</code><br>(上下) <code>ffplay test_video.mp4 -vf vflip</code></p>
+<p>ps：视频旋转和反转可以组合食用 （听说巧克力和牛奶更配哟）</p>
+<h4 id="变速播放"><a href="#变速播放" class="headerlink" title="变速播放"></a>变速播放</h4><ul>
+<li>音频变速视频不变速 （1.5倍食用更佳）<ul>
+<li><code>ffplay -i test_video.mp4 -af atempo=1.5</code></li>
+</ul>
+</li>
+<li>视频变速音频不变速<ul>
+<li><code>ffplay -i test_video.mp4 -vf setpts=PTS/1.5</code></li>
+</ul>
+</li>
+<li>音视频一起变速(3倍！！！)<ul>
+<li><code>ffplay -i test_video.mp4 -vf setpts=PTS/3 -af atempo=3</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="ffmpeg"><a href="#ffmpeg" class="headerlink" title="ffmpeg"></a>ffmpeg</h2><p>终于到ffmepg了，我们首先来吧他常用的参数分个类</p>
+<h3 id="常用参数"><a href="#常用参数" class="headerlink" title="常用参数"></a>常用参数</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">主要参数：
+<span class="token parameter variable">-i</span> 设定输入流
+<span class="token parameter variable">-f</span> 设定输出格式
+<span class="token parameter variable">-ss</span> 开始时间
+<span class="token parameter variable">-t</span>   时间长度
+
+视频参数：
+<span class="token parameter variable">-vframes</span> 设置要输出的视频帧数
+<span class="token parameter variable">-b</span> 设定视频码率，默认为200Kbit/s
+<span class="token parameter variable">-b:v</span> 视频码率
+<span class="token parameter variable">-r</span> 设定帧速率，默认为25
+<span class="token parameter variable">-s</span> 设定画面的宽与高
+<span class="token parameter variable">-aspect</span> 设定画面的比例
+<span class="token parameter variable">-vn</span> 不处理视频
+<span class="token parameter variable">-vcodec</span> 设定视频编解码器，未设定时则使用与输入流相同的编解码器
+<span class="token parameter variable">-vf</span> 视频滤波器
+
+音频参数：
+<span class="token parameter variable">-aframes</span> 设置要输出的音频帧数
+<span class="token parameter variable">-b:a</span> 音频码率
+<span class="token parameter variable">-ar</span> 设定采样率
+<span class="token parameter variable">-ac</span> 设定声音的Channel数
+<span class="token parameter variable">-acodec</span> 设定声音编解码器，未设定时则使用与输入流相同的编解码器
+<span class="token parameter variable">-an</span> 不处理音频
+<span class="token parameter variable">-af</span> 音频滤波器
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="举个🌰？-1"><a href="#举个🌰？-1" class="headerlink" title="举个🌰？"></a>举个🌰？</h3><h4 id="分离视频音频流"><a href="#分离视频音频流" class="headerlink" title="分离视频音频流"></a>分离视频音频流</h4><ul>
+<li><p>分离音频</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -acodec copy -vn audio.aac</code></li>
+<li>然后…</li>
+</ul>
+</li>
+<li><p>分离视频</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -vcodec copy -an video.mp4</code></li>
+</ul>
+</li>
+<li><p>提取H264</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -vcodec copy -an test_copy.264</code></li>
+</ul>
+</li>
+<li><p>提取AAC</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -acodec copy -vn test.aac</code></li>
+</ul>
+</li>
+<li><p>改变编码格式</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -vcodec copy -acodec copy test_copy.ts</code></li>
+</ul>
+</li>
+<li><p>修改帧率</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -r 15 output.mp4</code></li>
+</ul>
+</li>
+<li><p>修改码率</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -b:v 1.5M output2.mp4</code></li>
+</ul>
+</li>
+<li><p>修改音频码率</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -b:a 192k output2.mp4</code></li>
+</ul>
+</li>
+<li><p>修改音视频码率</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -b:v 1.5M -b:a 192k output2.mp4</code></li>
+</ul>
+</li>
+<li><p>修改分辨率</p>
+<ul>
+<li><code>ffmpeg -i test_video.mp4 -s 640x480 output.mp4</code></li>
+</ul>
+</li>
+<li><p>提取PCM</p>
+<ul>
+<li><code>ffmpeg -i test.mp4 -f s16le audio.pcm</code></li>
+</ul>
+</li>
+<li><p>提取YUV</p>
+<ul>
+<li>提取3秒 分辨率和原来的一致</li>
+<li><code>ffmpeg -i test_video.mp4 -t 3 -pix_fmt yuv420p yuv420p_orig.yuv</code></li>
+<li>提取3秒 指定分辨率</li>
+<li><code>ffmpeg -i test_video.mp4 -t 3 -pix_fmt yuv420p -s 320x240 yuv420p_320x240.yuv</code></li>
+</ul>
+</li>
+<li><p>提取RGB</p>
+<ul>
+<li>提取3秒数据，分辨率转为320x240</li>
+<li><code>ffmpeg -i test_video.mp4 -t 3 -pix_fmt rgb24 -s 320x240 rgb24_320x240.rgb</code></li>
+</ul>
+</li>
+<li><p>RGB和YUV转换</p>
+<ul>
+<li><code>ffmpeg -s 968x544 -pix_fmt yuv420p -i yuv420p_orig.yuv -pix_fmt rgb24 orig.rgb</code></li>
+</ul>
+</li>
+</ul>
+<p>原文链接<br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903815918026760">https://juejin.cn/post/6844903815918026760</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/FFmpeg/" rel="tag">FFmpeg</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/17/FFmpeg/ffmepg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">ffmepg常用命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/04/cmake/cmake/">cmake</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/19/my_stl/vector/">自己实现STL之vector</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 14px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 12px;">c++</a> <a href="/tags/c-11/" style="font-size: 14px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/cmake/" style="font-size: 10px;">cmake</a> <a href="/tags/error/" style="font-size: 12px;">error</a> <a href="/tags/leetcode/" style="font-size: 18px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 10px;">音视频基础知识</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
