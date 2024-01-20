@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     
+    <meta charset="UTF-8">
+    <title>音视频编解码技术基础 - 木偶人</title>
+    <link rel="shortcut icon" href="/static/img/icon.png">
+    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+    
+<link rel="stylesheet" href="/static/kico.css">
+<link rel="stylesheet" href="/static/hingle.css">
+
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
+    <meta property="og:site_name" content="木偶人">
+    <meta property="og:title" content="音视频编解码技术基础"/>
+    
+    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+  <body>
+    <header>
+    <div class="head-title">
+        <h4>木偶人</h4>
+    </div>
+    <div class="head-action">
+        <div class="toggle-btn"></div>
+        <div class="light-btn"></div>
+        <div class="search-btn"></div>
+    </div>
+    <form class="head-search" method="post">
+        <input type="text" name="s" placeholder="搜索什么？">
+    </form>
+    <nav class="head-menu">
+        <a href="/">首页</a>
+        <div class="has-child">
+            <a>分类</a>
+            <div class="sub-menu">
+                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/cmake/">cmake</a><a class="category-link" href="/categories/sylar/">sylar</a>
+            </div>
+        </div>
+        
+            <a href="/about">关于我</a>
+        
+            <a href="/friends">朋友们</a>
+        
+    </nav>
+</header>
+
+    <main>
+    <div class="wrap min">
+        <section class="post-title">
+            <h2>音视频编解码技术基础</h2>
+            <div class="post-meta">
+                <time class="date">2024.01.18</time>
+            
+            </div>
+        </section>
+        <article class="post-content">
+        
+            <h2 id="编码格式和封装格式"><a href="#编码格式和封装格式" class="headerlink" title="编码格式和封装格式"></a>编码格式和封装格式</h2><p>音视频封装格式是属于文件格式的二进制存储的。<strong>可以把多个流数据合并到一个文件里面</strong>，这就是封装格式</p>
+<p>因为编码压缩系统输出的是单路流，视频编码系统输出视频流，音频编码系统输出 音频流，<strong>封装格式就是它的作用就是将已经压缩编码的视频数据和音频数据按照一定的格式放到一起</strong>。</p>
+<p>这里将牛奶加工和音频视频的编码格式和封装格式做个对比。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F_%E5%B0%81%E8%A3%85%E6%A0%BC%E5%BC%8F.png" alt="Alt text"></p>
+<p><strong>编码(codec)</strong> 是对原材料的加工，生牛乳不容易运输和传送，体积大质量重，所以加工压缩成奶粉或者奶酪。同样道理，原始的图像和声音是需要占用很大的存储空间和带宽的，不适合运输和传送，所以我们需要对原始图像和声音加工，压缩得更小。而 <strong>编码(codec)</strong> 就是图像和声音的压缩方法。对于视频，主要有 H263、H264、H265、MPEG系列等。</p>
+<p>编码(codec)对应的概念还有<strong>解码</strong>，其实<strong>codec</strong>是编解码（<strong>Coder</strong>）和解码（<strong>Decoder</strong>）的合称。编码后的东西是不容易消费的，所以需要解码。「解码」就是把编码后的东西还原为原来的状态。对奶粉来说，就是加水冲泡为可以喝的牛奶。对于视频来说，就是把压缩的图像和声音还原为正常可以播放的图像和声音。</p>
+<p>而**封装格式(format)**，或者容器(container)，是为了运输和传送的。对奶粉来说，格式就是金属罐、玻璃瓶、塑料袋等不同规格的容器。没有瓶瓶罐罐，奶粉是很难交付给普通消费者的。对视频来说是MP4、AVI、MKV、RMVB等格式。</p>
+<h3 id="常见的视频封装格式"><a href="#常见的视频封装格式" class="headerlink" title="常见的视频封装格式"></a>常见的视频封装格式</h3><ul>
+<li>AVI (.avi)</li>
+<li>ASF（.asf）</li>
+<li>WMV (.wmv)</li>
+<li>QuickTime ( .mov)</li>
+<li>MPEG (.mpg &#x2F; .mpeg)</li>
+<li>MP4 (.mp4)</li>
+<li>m2ts （.m2ts &#x2F; .mts ）</li>
+<li>Matroska （.mkv &#x2F; .mks &#x2F; .mka）</li>
+<li>RM ( .rm &#x2F; .rmvb)</li>
+<li>TS&#x2F;PS</li>
+<li>FLV</li>
+</ul>
+<h3 id="常见的视频编码格式"><a href="#常见的视频编码格式" class="headerlink" title="常见的视频编码格式"></a>常见的视频编码格式</h3><p><strong>视频编码两大标准</strong></p>
+<ul>
+<li>“国际电联（ITU-T）”，它制定的标准有H.261、H.263、H.263+、H.264等，</li>
+<li>“国际标准化组织（ISO）”它制定的标准有MPEG-1、MPEG-2、MPEG-4等。</li>
+</ul>
+<p><strong>常见的视频编码格式</strong></p>
+<ul>
+<li>Xvid(MPEG4)</li>
+<li>H265(High Efficiency Video Coding,简称 HEVC)</li>
+<li>H264</li>
+<li>H263</li>
+<li>MPEG1，MPEG2</li>
+<li>AC-1</li>
+<li>RM，RMVB</li>
+</ul>
+<p>目前最常见的视频编码方式的大致性能排序基本是：</p>
+<p>MPEG-1&#x2F;-2 &lt; WMV&#x2F;7&#x2F;8 &lt; RM&#x2F;RMVB &lt; Xvid&#x2F;Divx &lt; AVC&#x2F;H.264（由低到高，可能不完全准确）。</p>
+<h3 id="常见的音频编码格式"><a href="#常见的音频编码格式" class="headerlink" title="常见的音频编码格式"></a>常见的音频编码格式</h3><ul>
+<li>AAC : Advanced Audio Coding</li>
+<li>AMR</li>
+<li>PCM</li>
+<li>ogg(ogg vorbis音频)</li>
+<li>AC3(DVD 专用音频编码)</li>
+<li>DTS(DVD 专用音频编码)</li>
+<li>APE(monkey’s 音频)</li>
+<li>AU(sun 格式)</li>
+<li>WMA</li>
+<li>MP3</li>
+</ul>
+<p>封装格式就是把视频数据和音频数据打包成一个文件的规范。仅仅靠看文件的后缀，很难能看出具体使用了什么视音频编码标准</p>
+<h2 id="硬解码和软解码"><a href="#硬解码和软解码" class="headerlink" title="硬解码和软解码"></a>硬解码和软解码</h2><ul>
+<li>软解：CPU解码</li>
+<li>硬解：GPU解码</li>
+</ul>
+<h2 id="直播"><a href="#直播" class="headerlink" title="直播"></a>直播</h2><p><strong>时实</strong><br>MP4 格式的box结构要全部视频录完才能生成，而直播是不知道什么时候结束的。而 FLV 是一种渐进式的格式，非常适合用于直播。</p>
+<p>所以不同的封装格式，是解决不同场景的问题。不过封装格式还会解决一些共同的问题，就是音视频同步。封装格式会给每个视频帧跟音频帧打上一个时间戳 PTS。</p>
+<p>播放器单独播放视频流，或者音频流的时候，是不需要这个 PTS 时间戳的，视频流按帧率播放，音频流按采样率播放即可。这个 PTS 可以帮助音视频同步。</p>
+<h2 id="点播"><a href="#点播" class="headerlink" title="点播"></a>点播</h2><p>什么是点播?<br><strong>提前录制好的，可随时观看。</strong><br>就是视频已经录好了，放在服务器，客户端按需拉取一小端内容播放，不需要下载全部的视频内容。点播场景比较适合用 MP4 格式，因为 MP4 格式定义了 stts 索引表以及一些相关的数据结构，可以很快的跳转，例如 跳转 某个时间点播放，MP4 格式会比 FLV 快很多。（补充：FLV 可以额外添加 keyframeindex 加快跳转速度）</p>
+<h2 id="视频帧"><a href="#视频帧" class="headerlink" title="视频帧"></a>视频帧</h2><h3 id="I帧-帧内编码帧"><a href="#I帧-帧内编码帧" class="headerlink" title="I帧:帧内编码帧"></a>I帧:帧内编码帧</h3><p>尽可能去除图像空间冗余信息来压缩传输数据量的帧内编码图像</p>
+<p>I 帧（可参考，关键帧，帧内编码）是一个自足的帧。它不依靠任何东西来渲染，I 帧与静态图片相似。第一帧通常是 I 帧，但我们将看到 I 帧被定期插入其它类型的帧之间。<br><strong>I帧特点:</strong><br>1.它是一个全帧压缩编码帧。它将全帧图像信息进行JPEG压缩编码及传输;<br>2.解码时仅用I帧的数据就可重构完整图像;<br>3.I帧描述了图像背景和运动主体的详情;<br>4.I帧不需要参考其他画面而生成;<br>5.I帧是P帧和B帧的参考帧(其质量直接影响到同组中以后各帧的质量);<br>6.I帧是帧组GOP的基础帧(第一帧),在一组中只有一个I帧;<br>7.I帧不需要考虑运动矢量;<br>8.I帧所占数据的信息量比较大。</p>
+<h3 id="P帧：前向预测编码帧"><a href="#P帧：前向预测编码帧" class="headerlink" title="P帧：前向预测编码帧"></a>P帧：前向预测编码帧</h3><p>通过充分将低于图像序列中前面已编码帧的时间冗余信息来压缩传输数据量的编码图像，也叫预测帧</p>
+<p><strong>P 帧利用了一个事实：当前的画面几乎总能使用之前的一帧进行渲染。</strong> 例如，在第二帧，唯一的改变是球向前移动了。仅仅使用（第二帧）对前一帧的引用和差值，我们就能重建前一帧。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/p%E5%B8%A7.png" alt="Alt text"><br><strong>P帧的预测与重构</strong><br>P帧是以I帧为参考帧,在I帧中找出P帧“某点”的预测值和运动矢量,取预测差值和运动矢量一起传送。在接收端根据运动矢量从I帧中找出P帧“某点”的预测值并与差值相加以得到P帧“某点”样值,从而可得到完整的P帧。</p>
+<p><strong>P帧特点:</strong></p>
+<ol>
+<li>P帧是I帧后面相隔1~2帧的编码帧;</li>
+<li>P帧采用运动补偿的方法传送它与前面的I或P帧的差值及运动矢量(预测误差);</li>
+<li>解码时必须将I帧中的预测值与预测误差求和后才能重构完整的P帧图像;</li>
+<li><strong>P帧属于前向预测的帧间编码。它只参考前面最靠近它的I帧或P帧;</strong></li>
+<li>P帧可以是其后面P帧的参考帧,也可以是其前后的B帧的参考帧;</li>
+<li>由于P帧是参考帧,它可能造成解码错误的扩散;</li>
+<li>由于是差值传送,P帧的压缩比较高。</li>
+</ol>
+<h3 id="B帧：双向预测内插编码帧"><a href="#B帧：双向预测内插编码帧" class="headerlink" title="B帧：双向预测内插编码帧"></a>B帧：双向预测内插编码帧</h3><p>既考虑与源图像序列前面已编码帧，也顾及源图像序列后面已编码帧之间的时间冗余信息来压缩传输数据量的编码图像，也叫双向预测帧<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/B%E5%B8%A7.png" alt="Alt text"></p>
+<p><strong>B帧的预测与重构</strong><br>B帧<strong>以前面的I或P帧和后面的P帧为参考帧</strong>,“找出”B帧“某点”的预测值和两个运动矢量,并取预测差值和运动矢量传送。接收端根据运动矢量在两个参考帧中“找出(算出)”预测值并与差值求和,得到B帧“某点”样值,从而可得到完整的B帧。</p>
+<p><strong>B帧特点</strong></p>
+<ol>
+<li><strong>B帧是由前面的I或P帧和后面的P帧来进行预测的;</strong></li>
+<li>B帧传送的是它与前面的I或P帧和后面的P帧之间的预测误差及运动矢量;</li>
+<li><strong>B帧是双向预测编码帧;</strong></li>
+<li><strong>B帧压缩比最高</strong>,因为它只反映并参考帧间运动主体的变化情况,预测比较准确;</li>
+<li>B帧不是参考帧,不会造成解码错误的扩散。</li>
+</ol>
+<p>注:I、B、P各帧是根据压缩算法的需要,是人为定义的,它们都是实实在在的物理帧,至于图像中的哪一帧是I帧,是随机的,一但确定了I帧,以后的各帧就严格按规定顺序排列。</p>
+<blockquote>
+<p>一般地，I帧压缩效率最低，P帧较高，B帧最高。对于视频压缩推流过程中，首先考虑将B帧取消，然后是P帧。</p>
+</blockquote>
+<p><strong>为什么需要B帧？</strong></p>
+<p> 从上面的看，我们知道I和P的解码算法比较简单，资源占用也比较少，I只要自己完成就行了，P呢，也只需要解码器把前一个画面缓存一下，遇到P时就使用之前缓存的画面就好了，如果视频流只有I和P，解码器可以不管后面的数据，边读边解码，线性前进，大家很舒服。那么为什么还要引入B帧？</p>
+<p>网络上的电影很多都采用了B帧，因为B帧记录的是前后帧的差别，比P帧能节约更多的空间，但这样一来，文件小了，解码器就麻烦了，因为在解码时，不仅要用之前缓存的画面，还要知道下一个I或者P的画面（也就是说要预读预解码），而且，B帧不能简单地丢掉，因为B帧其实也包含了画面信息，如果简单丢掉，并用之前的画面简单重复，就会造成画面卡（其实就是丢帧了），并且由于网络上的电影为了节约空间，往往使用相当多的B帧，B帧用的多，对不支持B帧的播放器就造成更大的困扰，画面也就越卡。</p>
+<h3 id="显示和解码顺序示意图"><a href="#显示和解码顺序示意图" class="headerlink" title="显示和解码顺序示意图"></a>显示和解码顺序示意图</h3><p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/decoding_display.png" alt="Alt text"></p>
+<p>在H264中图像以序列为单位进行组织，一个序列是一段图像编码后的数据流。</p>
+<p>一个序列的第一个图像叫做 IDR 图像（立即刷新图像），IDR 图像都是 I 帧图像。H.264 引入 IDR 图像是为了解码的重同步，当解码器解码到 IDR 图像时，立即将参考帧队列清空，将已解码的数据全部输出或抛弃，重新查找参数集，开始一个新的序列。这样，如果前一个序列出现重大错误，在这里可以获得重新同步的机会。IDR图像之后的图像永远不会使用IDR之前的图像的数据来解码。</p>
+<p>一个序列就是一段内容差异不太大的图像编码后生成的一串数据流。当运动变化比较少时，一个序列可以很长，因为运动变化少就代表图像画面的内容变动很小，所以就可以编一个I帧，然后一直P帧、B帧了。当运动变化多时，可能一个序列就比较短了，比如就包含一个I帧和3、4个P帧。</p>
+<p>在视频编码序列中，GOP即Group of picture（图像组），指两个I帧之间的距离，Reference（参考周期）指两个P帧之间的距离。两个I帧之间形成一组图片，就是GOP（Group Of Picture）。</p>
+<h3 id="I帧和IDR帧区别"><a href="#I帧和IDR帧区别" class="headerlink" title="I帧和IDR帧区别"></a>I帧和IDR帧区别</h3><p>将GOP中首个I帧要和其他I帧区别开，把第一个I帧叫IDR。</p>
+<p><strong>IDR帧的作用是立刻刷新,使错误不致传播,从IDR帧开始算新的序列开始编码。I帧有被跨帧参考的可能,IDR不会。</strong><br><strong>严谨来说，应该是两个IDR帧之间的图像，称作一组gop，应该有些特殊情况，使一组Gop中存在多个I帧</strong></p>
+<p>如下图所示<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/GOP.png" alt="Alt text"></p>
+<ul>
+<li>GOP一般设置为25，50(一般为帧率的倍数)</li>
+<li>如果不是直播流，一般设置2帧连续B帧，以降低码率。</li>
+</ul>
+<h3 id="PTS和DTS"><a href="#PTS和DTS" class="headerlink" title="PTS和DTS"></a>PTS和DTS</h3><p><strong>为什么会有PTS和DTS的概念？</strong></p>
+<p>通过上面的描述可以看出：P帧需要参考前面的I帧或P帧才可以生成一张完整的图片，而B帧则需要参考前面I帧或P帧及其后面的一个P帧才可以生成一张完整的图片。这样就带来了一个问题：在视频流中，<strong>先到来的 B 帧无法立即解码，需要等待它依赖的后面的 I、P 帧先解码完成，这样一来播放时间与解码时间不一致了，顺序打乱了</strong>，那这些帧该如何播放呢？这时就引入了另外两个概念：<strong>DTS 和 PTS</strong>。</p>
+<p><strong>【PTS和DTS】</strong><br>DTS（Decoding Time Stamp）：即解码时间戳，这个时间戳的意义在于告诉播放器该在什么时候解码这一帧的数据。<br>PTS（Presentation Time Stamp）：即显示时间戳，这个时间戳用来告诉播放器该在什么时候显示这一帧的数据。</p>
+<p>在视频采集的时候是录制一帧就编码一帧发送一帧的，在编码的时候会生成 PTS，<strong>这里需要特别注意的是 frame（帧）的编码方式</strong>。<br>在通常的场景中，编解码器编码一个 I 帧，然后向后跳过几个帧，用编码 I 帧作为基准帧对一个未来 P 帧进行编码，然后跳回到 I 帧之后的下一个帧。编码的 I 帧和 P 帧之间的帧被编码为 B 帧。</p>
+<p>之后，编码器会再次跳过几个帧，使用第一个 P 帧作为基准帧编码另外一个 P 帧，然后再次跳回，用 B 帧填充显示序列中的空隙。这个过程不断继续，每 12 到 15 个 P 帧和 B 帧内插入一个新的 I 帧。</p>
+<p>P 帧由前一个 I 帧或 P 帧图像来预测，而 B 帧由前后的两个 P 帧或一个 I 帧和一个 P 帧来预测，因而编解码和帧的显示顺序有所不同，如下所示：</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/decoding_display2.png" alt="Alt text"><br>假设编码器采集到的帧是这个样子的：</p>
+<p> I B B P B B P</p>
+<p>那么它的显示顺序，也就是PTS应该是这样：</p>
+<p> 1 2 3 4 5 6 7</p>
+<p>推流顺序也是按照编码顺序去推的，即</p>
+<p> I P B B P B B</p>
+<p>那么接收到的视频流也就是</p>
+<p> I P B B P B B</p>
+<p>这时候去解码，也是按照收到的视频流一帧一帧去解的了，接收一帧解码一帧，因为在编码的时候已经按照 I、B、P 的依赖关系编好了，接收到数据直接解码就好了。那么解码顺序是：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">     I P B B P B B
+DTS：<span class="token number">1</span> <span class="token number">2</span> <span class="token number">3</span> <span class="token number">4</span> <span class="token number">5</span> <span class="token number">6</span> <span class="token number">7</span>
+PTS：<span class="token number">1</span> <span class="token number">4</span> <span class="token number">2</span> <span class="token number">3</span> <span class="token number">7</span> <span class="token number">5</span> <span class="token number">6</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>可以看到解码出来对应的 PTS 不是顺序的，为了正确显示视频流，这时候我们就必须按照 PTS 重新调整解码后的 frame(帧)，即</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">     I B B P B B P
+DTS：<span class="token number">1</span> <span class="token number">3</span> <span class="token number">4</span> <span class="token number">2</span> <span class="token number">6</span> <span class="token number">7</span> <span class="token number">5</span>
+PTS：<span class="token number">1</span> <span class="token number">2</span> <span class="token number">3</span> <span class="token number">4</span> <span class="token number">5</span> <span class="token number">6</span> <span class="token number">7</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>如下图:</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/assets/decoding_display3.png" alt="Alt text"></p>
+<ul>
+<li>I frame 的解码不依赖于任何的其它的帧.</li>
+<li>p frame 的解码则依赖于其前面的 I frame 或者 P frame.</li>
+<li>B frame 的解码则依赖于其前的最近的一个 I frame 或者 P frame 及其后的最近的一个 P frame.</li>
+</ul>
+<p>另外，并不是一定要使用B帧。在实时互动直播系统中，很少使用B帧。主要的原因是压缩和解码B帧时，由于要双向参考，所以它需要缓冲更多的数据，且使用的CPU也会更高。由于实时性的要求，所以一般不使用它。不过对于播放器来说，遇到带有B帧的H264数据是常有的事儿。<strong>在没有B帧的情况下，存放帧的顺序和显示帧的顺序就是一样的，PTS和DTS的值也是一样的。</strong></p>
+<h3 id="音视频同步"><a href="#音视频同步" class="headerlink" title="音视频同步"></a>音视频同步</h3><p>上面说了视频帧、DTS、PTS 相关的概念。我们都知道在一个媒体流中，除了视频以外，通常还包括音频。音频的播放，也有 DTS、PTS 的概念，但是音频没有类似视频中 B 帧，不需要双向预测，所以<strong>音频帧的 DTS、PTS 顺序是一致的。</strong></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://feater.top/ffmpeg/the-introduction-of-ibp-frame">https://feater.top/ffmpeg/the-introduction-of-ibp-frame</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/137686779">https://zhuanlan.zhihu.com/p/137686779</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yongdaimi/p/10676309.html">https://www.cnblogs.com/yongdaimi/p/10676309.html</a></p>
+
+        </article>
+        <section class="post-near">
+            <ul>
+                
+                    <li>上一篇: 看完啦 (つд⊂)</li>
+                
+                
+                    <li>下一篇: <a href="/2024/01/17/FFmpeg/ffmepg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">ffmepg常用命令</a></li>
+                
+            </ul>
+        </section>
+        
+            <section class="post-tags">
+            <a class="-none-link" href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">音视频基础知识</a>
+            </section>
+        
+    
+        <section class="post-author">
+        
+            <figure class="author-avatar">
+                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
+            </figure>
+        
+            <div class="author-info">
+                <h4>木偶人</h4>
+                <p>...</p>
+            </div>
+        </section>
+    
+    </div>
+</main>
+
+    <footer>
+    <div class="buttons">
+        <a class="to-top" href="#"></a>
+    </div>
+    <div class="wrap min">
+        <section class="widget">
+            <div class="row">
+                <div class="col-m-4">
+                    <h3 class="title-recent">最新文章：</h3>
+                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/18/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E8%A7%A3%E7%A0%81%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/">音视频编解码技术基础</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/17/FFmpeg/ffmepg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">ffmepg常用命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/04/cmake/cmake/">cmake</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-date">时光机：</h3>
+                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
+                </div>
+                <div class="col-m-4">
+                    <h3 class="title-tags">标签云：</h3>
+                    <a href="/tags/FFmpeg/" style="font-size: 16.67px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 13.33px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/cmake/" style="font-size: 10px;">cmake</a> <a href="/tags/error/" style="font-size: 13.33px;">error</a> <a href="/tags/leetcode/" style="font-size: 18.33px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 11.67px;">音视频基础知识</a>
+                </div>
+            </div>
+        </section>
+        <section class="sub-footer">
+            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
+        </section>
+    </div>
+</footer>
+
+
+<script src="/static/kico.js"></script>
+<script src="/static/hingle.js"></script>
+
+
+<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+
+  </body>
+</html>
