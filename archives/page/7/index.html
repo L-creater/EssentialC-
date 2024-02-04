@@ -1,303 +1,1282 @@
 <!DOCTYPE html>
-<html>
-  <head>
-     
-    <meta charset="UTF-8">
-    <title>归档 - 木偶人</title>
-    <link rel="shortcut icon" href="/static/img/icon.png">
-    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        
+        
+    </title>
+
+    <!-- Custom CSS -->
     
-<link rel="stylesheet" href="/static/kico.css">
-<link rel="stylesheet" href="/static/hingle.css">
+<link rel="stylesheet" href="/css/aircloud.css">
 
     
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/gitment.css">
 
-    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
-    <meta property="og:site_name" content="木偶人">
-    <meta property="og:title" content=""/>
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
     
-    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
-    
+
+
+
+
+
+
+
+
+
 <meta name="generator" content="Hexo 6.3.0"></head>
 
-  <body>
-    <header>
-    <div class="head-title">
-        <h4>木偶人</h4>
-    </div>
-    <div class="head-action">
-        <div class="toggle-btn"></div>
-        <div class="light-btn"></div>
-        <div class="search-btn"></div>
-    </div>
-    <form class="head-search" method="post">
-        <input type="text" name="s" placeholder="搜索什么？">
-    </form>
-    <nav class="head-menu">
-        <a href="/">首页</a>
-        <div class="has-child">
-            <a>分类</a>
-            <div class="sub-menu">
-                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/cmake/">cmake</a><a class="category-link" href="/categories/sylar/">sylar</a>
-            </div>
-        </div>
+<body>
+
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
         
-            <a href="/about">关于我</a>
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/" />
+        </div>
+        <div class="name">
+            <i>木偶人</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li  class=active >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
         
-            <a href="/friends">朋友们</a>
+
+
+<!-- 归档列表 -->
+
+<div class="archives-container">
+
+<div class="one-tag-list">
+                <span class="fa fa-calendar-times-o listing-seperator" id="2024">
+                    <span class="tag-text">2024</span>
+                </span>
+    <ul>
         
-    </nav>
-</header>
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>01-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2024/01/18/音视频/基础知识/音视频编解码技术基础/">
+                        <span>
+                            音视频编解码技术基础
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>01-17</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2024/01/17/FFmpeg/ffmepg常用命令/">
+                        <span>
+                            ffmepg常用命令
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>01-05</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2024/01/05/音视频/基础知识/YUV格式介绍/">
+                        <span>
+                            YUV格式介绍
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>01-04</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2024/01/04/cmake/cmake/">
+                        <span>
+                            cmake
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>01-02</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2024/01/02/cpp/practice/对象生命周期/">
+                        <span>
+                            对象生命周期
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
 
-    <main>
-    <div class="wrap min">
-        <section class="home-title">
-            
-            <h1>“归档”</h1>
-        </section>
-        <section class="home-posts">
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/07/sylar/pthread/semaphore/">semaphore</a>
-        </h2>
-    
-        <p>semaphoresem_init信号量的数据类型为结构sem_t，它本质上是一个长整型的数。函数sem_init（）用来初始化一个信号量。它的原型为：　　extern int sem_init...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.07</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/10/02/error/error-no-match-for-%E2%80%98operator-%E2%80%99-operand-types-are-%E2%80%98const-Person%E2%80%99-and-%E2%80%98const-Person%E2%80%99/">error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)</a>
-        </h2>
-    
-        <p>错误报告/usr/include/c++/11/bits/stl_pair.h:467:51: error: no match for ‘operator==’ (operand types a...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.10.02</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-%E2%80%98std-vector-int-%E2%80%99-to-an-rvalue-of-type-%E2%80%98std-vector-int-%E2%80%99/">error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’</a>
-        </h2>
-    
-        <p>意思是无法将一个非 const 左值引用类型的 int&amp;amp; 绑定到一个右值类型的 int 上。
+    </ul>
+</div>
 
-在 C++ 中，左值是指可以取地址的、有标识符的表达式，如变量、数组、函数等；而右值是指不...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.09.29</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/error/" rel="tag">error</a></span>
-            
-        </div>
+<div class="one-tag-list">
+                <span class="fa fa-calendar-times-o listing-seperator" id="2023">
+                    <span class="tag-text">2023</span>
+                </span>
+    <ul>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-22</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/22/cpp/c++11/小小的operator-竟有这么多细节/">
+                        <span>
+                            小小的operator=竟有这么多细节
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-19</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/19/my_stl/vector/">
+                        <span>
+                            自己实现STL之vector
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/18/cpp/c++11/std-allocator/">
+                        <span>
+                            std::allocator堆内存管理器
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-12</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/12/FFmpeg/ffplay源码分析/decoder-decode-frame/">
+                        <span>
+                            FFplay源码分析---decoder_decode_frame()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-12</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/12/FFmpeg/ffplay源码分析/audio-thread/">
+                        <span>
+                            FFplay源码分析---audio_thread()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-11</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/11/FFmpeg/ffplay源码分析/audio-open/">
+                        <span>
+                            FFplay源码分析---audio_open()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-10</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/10/FFmpeg/ffplay源码分析/configure-audio-filters/">
+                        <span>
+                            FFplay源码分析---configure_audio_filters()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-10</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/10/vscode配置/vscode配置/">
+                        <span>
+                            vscode配置
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-10</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/10/FFmpeg/ffplay源码分析/stream-component-open/">
+                        <span>
+                            FFplay源码分析---stream_component_open()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-09</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/09/FFmpeg/ffplay源码分析/read_thread()/">
+                        <span>
+                            FFplay源码分析---read_thread()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-09</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/09/FFmpeg/ffplay源码分析/stream_open()/">
+                        <span>
+                            FFplay源码分析---stream_open()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>12-09</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/12/09/FFmpeg/ffplay源码分析/main/">
+                        <span>
+                            FFplay源码分析---main()
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-30</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/30/leetcode/回溯算法/491-递增子序列/">
+                        <span>
+                            491.递增子序列
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-28</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/28/cpp/practice/c-局部变量初始化，推荐用哪种写法？最不容易错/">
+                        <span>
+                            c++局部变量初始化，推荐用哪种写法？最不容易错？
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-27</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/27/leetcode/回溯算法/47-全排列II/">
+                        <span>
+                            47.全排列II
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-27</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/27/leetcode/回溯算法/46-全排列/">
+                        <span>
+                            46.全排列
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-27</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/27/leetcode/回溯算法/90-子集II/">
+                        <span>
+                            90.子集II
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-27</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/27/leetcode/回溯算法/78-子集/">
+                        <span>
+                            78.子集
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/leetcode/回溯算法/131-分割回文串/">
+                        <span>
+                            131.分割回文串
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/leetcode/回溯算法/40-组合总和II/">
+                        <span>
+                            40.组合总和II
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/leetcode/回溯算法/17-电话号码组合/">
+                        <span>
+                            17.电话号码组合
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/leetcode/回溯算法/39-组合总和/">
+                        <span>
+                            39.组合总和
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg解码/">
+                        <span>
+                            FFmpeg解码
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/25/FFmpeg/FFmpegAPI/FFmpeg编码/">
+                        <span>
+                            FFmpeg编码
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/20/FFmpeg/FFmpegAPI/设置解复用器-demuxer-参数/">
+                        <span>
+                            设置解复用器(demuxer)参数
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/20/FFmpeg/FFmpegAPI/AVpacket数据结构/">
+                        <span>
+                            AVpacket数据结构
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI学习-avformat-open-input/">
+                        <span>
+                            FFmpegAPI学习---avformat_open_input
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI学习-avformat-find-stream-info/">
+                        <span>
+                            FFmpegAPI学习---avformat_find_stream_info
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/20/FFmpeg/FFmpegAPI/FFmpegAPI学习-av-register-all/">
+                        <span>
+                            FFmpegAPI学习---av_register_all
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/18/FFmpeg/FFmpeg/">
+                        <span>
+                            FFmpeg简介
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/18/leetcode/回溯算法/216-组合的总和III/">
+                        <span>
+                            216.组合的总和III
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/18/leetcode/回溯算法/回溯/">
+                        <span>
+                            回溯
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-18</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/18/leetcode/回溯算法/77-组合/">
+                        <span>
+                            77.组合
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-17</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/17/sylar/模块/终章/">
+                        <span>
+                            终章-sylar总结
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-16</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/16/sylar/模块/hook模块/">
+                        <span>
+                            hook模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-12</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/12/sylar/模块/Address模块/">
+                        <span>
+                            Address模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-05</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/05/sylar/模块/配置模块/">
+                        <span>
+                            配置模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-02</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/02/sylar/c++/C-中string-npos/">
+                        <span>
+                            C++中string::npos
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-02</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/02/sylar/模块/IOManager/">
+                        <span>
+                            IO协程调度模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>11-02</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/11/02/sylar/c++/仿函数/">
+                        <span>
+                            仿函数
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-30</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/30/sylar/c++/builtin-expect-说明/">
+                        <span>
+                            __builtin_expect 说明
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-30</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/30/sylar/模块/定时器模块/">
+                        <span>
+                            定时器模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-30</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/30/error/error-pointer-of-type-‘void-’-used-in-arithmetic-Werror-pointer-arith/">
+                        <span>
+                            error: pointer of type ‘void *’ used in arithmetic [-Werror=pointer-arith]
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-26</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/26/sylar/c++/final和override的作用/">
+                        <span>
+                            final和override的作用
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-26</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/26/sylar/c++/可变参数模板消除重复代码/">
+                        <span>
+                            可变参数模板消除重复代码
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-25</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/25/error/error-invalid-new-expression-of-abstract-class-type-‘sylar-IPAddress’/">
+                        <span>
+                            error: invalid new-expression of abstract class type ‘sylar::IPAddress’
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-23</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/23/sylar/c++/位域操作/">
+                        <span>
+                            位域操作
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-23</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/23/sylar/c++/尽量使用make-shared初始化/">
+                        <span>
+                            尽量使用make_shared初始化
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-22</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/22/error/error-template-with-C-linkage/">
+                        <span>
+                            error: template with C linkage
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/20/sylar/c++/关于-C-中的-extern-C/">
+                        <span>
+                            关于 C++ 中的 extern &quot;C&quot;
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-19</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/19/sylar/c++/set自定义比较函数/">
+                        <span>
+                            set自定义比较函数
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-17</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/17/sylar/模块/scheduler/">
+                        <span>
+                            协程调度模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-16</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/16/sylar/模块/协程模块/">
+                        <span>
+                            协程模块
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-14</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/14/sylar/c++/backtrace/">
+                        <span>
+                            backtrace
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-08</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/08/sylar/c++/static/">
+                        <span>
+                            static
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-07</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/07/sylar/pthread/semaphore/">
+                        <span>
+                            semaphore
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>10-02</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/10/02/error/error-no-match-for-‘operator-’-operand-types-are-‘const-Person’-and-‘const-Person’/">
+                        <span>
+                            error: no match for ‘operator==’ (operand types are ‘const Person’ and ‘const Person’)
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>09-29</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/09/29/error/error-cannot-bind-non-const-lvalue-reference-of-type-‘std-vector-int-’-to-an-rvalue-of-type-‘std-vector-int-’/">
+                        <span>
+                            error: cannot bind non-const lvalue reference of type ‘std::vector&lt;int&gt;&amp;’ to an rvalue of type ‘std::vector&lt;int&gt;’
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>09-27</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/09/27/sylar/c++/sstream/">
+                        <span>
+                            sstream
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>09-24</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/09/24/schedule/schedule/">
+                        <span>
+                            schedule
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-20</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/20/cpp/智能指针/">
+                        <span>
+                            智能指针
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-19</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/19/muduo/muduo/">
+                        <span>
+                            muduo
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-12</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/12/cpp/std-static_cast和dynamic_cast/">
+                        <span>
+                            std::dynamic_cast和dynamic_pointer_cast
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-08</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/08/cpp/std-ref和std-cref/">
+                        <span>
+                            std::ref和std::cref
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-08</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/08/cpp/std-move/">
+                        <span>
+                            std::move
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+        <!-- <li class="listing-item">
+        <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+        <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+        </li> -->
+        <li >
+            <span>08-07</span>
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            <a href="/2023/08/07/test/">
+                        <span>
+                            test
+                        </span>
+            </a>
+            <!-- <p class="post-meta">{{ post.date | date:"%Y-%m-%d" }}</p> -->
+        </li>
+        
+
+    </ul>
+</div>
+
+</div>
+
     </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/09/27/sylar/c++/sstream/">sstream</a>
-        </h2>
-    
-        <p>stringstreamstringstream是一个C++底下的类别，专门拿来读取字串并且处理，很多时候拿来做字串的切割，或者是int跟string类别之间的转换。把int型态的数字转成str...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.09.27</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/sylar/" rel="tag">sylar</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/09/24/schedule/schedule/">schedule</a>
-        </h2>
-    
-        <p>总体计划
-todo
+</div>
 
 
-redis
-mysql
-leveldb
-程序员的自我修养
-sylar
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
 
-</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.09.24</time>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/plan/" rel="tag">plan</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/20/cpp/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88/">智能指针</a>
-        </h2>
-    
-        <p>shared_ptr和unique_ptr都支持的操作
-shared_ptr&amp;lt;T&amp;gt; sp; &amp;#x2F;&amp;#x2F;空智能指针，可以指向类型为T的对象
-unique_ptr&amp;lt;T...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.20</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/19/muduo/muduo/">muduo</a>
-        </h2>
-    
-        <p>
-整个建立连接的流程
+        
 
-如何保证一个线程只有一个EventLoop对象
+        
 
+        
 
-__thread变量是每个线程有一份独立实体，各个线程的变量值互不干扰。除了这个主要的用途，他还可以修饰那些”值可能会...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.19</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/muduo/" rel="tag">muduo</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/12/cpp/std-static_cast%E5%92%8Cdynamic_cast/">std::dynamic_cast和dynamic_pointer_cast</a>
-        </h2>
-    
-        <p>static_caststatic_cast&amp;lt;type&amp;gt;(expression)该运算符把 expression 转换为 type 类型，主要用于基本数据类型之间的转换，比如把 ui...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.12</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/08/cpp/std-ref%E5%92%8Cstd-cref/">std::ref和std::cref</a>
-        </h2>
-    
-        <p>std::ref和std::cref解释std::ref 用于包装按引用传递的值。std::cref 用于包装按const引用传递的值。
-为什么需要std::ref和std::cref,bind...</p>
-    
-        <div class="post-meta">
-            <time class="date">2023.08.08</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
-            
-        </div>
-    </div>
-    
-    <div class="post-item">
-        <h2>
-            <a href="/2023/08/08/cpp/std-move/">std::move</a>
-        </h2>
-    
-        <p>
-move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。
+        
 
-
-这里要注意对move语义的误解,move只是转移了资源的控制权...</p>
+    </ul>
     
-        <div class="post-meta">
-            <time class="date">2023.08.08</time>
-            
-                <span class="category"><a class="category-link" href="/categories/c/">c++</a></span>
-            
-            
-                <span class="tags"><a class="-none-link" href="/tags/c-11/" rel="tag">c++11</a></span>
-            
-        </div>
-    </div>
-    
-</section>
-
-        <section class="page-navigator">
-            <a class="extend prev" rel="prev" href="/archives/page/6/">«</a><a class="page-number" href="/archives/">1</a><span class="space">&hellip;</span><a class="page-number" href="/archives/page/5/">5</a><a class="page-number" href="/archives/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/archives/page/8/">8</a><a class="extend next" rel="next" href="/archives/page/8/">»</a>
-        </section>
-    </div>
-</main>
-
-    <footer>
-    <div class="buttons">
-        <a class="to-top" href="#"></a>
-    </div>
-    <div class="wrap min">
-        <section class="widget">
-            <div class="row">
-                <div class="col-m-4">
-                    <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/18/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E8%A7%A3%E7%A0%81%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/">音视频编解码技术基础</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/17/FFmpeg/ffmepg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">ffmepg常用命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/04/cmake/cmake/">cmake</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li></ul>
-                </div>
-                <div class="col-m-4">
-                    <h3 class="title-date">时光机：</h3>
-                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
-                </div>
-                <div class="col-m-4">
-                    <h3 class="title-tags">标签云：</h3>
-                    <a href="/tags/FFmpeg/" style="font-size: 16.67px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 13.33px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/cmake/" style="font-size: 10px;">cmake</a> <a href="/tags/error/" style="font-size: 13.33px;">error</a> <a href="/tags/leetcode/" style="font-size: 18.33px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 11.67px;">音视频基础知识</a>
-                </div>
-            </div>
-        </section>
-        <section class="sub-footer">
-            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
-        </section>
-    </div>
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
 </footer>
 
 
-<script src="/static/kico.js"></script>
-<script src="/static/hingle.js"></script>
 
 
-<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+</body>
 
-  </body>
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = false
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+
 </html>

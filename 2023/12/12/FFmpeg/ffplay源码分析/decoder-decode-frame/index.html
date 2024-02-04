@@ -1,67 +1,167 @@
 <!DOCTYPE html>
-<html>
-  <head>
-     
-    <meta charset="UTF-8">
-    <title>FFplay源码分析---decoder_decode_frame() - 木偶人</title>
-    <link rel="shortcut icon" href="/static/img/icon.png">
-    <link rel="icon" href="/static/img/icon.png" sizes="192x192"/>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        FFplay源码分析---decoder_decode_frame() - undefined
+        
+    </title>
+
+    <!-- Custom CSS -->
     
-<link rel="stylesheet" href="/static/kico.css">
-<link rel="stylesheet" href="/static/hingle.css">
+<link rel="stylesheet" href="/css/aircloud.css">
 
     
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/gitment.css">
 
-    <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1"/>
-    <meta property="og:site_name" content="木偶人">
-    <meta property="og:title" content="FFplay源码分析---decoder_decode_frame()"/>
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
     
-    <style>body:before{ content: ''; background-image: url(https://api.paugram.com/wallpaper?source=gh) }</style>
-    
+
+
+
+
+
+
+
+
+
 <meta name="generator" content="Hexo 6.3.0"></head>
 
-  <body>
-    <header>
-    <div class="head-title">
-        <h4>木偶人</h4>
-    </div>
-    <div class="head-action">
-        <div class="toggle-btn"></div>
-        <div class="light-btn"></div>
-        <div class="search-btn"></div>
-    </div>
-    <form class="head-search" method="post">
-        <input type="text" name="s" placeholder="搜索什么？">
-    </form>
-    <nav class="head-menu">
-        <a href="/">首页</a>
-        <div class="has-child">
-            <a>分类</a>
-            <div class="sub-menu">
-                <a class="category-link" href="/categories/FFmpeg/">FFmpeg</a><a class="category-link" href="/categories/c/">c++</a><a class="category-link" href="/categories/cmake/">cmake</a><a class="category-link" href="/categories/sylar/">sylar</a>
-            </div>
-        </div>
-        
-            <a href="/about">关于我</a>
-        
-            <a href="/friends">朋友们</a>
-        
-    </nav>
-</header>
+<body>
 
-    <main>
-    <div class="wrap min">
-        <section class="post-title">
-            <h2>FFplay源码分析---decoder_decode_frame()</h2>
-            <div class="post-meta">
-                <time class="date">2023.12.12</time>
-            
-            </div>
-        </section>
-        <article class="post-content">
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
         
-            <h2 id="decoder-decode-frame"><a href="#decoder-decode-frame" class="headerlink" title="decoder_decode_frame()"></a>decoder_decode_frame()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder_decode_frame().png" alt="Alt text"><br><code>decoder_decode_frame()</code> 其实是一个通用的解码函数，可以解码 音频，视频，字幕的 AVPacket。不过本文主要侧重于分析音频流的解码，但其他的流也是类似的逻辑。</p>
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/" />
+        </div>
+        <div class="name">
+            <i>木偶人</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+        <div id="toc" class="toc-article">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#decoder-decode-frame"><span class="toc-text">decoder_decode_frame()</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0%E5%88%86%E6%9E%90"><span class="toc-text">函数参数分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-text">流程图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%A6%82%E4%B8%8B"><span class="toc-text">函数如下</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E4%B8%AA-do-while"><span class="toc-text">第一个 do while</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E4%B8%AA-do-while"><span class="toc-text">第二个 do while</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%B7%E6%96%B0%E7%BC%93%E5%AD%98"><span class="toc-text">刷新缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#avcodec-send-packet"><span class="toc-text">avcodec_send_packet()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#avcodec-receive-frame"><span class="toc-text">avcodec_receive_frame()</span></a></li></ol></li></ol>
+</div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
+        
+
+
+<div class="post-container">
+    <div class="post-title">
+        FFplay源码分析---decoder_decode_frame()
+    </div>
+
+    <div class="post-meta">
+        <span class="attr">发布于：<span>2023-12-12 22:44:54</span></span>
+        
+        <span class="attr">标签：/
+        
+        <a class="tag" href="/tags/#FFplay源码分析" title="FFplay源码分析">FFplay源码分析</a>
+        <span>/</span>
+        
+        
+        </span>
+        <span class="attr">访问：<span id="busuanzi_value_page_pv"></span>
+</span>
+</span>
+    </div>
+    <div class="post-content ">
+        <h2 id="decoder-decode-frame"><a href="#decoder-decode-frame" class="headerlink" title="decoder_decode_frame()"></a>decoder_decode_frame()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder_decode_frame().png" alt="Alt text"><br><code>decoder_decode_frame()</code> 其实是一个通用的解码函数，可以解码 音频，视频，字幕的 AVPacket。不过本文主要侧重于分析音频流的解码，但其他的流也是类似的逻辑。</p>
 <h3 id="函数参数分析"><a href="#函数参数分析" class="headerlink" title="函数参数分析"></a>函数参数分析</h3><ol>
 <li><p><code>Decoder *d</code>，这个 <code>Decoder</code> 结构，我把它称为解码管理实例。由于 <code>Decoder</code> 结构里面有解码器实例 跟 <code>PacketQueue</code> 队列，所以只需要传递 <code>Decoder</code> 给<code>decoder_decode_frame()</code> 函数就能进行解码了。如下：</p>
  <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">Decoder</span> <span class="token punctuation">&#123;</span>
@@ -314,71 +414,65 @@
 <li>返回 -1，代表 <code>PacketQueue</code> 队列关闭了<code>(abort_request)</code>。返回 -1 会导致 <code>audio_thread()</code> 函数用 <code>goto the_end</code> 跳出 <code>do&#123;&#125;whlle&#123;&#125;</code> 循环，跳出循环之后，<code>audio_thread</code> 线程就会自己结束了。返回<code>-1</code> 通常是因为关闭了 <code>ffplay</code> 播放器。</li>
 </ul>
 
-        </article>
-        <section class="post-near">
-            <ul>
-                
-                    <li>上一篇: <a href="/2023/12/18/cpp/c++11/std-allocator/">std::allocator堆内存管理器</a></li>
-                
-                
-                    <li>下一篇: <a href="/2023/12/12/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/audio-thread/">FFplay源码分析---audio_thread()</a></li>
-                
-            </ul>
-        </section>
         
-            <section class="post-tags">
-            <a class="-none-link" href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">FFplay源码分析</a>
-            </section>
-        
-    
-        <section class="post-author">
-        
-            <figure class="author-avatar">
-                <img src="https://sdn.geekzu.org/avatar/d22eb460ecab37fcd7205e6a3c55c228?s=200&r=X&d=" alt="木偶人" />
-            </figure>
-        
-            <div class="author-info">
-                <h4>木偶人</h4>
-                <p>...</p>
-            </div>
-        </section>
-    
+        <br />
+        <div id="comment-container">
+        </div>
+        <div id="disqus_thread"></div>
+        <div id="lv-container"></div>
+        <div class="giscus"></div>
     </div>
-</main>
+</div>
 
-    <footer>
-    <div class="buttons">
-        <a class="to-top" href="#"></a>
     </div>
-    <div class="wrap min">
-        <section class="widget">
-            <div class="row">
-                <div class="col-m-4">
-                    <h3 class="title-recent">最新文章：</h3>
-                    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2024/01/18/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E8%A7%A3%E7%A0%81%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/">音视频编解码技术基础</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/17/FFmpeg/ffmepg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">ffmepg常用命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/05/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/YUV%E6%A0%BC%E5%BC%8F%E4%BB%8B%E7%BB%8D/">YUV格式介绍</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/04/cmake/cmake/">cmake</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/01/02/cpp/practice/%E5%AF%B9%E8%B1%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">对象生命周期</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/12/22/cpp/c++11/%E5%B0%8F%E5%B0%8F%E7%9A%84operator-%E7%AB%9F%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E7%BB%86%E8%8A%82/">小小的operator=竟有这么多细节</a></li></ul>
-                </div>
-                <div class="col-m-4">
-                    <h3 class="title-date">时光机：</h3>
-                    <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/01/">January 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/10/">October 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/08/">August 2023</a></li></ul>
-                </div>
-                <div class="col-m-4">
-                    <h3 class="title-tags">标签云：</h3>
-                    <a href="/tags/FFmpeg/" style="font-size: 16.67px;">FFmpeg</a> <a href="/tags/FFplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 15px;">FFplay源码分析</a> <a href="/tags/c/" style="font-size: 13.33px;">c++</a> <a href="/tags/c-11/" style="font-size: 15px;">c++11</a> <a href="/tags/c-17/" style="font-size: 10px;">c++17</a> <a href="/tags/c-20/" style="font-size: 10px;">c++20</a> <a href="/tags/cmake/" style="font-size: 10px;">cmake</a> <a href="/tags/error/" style="font-size: 13.33px;">error</a> <a href="/tags/leetcode/" style="font-size: 18.33px;">leetcode</a> <a href="/tags/muduo/" style="font-size: 10px;">muduo</a> <a href="/tags/my-stl/" style="font-size: 10px;">my_stl</a> <a href="/tags/plan/" style="font-size: 10px;">plan</a> <a href="/tags/sylar/" style="font-size: 20px;">sylar</a> <a href="/tags/vscode/" style="font-size: 10px;">vscode</a> <a href="/tags/%E6%B5%8B%E8%AF%95/" style="font-size: 10px;">测试</a> <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" style="font-size: 11.67px;">音视频基础知识</a>
-                </div>
-            </div>
-        </section>
-        <section class="sub-footer">
-            <p>© 2024 <a href="/">木偶人</a>. All Rights Reserved. Theme By <a href="https://github.com/Dreamer-Paul/Hingle" target="_blank" rel="nofollow">Hingle</a>.</p>
-        </section>
-    </div>
+</div>
+
+
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
+
+        
+
+        
+
+        
+
+        
+
+    </ul>
+    
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
 </footer>
 
 
-<script src="/static/kico.js"></script>
-<script src="/static/hingle.js"></script>
 
 
-<script>var hingle = new Paul_Hingle({"copyright":true,"night":true});</script>
+</body>
 
-  </body>
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = true
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+
 </html>
