@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        vptr和vtbl - undefined
+        
+    </title>
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/aircloud.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
+    
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
+        
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/img/avatar.jpg" />
+        </div>
+        <div class="name">
+            <i>木偶人</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+        <div id="toc" class="toc-article">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8C%87%E9%92%88%E5%92%8C%E8%99%9A%E8%A1%A8"><span class="toc-text">虚指针和虚表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dynamic-Binding"><span class="toc-text">Dynamic Binding</span></a></li></ol>
+</div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
+        
+
+
+<div class="post-container">
+    <div class="post-title">
+        vptr和vtbl
+    </div>
+
+    <div class="post-meta">
+        <span class="attr">发布于：<span>2024-02-19 21:15:05</span></span>
+        
+        <span class="attr">标签：/
+        
+        <a class="tag" href="/tags/#c++11" title="c++11">c++11</a>
+        <span>/</span>
+        
+        
+        </span>
+        <span class="attr">访问：<span id="busuanzi_value_page_pv"></span>
+</span>
+</span>
+    </div>
+    <div class="post-content ">
+        <h2 id="虚指针和虚表"><a href="#虚指针和虚表" class="headerlink" title="虚指针和虚表"></a>虚指针和虚表</h2><p>如下图所示：<br><strong>仔细看图</strong></p>
+<ul>
+<li>A 有A::data1和A::data2</li>
+<li>B 有A::data1、A::data2和B::data3</li>
+<li>C 有A::data1、B::data2、B::data3、C::m_data1、C::m_data4<br><img src="/../../images/image-20230628101200465.png" alt="image-20230628101200465"></li>
+</ul>
+<ol>
+<li>虚指针指向虚表，就算类有10000个虚函数，虚指针只有一个。</li>
+<li>在计算A的大小时，会发现其大小是所有数据加起来后再加上一个指针的大小。</li>
+<li>继承会把数据继承下来，<strong>还会把函数继承下来</strong> —<strong>继承的是调用权不是内存大小</strong></li>
+<li>没有虚函数，不会有虚指针。</li>
+<li>虚指针大小为8。</li>
+<li><strong>多态，虚函数，动态绑定都是一种走的是虚指针虚表</strong></li>
+</ol>
+<p>虚表–指针数组</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//可以把以上三个调用函数的步骤用以下表达式来表示：</span>
+<span class="token operator">*</span><span class="token punctuation">(</span>p<span class="token operator">-></span>vptr<span class="token punctuation">)</span><span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//n 就是表中从上往下数  0 1 2 3  4 的位置</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p><img src="/../../images/image-20230628103905843.png" alt="image-20230628103905843"></p>
+<p>谁是一种谁，谁是子类谁是父类，正方形 和 矩形？？</p>
+<p>为类让容器容纳各种形状，容器指定的时候必须放指针—因为形状大小都不一样(内存占中空间)(<code>vector&lt;*p&gt;</code>)</p>
+<ol>
+<li><p>遍历整个容器，取出每个指针，然后调用画图函数(draw)，<strong>各自写各自draw</strong>，就像相当于上个的<strong>func1</strong></p>
+<ol>
+<li>用c的话，就是if(是不是圆形) 是就调用draw_圆形的函数</li>
+<li>c++。虚函数—指针指向什么类型，就调用对应类型的函数</li>
+<li>c++编译器，看到函数调用，两个考量 – 静态绑定还是动态绑定</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">
+<span class="token keyword">class</span> <span class="token class-name">Base</span> <span class="token punctuation">&#123;</span>
+   <span class="token keyword">public</span><span class="token operator">:</span>
+   <span class="token function">Base</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">x</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+   <span class="token keyword">virtual</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"print my value %d\n"</span><span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+   <span class="token keyword">private</span><span class="token operator">:</span>
+   <span class="token keyword">int</span> x<span class="token punctuation">;</span>
+   <span class="token comment">// int y;</span>
+   <span class="token comment">// double value;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Driver</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword">public</span> <span class="token class-name">Base</span></span> <span class="token punctuation">&#123;</span>
+   <span class="token keyword">public</span><span class="token operator">:</span>
+   <span class="token keyword">virtual</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"print my value %d\n"</span><span class="token punctuation">,</span> xl<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+   <span class="token keyword">private</span><span class="token operator">:</span>
+   std<span class="token double-colon punctuation">::</span>string name<span class="token punctuation">;</span>
+   <span class="token keyword">int</span> xl <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Driver2</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword">public</span> <span class="token class-name">Base</span></span> <span class="token punctuation">&#123;</span>
+   <span class="token keyword">public</span><span class="token operator">:</span>
+   <span class="token keyword">virtual</span> <span class="token keyword">void</span> <span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"print my value %d, name %s \n"</span><span class="token punctuation">,</span> xl<span class="token punctuation">,</span> m_name<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span>
+
+   <span class="token keyword">private</span><span class="token operator">:</span>
+   std<span class="token double-colon punctuation">::</span>string m_name <span class="token operator">=</span> <span class="token string">"asd"</span><span class="token punctuation">;</span>
+   <span class="token keyword">int</span> xl <span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+   Base <span class="token operator">*</span>base2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token function">Driver</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Base <span class="token operator">*</span><span class="token operator">></span> vec<span class="token punctuation">;</span>
+   
+     Base <span class="token operator">*</span>base3 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token function">Driver2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+   vec<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>base2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   vec<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>base3<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token comment">// 此处就是多态机制</span>
+   vec<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token operator">-></span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   vec<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token operator">-></span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token comment">// cout：</span>
+<span class="token comment">// print my value 3</span>
+<span class="token comment">// print my value 4, name asd </span>
+<span class="token comment">//具体调用那个函数--看p指向谁 --这个机制就是多态</span>
+<span class="token comment">//静态绑定一定指向某个地址，动态绑定要看p指向的谁--a b c ？</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+</ol>
+<h2 id="Dynamic-Binding"><a href="#Dynamic-Binding" class="headerlink" title="Dynamic Binding"></a>Dynamic Binding</h2><p>调用动态绑定的三个条件</p>
+<ul>
+<li>通过指针</li>
+<li>向上转型–<code>A *p = new B</code></li>
+<li>调用虚函数</li>
+</ul>
+<p><img src="/../../images/image-20230628115809377.png" alt="image-20230628115809377"></p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">B b<span class="token punctuation">;</span>
+A a <span class="token operator">=</span> <span class="token punctuation">(</span>A<span class="token punctuation">)</span>b<span class="token punctuation">;</span>
+a<span class="token punctuation">.</span><span class="token function">vfunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//静态绑定</span>
+
+A <span class="token operator">*</span>pa <span class="token operator">=</span> <span class="token keyword">new</span> B<span class="token punctuation">;</span>
+pa<span class="token operator">-></span><span class="token function">vfunc1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><img src="/../../images/image-20230628120023488.png" alt="image-20230628120023488"></p>
+<p><strong>call</strong>—调用虚函数</p>
+
+        
+        <br />
+        <div id="comment-container">
+        </div>
+        <div id="disqus_thread"></div>
+        <div id="lv-container"></div>
+        <div class="giscus"></div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
+
+        
+
+        
+
+        
+        <li>
+            <a target="_blank"  href="https://github.com/lyt-s">
+                            <span class="fa-stack fa-lg">
+                                <i class="iconfont icon-github"></i>
+                            </span>
+            </a>
+        </li>
+        
+
+        
+
+    </ul>
+    
+    <p>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+        <span><a href="https://lyt-s.github.io/">木偶人</a></span>
+        <span>/</span>
+        
+        <span><a href="#">It helps SEO</a></span>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+    </p>
+    
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
+</footer>
+
+
+
+
+</body>
+
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = true
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+    <script src="https://giscus.app/client.js"
+    data-repo="aircloud/hexo-aircloud-blog"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkxMjkwNDgyNjg="
+    data-category="Announcements"
+    data-category-id="DIC_kwDOB7EezM4COhKJ"
+    data-mapping="title"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="light"
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async>
+</script>
+
+
+
+
+</html>
