@@ -161,19 +161,21 @@
 </span>
     </div>
     <div class="post-content ">
-        <h2 id="虚指针和虚表"><a href="#虚指针和虚表" class="headerlink" title="虚指针和虚表"></a>虚指针和虚表</h2><p>如下图所示：<br><strong>仔细看图</strong></p>
+        <h2 id="虚指针和虚表"><a href="#虚指针和虚表" class="headerlink" title="虚指针和虚表"></a>虚指针和虚表</h2><p>如下图所示：</p>
+<p><img src="/../../images/vptr_vtbl.png" alt="image-20230628101200465"></p>
+<p><strong>仔细看图</strong></p>
 <ul>
 <li>A 有A::data1和A::data2</li>
 <li>B 有A::data1、A::data2和B::data3</li>
-<li>C 有A::data1、B::data2、B::data3、C::m_data1、C::m_data4<br><img src="/../../images/image-20230628101200465.png" alt="image-20230628101200465"></li>
+<li>C 有A::data1、B::data2、B::data3、C::m_data1、C::m_data4</li>
 </ul>
 <ol>
 <li>虚指针指向虚表，就算类有10000个虚函数，虚指针只有一个。</li>
 <li>在计算A的大小时，会发现其大小是所有数据加起来后再加上一个指针的大小。</li>
-<li>继承会把数据继承下来，<strong>还会把函数继承下来</strong> —<strong>继承的是调用权不是内存大小</strong></li>
+<li>继承会把数据继承下来，<strong>还会把函数继承下来</strong>—<strong>继承的是调用权不是内存大小</strong></li>
 <li>没有虚函数，不会有虚指针。</li>
 <li>虚指针大小为8。</li>
-<li><strong>多态，虚函数，动态绑定都是一种走的是虚指针虚表</strong></li>
+<li><strong>多态、虚函数、动态绑定都是一种，走的是虚指针虚表</strong></li>
 </ol>
 <p>虚表–指针数组</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//可以把以上三个调用函数的步骤用以下表达式来表示：</span>
