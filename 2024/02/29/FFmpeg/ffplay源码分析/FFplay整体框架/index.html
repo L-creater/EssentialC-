@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        FFplay整体框架 - undefined
+        
+    </title>
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/aircloud.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
+    
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
+        
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/img/avatar.jpg" />
+        </div>
+        <div class="name">
+            <i>木偶人</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+        <div id="toc" class="toc-article">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B"><span class="toc-text">主线程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE"><span class="toc-text">视频播放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SDL%E6%B6%88%E6%81%AF%E5%A4%84%E7%90%86"><span class="toc-text">SDL消息处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%A4%8D%E7%94%A8%E7%BA%BF%E7%A8%8B-read-thread"><span class="toc-text">解复用线程(read_thread)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E8%A7%A3%E7%A0%81%E7%BA%BF%E7%A8%8B-video-thread"><span class="toc-text">视频解码线程(video_thread)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9F%B3%E9%A2%91%E8%A7%A3%E7%A0%81%E7%BA%BF%E7%A8%8B-audio-thread"><span class="toc-text">音频解码线程(audio_thread)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%BC%80%E9%9F%B3%E9%A2%91%E8%AE%BE%E5%A4%87"><span class="toc-text">打开音频设备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#audio-thread"><span class="toc-text">audio_thread()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9F%B3%E9%A2%91%E6%92%AD%E6%94%BE%E7%BA%BF%E7%A8%8B"><span class="toc-text">音频播放线程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#sdl-audio-callback"><span class="toc-text">sdl_audio_callback</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90-video-refresh"><span class="toc-text">视频播放线程分析(video_refresh)</span></a></li></ol>
+</div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
+        
+
+
+<div class="post-container">
+    <div class="post-title">
+        FFplay整体框架
+    </div>
+
+    <div class="post-meta">
+        <span class="attr">发布于：<span>2024-02-29 17:54:17</span></span>
+        
+        <span class="attr">标签：/
+        
+        <a class="tag" href="/tags/#FFplay源码分析" title="FFplay源码分析">FFplay源码分析</a>
+        <span>/</span>
+        
+        
+        </span>
+        <span class="attr">访问：<span id="busuanzi_value_page_pv"></span>
+</span>
+</span>
+    </div>
+    <div class="post-content ">
+        <p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ffplay.drawio.png" alt="Alt text"></p>
+<p>FFplay整体流程</p>
+<h2 id="主线程"><a href="#主线程" class="headerlink" title="主线程"></a>主线程</h2><p><strong>主线程主要实现三项功能：视频播放(音视频同步)、字幕播放、SDL消息处理。</strong></p>
+<p>主线程在进行一些必要的初始化工作、创建解复用线程后，即进入event_loop()主循环，处理视频播放和SDL消息事件：</p>
+<h3 id="视频播放"><a href="#视频播放" class="headerlink" title="视频播放"></a>视频播放</h3><p>视频播放在<code>event_loop()</code>函数中的<code>refresh_loop_wait_event()</code>函数</p>
+<h3 id="SDL消息处理"><a href="#SDL消息处理" class="headerlink" title="SDL消息处理"></a>SDL消息处理</h3><p>在event_loop()函数中，处理各种SDL消息，比如暂停、强制刷新等按键事件。</p>
+<h3 id="解复用线程-read-thread"><a href="#解复用线程-read-thread" class="headerlink" title="解复用线程(read_thread)"></a>解复用线程(read_thread)</h3><ul>
+<li><p><strong>解复用线程读取视频文件，将取到的packet根据类型(音频、视频、字幕)存入不同是packet队列中。</strong></p>
+</li>
+<li><p>解复用线程是在<code>main()</code>函数中的<strong>stream_open</strong>函数调用 <code>is-&gt;read_tid     = SDL_CreateThread(read_thread, &quot;read_thread&quot;, is);</code> 来进行创建的。</p>
+</li>
+<li><p>这里read_thread会调用<strong>stream_component_open函数</strong>创建音频、视频、字幕的解码线程。</p>
+</li>
+<li><p>read_thread会调用 <strong>av_read_frame函数</strong>来读取packet,通过<strong>packet_queue_put函数</strong>放到对应的解码队列中。</p>
+</li>
+</ul>
+<p><strong>总结：</strong><br><strong>解复用线程实现如下功能：</strong></p>
+<ol>
+<li>创建音频、视频、字幕解码线程</li>
+<li>从输入文件读取packet，根据packet类型(音频、视频、字幕)将这放入不同packet队列。</li>
+</ol>
+<h2 id="视频解码线程-video-thread"><a href="#视频解码线程-video-thread" class="headerlink" title="视频解码线程(video_thread)"></a>视频解码线程(video_thread)</h2><ol>
+<li><p><strong>视频解码线程从视频packet队列中取数据，解码后存入视频frame队列。</strong></p>
+</li>
+<li><p>video_thread 线程主要是负责 <strong>解码</strong> PacketQueue 队列里面的 AVPacket 的，解码出来 AVFrame，然后<strong>丢给入口滤镜</strong>，再<strong>从出口滤镜把 AVFrame 读出来</strong>，再<strong>插入 FrameQueue 队列</strong></p>
+</li>
+</ol>
+<ul>
+<li>video_thread 调用 <strong>get_video_frame</strong>函数从packet队列中取一个packet解码得到一个frame，并判断是否要根据framedrop机制丢弃失去同步的视频帧。<ul>
+<li><strong>get_video_frame</strong> 实际上就是对 decoder_decode_frame() 函数进行了封装，加入了视频同步逻辑。</li>
+<li><strong>decoder_decode_frame</strong>是一个通用的解码函数，可以解码 音频，视频，字幕的 AVPacket</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>ffplay文档中对”-framedrop”选项的说明:<br>   Drop video frames if video is out of sync.Enabled by default if the master clock is not set to video.<br>   Use this option to enable frame dropping for all master clock sources, use - noframedrop to disable it.<br>“-framedrop”选项用于设置当视频帧失去同步时，是否丢弃视频帧。”-framedrop”选项以bool方式改变变量framedrop值。<br>  音视频同步方式有三种：A同步到视频，B同步到音频，C同步到外部时钟。</p>
+<ol>
+<li><p>当命令行不带”-framedrop”选项或”-noframedrop”时，framedrop值为默认值-1，若同步方式是”同步到视频”则不丢弃失去同步的视频帧，否则将丢弃失去同步的视频帧。</p>
+</li>
+<li><p>当命令行带”-framedrop”选项时，framedrop值为1，无论何种同步方式，均丢弃失去同步的视频帧。</p>
+</li>
+<li><p>当命令行带”-noframedrop”选项时，framedrop值为0，无论何种同步方式，均不丢弃失去同步的视频帧。</p>
+</li>
+</ol>
+</blockquote>
+<h2 id="音频解码线程-audio-thread"><a href="#音频解码线程-audio-thread" class="headerlink" title="音频解码线程(audio_thread)"></a>音频解码线程(audio_thread)</h2><p><strong>audio_thread 线程主要是负责 解码 PacketQueue 队列里面的 AVPacket 的，解码出来 AVFrame，然后丢给入口滤镜，再从出口滤镜把 AVFrame 读出来，再插入 FrameQueue 队列。</strong></p>
+<h3 id="打开音频设备"><a href="#打开音频设备" class="headerlink" title="打开音频设备"></a>打开音频设备</h3><p>音频设备的打开实际是在解复用线程中实现的。解复用线程中先打开音频设备(设定音频回调函数供SDL音频播放线程回调)，然后再创建音频解码线程。调用链如下：</p>
+<blockquote>
+<p>main() –&gt;<br>stream_open() –&gt;<br>read_thread() –&gt;<br>stream_component_open() –&gt;<br>    audio_open(is, channel_layout, nb_channels, sample_rate, &amp;is-&gt;audio_tgt);<br>    decoder_start(&amp;is-&gt;auddec, audio_thread, is);</p>
+</blockquote>
+<h3 id="audio-thread"><a href="#audio-thread" class="headerlink" title="audio_thread()"></a>audio_thread()</h3><p>不断地调 <strong>decoder_decode_frame</strong>() 函数来解码出 AVFrame，然后把 AVFrame 往 <strong>入口滤镜</strong> 丢，再循环调 <strong>av_buffersink_get_frame_flags</strong>()，不断从<strong>出口滤镜</strong>收割经过 Filter 的AVFrame，最后调 <strong>frame_queue_push</strong>() 把 AVFrame 插入 <strong>FrameQueue</strong> 队列。</p>
+<p><strong>但是如果解码出来的 AVFrame 的音频格式与入口滤镜要求的音频格式不一样，会重建滤镜（reconfigure）.</strong></p>
+<h2 id="音频播放线程"><a href="#音频播放线程" class="headerlink" title="音频播放线程"></a>音频播放线程</h2><p>音频播放线程是SDL内建的线程，通过回调的方式调用用户提供的回调函数。<br>回调函数在SDL_OpenAudio()时指定。<br>暂停&#x2F;继续回调过程由SDL_PauseAudio()控制。</p>
+<p>音频播放线程是之前在 <strong>audio_open</strong>() 函数里面创建的，实际上就是<strong>回调函数 （ wanted_spec.callback）</strong>。当用 SDL 打开音频硬件设备的时候，SDL 库就会创建一个线程，来及时执行回调函数 <strong>sdl_audio_callback</strong>()，至于 SDL 线程多久回调一次函数，这个我们不需要太关心，只要调 SDL_OpenAudioDevice() 函数的时候设置好相关参数即可。</p>
+<h3 id="sdl-audio-callback"><a href="#sdl-audio-callback" class="headerlink" title="sdl_audio_callback"></a>sdl_audio_callback</h3><p>sdl_audio_callback() 函数干的事情，就是调 <strong>audio_decode_frame</strong>() 函数，把 is-&gt;audio_buf 指针指向要传输的音频数据。然后再调 SDL_MixAudioFormat() 把音频数据拷贝给 stream 指针指向的内存。这样 <strong>SDL 内部就会读 stream 指针指向的内存来播放。</strong></p>
+<h2 id="视频播放线程分析-video-refresh"><a href="#视频播放线程分析-video-refresh" class="headerlink" title="视频播放线程分析(video_refresh)"></a>视频播放线程分析(video_refresh)</h2><p>视频播放线程就是 main 主线程，对于 FFplay 播放器，就是在 <strong>主线程 里面播放视频流的。</strong></p>
+<p>event_loop() 会不断用 <strong>refresh_loop_wait_event</strong>() 函数检测是否有键盘事件发生，如果有键盘事件发生， <strong>refresh_loop_wait_event</strong>() 就会返回，然后跑到 switch{event.type}{…} 来处理键盘事件。</p>
+<p>如果没有键盘事件发生， refresh_loop_wait_event() 就不会返回，只会不断循环，<strong>不断去播放视频流的画面。</strong></p>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/leisure_chn/p/10301831.html">https://www.cnblogs.com/leisure_chn/p/10301831.html</a></p>
+
+        
+        <br />
+        <div id="comment-container">
+        </div>
+        <div id="disqus_thread"></div>
+        <div id="lv-container"></div>
+        <div class="giscus"></div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
+
+        
+
+        
+
+        
+        <li>
+            <a target="_blank"  href="https://github.com/lyt-s">
+                            <span class="fa-stack fa-lg">
+                                <i class="iconfont icon-github"></i>
+                            </span>
+            </a>
+        </li>
+        
+
+        
+
+    </ul>
+    
+    <p>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+        <span><a href="https://lyt-s.github.io/">木偶人</a></span>
+        <span>/</span>
+        
+        <span><a href="#">It helps SEO</a></span>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+    </p>
+    
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
+</footer>
+
+
+
+
+</body>
+
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = true
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+    <script src="https://giscus.app/client.js"
+    data-repo="aircloud/hexo-aircloud-blog"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkxMjkwNDgyNjg="
+    data-category="Announcements"
+    data-category-id="DIC_kwDOB7EezM4COhKJ"
+    data-mapping="title"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="light"
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async>
+</script>
+
+
+
+
+</html>
