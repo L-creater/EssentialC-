@@ -177,7 +177,7 @@
 <li><p>read_thread会调用 <strong>av_read_frame函数</strong>来读取packet,通过<strong>packet_queue_put函数</strong>放到对应的解码队列中。</p>
 </li>
 </ul>
-<p><strong>总结：</strong><br><strong>解复用线程实现如下功能：</strong></p>
+<p><strong>总结：</strong><br>解复用线程实现如下功能：</p>
 <ol>
 <li>创建音频、视频、字幕解码线程</li>
 <li>从输入文件读取packet，根据packet类型(音频、视频、字幕)将这放入不同packet队列。</li>
