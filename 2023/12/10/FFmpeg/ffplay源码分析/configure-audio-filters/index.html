@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure_audio_filters.png" alt="Alt text"></p>
 <h2 id="configure-audio-filters"><a href="#configure-audio-filters" class="headerlink" title="configure_audio_filters()"></a>configure_audio_filters()</h2><p>音频流的 滤镜是通过 configure_audio_filters() 函数来创建的，因为 ffplay 为了代码的通用性，即便命令行参数不使用滤镜，AVFrame 也会过一遍 空滤镜做下样子。<br>configure_audio_filters() 函数的流程图如下：<br><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/configure_audio_filters%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="Alt text"></p>
 <p>configure_audio_filters() 函数的定义如下：</p>

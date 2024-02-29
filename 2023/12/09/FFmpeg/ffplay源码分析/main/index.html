@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/ffplay_main.png" alt="Alt text"></p>
 <h2 id="非重点函数如下"><a href="#非重点函数如下" class="headerlink" title="非重点函数如下"></a>非重点函数如下</h2><p>1，init_dynload()，设置动态库加载规则，这是一个安全函数，在 Windows 系统，默认会从当前目录加载 DLL，这容易被攻击。这个函数就是把当前目录的路径从加载规则里面去掉，里面调的是 SetDllDirectory(“”)。</p>
 <p>2，show_banner()，打印 ffplay 这个软件的 版权，版本之类的信息。可以删掉他，让控制台更简洁。</p>

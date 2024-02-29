@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <p>从GCC的说明中可知，__builtin_expect的主要作用就是：帮助编译器判断条件跳转的预期值，避免因执行jmp跳转指令造成时间浪费。<br>作用是允许程序员将最有可能执行的分支告诉编译器。这个指令的写法为：__builtin_expect(EXP, N)。<br>意思是：EXP&#x3D;&#x3D;N的概率很大。</p>
 <h2 id="sylar"><a href="#sylar" class="headerlink" title="sylar"></a>sylar</h2><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">defined __GNUC__ <span class="token operator">||</span> defined __llvm__</span></span>
 <span class="token comment">/// LIKCLY 宏的封装, 告诉编译器优化,条件大概率成立</span>

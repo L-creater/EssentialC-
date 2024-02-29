@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <h1 id="IO协程调度模块"><a href="#IO协程调度模块" class="headerlink" title="IO协程调度模块"></a>IO协程调度模块</h1><p>继承自协程调度器，封装了epoll，支持为socket fd注册读写事件回调函数。<br><img src="/../../../images/iomanager.drawio.png" alt="Alt text"></p>
 <p>IO协程调度还解决了调度器在idle状态下忙等待导致CPU占用率高的问题。IO协程调度器使用一对管道fd来tickle调度协程，当调度器空闲时，idle协程通过epoll_wait阻塞在管道的读描述符上，等管道的可读事件。添加新任务时，tickle方法写管道，idle协程检测到管道可读后退出，调度器执行调度。</p>
 <h2 id="IO协程调度概述"><a href="#IO协程调度概述" class="headerlink" title="IO协程调度概述"></a>IO协程调度概述</h2><p>在前面的协程调度模块中，调度器对协程的调度是无条件执行的，在调度器已经启动调度的情况下，任务一旦添加成功，就会排队等待调度器执行。调度器不支持删除调度任务，并且调度器在正常退出之前一定会执行完全部的调度任务，所以在某种程度上可以认为，把一个协程添加到调度器的任务队列，就相当于调用了协程的resume方法。</p>

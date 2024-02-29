@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <p>这里的 <code>m_size</code> 是实际数据占用的大小。<code>m_capacity</code>是目前所能够容纳数据的大小，<code>m_size &lt;= m_capacity</code>。</p>
 <p><code>clear()</code> 清空的是 <code>m_data</code>和<code>m_size</code>,<code>reverse()</code>改变的是 <code>m_capacity</code></p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token class-name">T</span><span class="token punctuation">,</span> <span class="token keyword">class</span> <span class="token class-name">Alloc</span> <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>allocator<span class="token operator">&lt;</span>T<span class="token operator">>></span>

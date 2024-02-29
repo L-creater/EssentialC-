@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <blockquote>
 <p>move实际上不能移动任何东西，它唯一的功能是将一个左值强制转化为一个右指引用。强制转换为右值的目的是为了方便实现移动构造。<br>这里要注意对move语义的<strong>误解</strong>,move只是转移了资源的控制权，本质上是将左值强制转换为右值引用，以用于move语义，避免含有资源的对象发生无所谓的拷贝。<strong>move对于拥有形如对内存、文件句柄等资源的成员的对象有效。如果是一些基本类型，比如int和char[10]数组等，如果使用move仍然会发生拷贝(因为没有对应的移动构造函数)，所以说对含有资源的对象来说更有意义</strong></p>
 </blockquote>

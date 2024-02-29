@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <h1 id="std-ref和std-cref"><a href="#std-ref和std-cref" class="headerlink" title="std::ref和std::cref"></a>std::ref和std::cref</h1><h1 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h1><p>std::ref 用于包装按引用传递的值。<br>std::cref 用于包装按const引用传递的值。</p>
 <p>为什么需要std::ref和std::cref,<br>bind()是一个函数模板，它的原理是根据已有的模板，生成一个函数，但是由于bind()不知道生成的函数执行的时候，传递进来的参数是否还有效。所以它选择参数值传递而不是引用传递。如果想引用传递，std::ref和std::cref就派上用场了。</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;functional></span></span>

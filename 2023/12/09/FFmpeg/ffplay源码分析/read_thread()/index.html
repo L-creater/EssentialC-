@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <h2 id="read-thread"><a href="#read-thread" class="headerlink" title="read_thread()"></a>read_thread()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/read_thread.png" alt="Alt text"><br>read_thread() 线程的主要作用从 MP4 里面读取 AVPacket，然后丢进去 PacketQueue 队列。所以需要先学习一下 strcut PacketQueue 跟 struct MyAVPacketList 数据结构。</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">typedef</span> <span class="token keyword">struct</span> <span class="token class-name">MyAVPacketList</span> <span class="token punctuation">&#123;</span>
     AVPacket <span class="token operator">*</span>pkt<span class="token punctuation">;</span>

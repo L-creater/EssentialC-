@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <h2 id="decoder-decode-frame"><a href="#decoder-decode-frame" class="headerlink" title="decoder_decode_frame()"></a>decoder_decode_frame()</h2><p><img src="/../../../images/FFmpeg/ffplay%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/decoder_decode_frame().png" alt="Alt text"><br><code>decoder_decode_frame()</code> 其实是一个通用的解码函数，可以解码 音频，视频，字幕的 AVPacket。不过本文主要侧重于分析音频流的解码，但其他的流也是类似的逻辑。</p>
 <h3 id="函数参数分析"><a href="#函数参数分析" class="headerlink" title="函数参数分析"></a>函数参数分析</h3><ol>
 <li><p><code>Decoder *d</code>，这个 <code>Decoder</code> 结构，我把它称为解码管理实例。由于 <code>Decoder</code> 结构里面有解码器实例 跟 <code>PacketQueue</code> 队列，所以只需要传递 <code>Decoder</code> 给<code>decoder_decode_frame()</code> 函数就能进行解码了。如下：</p>

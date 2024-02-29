@@ -160,7 +160,7 @@
 </span>
 </span>
     </div>
-    <div class="post-content ">
+    <div class="post-content no-indent">
         <p>使用insert()将元素插入到集合中去的时候，集合会根据设定的比较函数将该元素放到该放的节点上去。在定义集合的时候，如果没有指定比较函数，那么采用默认的比较函数(按键值由小到大的顺序插入元素)。</p>
 <p>自定义数据结构时，在使用 std::set 的过程中， <strong>std::set 会默认调用自定义数据结构的 operator&lt; 操作符函数</strong>来比较两个对象的大小来进行排序（std::set 是有序的关联容器）</p>
 <h2 id="重载"><a href="#重载" class="headerlink" title="重载&lt;操作符"></a>重载&lt;操作符</h2><p><strong>记住一个准则：永远让比较函数对相同元素返回false。</strong><br>set容器在判定已有元素a和新插入元素b是否相等时，是这么做的：1）将a作为左操作数，b作为有操作数，调用比较函数，并返回比较值  2）将b作为左操作数，a作为有操作数，再调用一次比较函数，并返回比较值。如果1、2两步的返回值都是false，则认为a、b是相等的，则b不会被插入set容器中；如果1、2两步的返回值都是true，则可能发生未知行为，因此，记住一个准则：<strong>永远让比较函数对相同元素返回false。</strong></p>
