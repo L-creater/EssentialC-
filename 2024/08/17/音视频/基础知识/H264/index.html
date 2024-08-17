@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        H264 - undefined
+        
+    </title>
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/aircloud.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
+    
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
+        
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/img/avatar.jpg" />
+        </div>
+        <div class="name">
+            <i>Z</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+        <div id="toc" class="toc-article">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#H-264-Annex-B%E6%A0%BC%E5%BC%8F%E5%88%86%E6%9E%90"><span class="toc-text">H.264 Annex B格式分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VCL-Video-Coding-Layer"><span class="toc-text">VCL(Video Coding Layer)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NAL-Network-Abstraction-Layer-%E7%BD%91%E7%BB%9C%E6%8A%BD%E8%B1%A1%E5%B1%82"><span class="toc-text">NAL(Network Abstraction Layer) 网络抽象层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#NAL%E5%8D%95%E5%85%83-NALU"><span class="toc-text">NAL单元 - NALU</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NALU-Header"><span class="toc-text">NALU Header</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E7%9A%84NALU%E7%B1%BB%E5%9E%8B%EF%BC%9ASPS%E5%92%8CPPS"><span class="toc-text">特殊的NALU类型：SPS和PPS</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E7%9A%84NALU%E7%B1%BB%E5%9E%8B%EF%BC%9ASEI"><span class="toc-text">特殊的NALU类型：SEI</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#AU%E5%88%86%E9%9A%94%E7%AC%A6%E5%BC%95%E5%8F%91%E7%9A%84%E6%95%85%E4%BA%8B"><span class="toc-text">AU分隔符引发的故事</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#NALU-Payload"><span class="toc-text">NALU Payload</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#IV-H264%E5%85%B6%E4%BB%96%E6%A6%82%E5%BF%B5"><span class="toc-text">IV. H264其他概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Start-Code"><span class="toc-text">Start Code</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%98%B2%E7%AB%9E%E4%BA%89%E5%AD%97%E8%8A%82%EF%BC%88Emulation-Prevention-Bytes%EF%BC%89"><span class="toc-text">防竞争字节（Emulation Prevention Bytes）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RBSP%E5%92%8CSODB"><span class="toc-text">RBSP和SODB</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9D%A1%E5%B8%A6RBSP%E5%B0%BE%E9%83%A8"><span class="toc-text">条带RBSP尾部</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#H264%E5%8F%A5%E6%B3%95%E5%85%83%E7%B4%A0%E8%A7%A3%E6%9E%90%E6%B5%81%E7%A8%8B"><span class="toc-text">H264句法元素解析流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E5%88%86%E6%A6%82%E5%BF%B5"><span class="toc-text">部分概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-text">熵编码</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%A5%E4%BC%A6%E5%B8%83%E7%BC%96%E7%A0%81"><span class="toc-text">哥伦布编码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link"><span class="toc-text"></span></a></li></ol></li></ol></li></ol>
+</div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
+        
+
+
+<div class="post-container">
+    <div class="post-title">
+        H264
+    </div>
+
+    <div class="post-meta">
+        <span class="attr">发布于：<span>2024-08-17 13:40:26</span></span>
+        
+        <span class="attr">标签：/
+        
+        <a class="tag" href="/tags/#音视频基础知识" title="音视频基础知识">音视频基础知识</a>
+        <span>/</span>
+        
+        
+        </span>
+        <span class="attr">访问：<span id="busuanzi_value_page_pv"></span>
+</span>
+</span>
+    </div>
+    <div class="post-content no-indent">
+        <h2 id="H-264-Annex-B格式分析"><a href="#H-264-Annex-B格式分析" class="headerlink" title="H.264 Annex B格式分析"></a>H.264 Annex B格式分析</h2><p>H264功能划分为2层：</p>
+<ul>
+<li><strong>VCL（Video Coding Layer）</strong>，视频编码层，H264编码&#x2F;压缩的核心，主要负责将视频数据编码&#x2F;压缩，再切分。</li>
+<li><strong>NAL（Network Abstraction Layer）</strong>，网络抽象层，这里的网络指的是计算机网络而不是神经网络，负责将VCL的数据组织打包。</li>
+</ul>
+<h2 id="VCL-Video-Coding-Layer"><a href="#VCL-Video-Coding-Layer" class="headerlink" title="VCL(Video Coding Layer)"></a>VCL(Video Coding Layer)</h2><p>VCL究竟是怎么管理H264视频数据的呢？抛开H264压缩算法细节来看就3步：</p>
+<ol>
+<li>压缩：预测（帧内预测和帧间预测）-&gt; DCT变化和量化 -&gt; 比特流编码；</li>
+<li>切分数据，主要为了第三步。这里一点，网上看到的“<strong>切片（slice）</strong>”、“<strong>宏块（macroblock）</strong>”是在<strong>VCL</strong>中的概念，一方面提高编码效率和降低误码率、另一方面提高网络传输的灵活性。（这块本文将不展开）</li>
+<li>包装成『<strong>NAL</strong>』。</li>
+</ol>
+<p><strong>对的，没有看错，『VCL』最后会被包装成『NAL』！！！</strong></p>
+<h2 id="NAL-Network-Abstraction-Layer-网络抽象层"><a href="#NAL-Network-Abstraction-Layer-网络抽象层" class="headerlink" title="NAL(Network Abstraction Layer) 网络抽象层"></a>NAL(Network Abstraction Layer) 网络抽象层</h2><p>维基百科介绍：<br>NAL旨在提供“网络友好性”，以便为各种系统简单有效地定制VCL的使用。 NAL有助于将VCL数据映射到传输层，例如：<br>· RTP &#x2F; IP适用于任何类型的实时有线和无线互联网服务。<br>· 文件格式，例如用于存储和MMS的ISO MP4。<br>· H.32X用于有线和无线会话服务。<br>· 用于广播服务等的MPEG-2系统。</p>
+<p>直白翻译过来就是：<strong>『NAL』就是为了包装『VCL』以达到更好网络传输效果</strong>。于是问题接着来了，<strong>『NAL』究竟是怎么组织数据，能够做到这么好的网络友好性呢？</strong></p>
+<h3 id="NAL单元-NALU"><a href="#NAL单元-NALU" class="headerlink" title="NAL单元 - NALU"></a>NAL单元 - NALU</h3><p><strong>NALU</strong>由头和身体两个部分组成：</p>
+<ul>
+<li>头：一般存储标志信息，譬如<strong>NALU</strong>的类型。前面讲过NAL会打包VCL数据，但是这<strong>并不意味着所有的NALU负载的都是VCL</strong>，也有<strong>一些NALU仅仅存储了和编解码信息相关的数据</strong>；</li>
+<li>身体：存储了真正的数据。但实际上，这块也会相对比较复杂，其实也提到过H264的一个目的是“<strong>网络友好性</strong>”，说白了就是能够很好地适配各种传输格式。所以根据实际采用数据传输流格式，也会对这部分数据格式再进行处理。【这里先挖一个坑】</li>
+</ul>
+<h4 id="NALU-Header"><a href="#NALU-Header" class="headerlink" title="NALU Header"></a>NALU Header</h4><p>首先，<strong>NALU Header</strong>只占1个字节，即8位，其组成如下：</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token operator">|</span> forbidden_zero_bit <span class="token operator">|</span> nal_ref_idc <span class="token operator">|</span> nal_unit_type <span class="token operator">|</span>
+`<span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span>`
+<span class="token operator">|</span>        <span class="token number">1</span> bit       <span class="token operator">|</span>    <span class="token number">2</span> bit    <span class="token operator">|</span>    <span class="token number">5</span> bit      <span class="token operator">|</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li><p>forbidden_zero_bit：禁止位，笔者在有的地方看到是『forbidden_bit』。在网络传输中发生错误时，会被置为1，告诉接收方丢掉该单元；否则为0。这里有几个疑问：【又挖坑了】</p>
+<ul>
+<li>网络传输发生错误时，由谁来对这个位进行置1处理？</li>
+<li>置1后被对方接收了，由谁来丢弃？（笔者怀疑是解码器）</li>
+</ul>
+</li>
+<li><p>nal_ref_idc：指示当前NALU的优先级，或者说重要性，数值越大表明越重要。(0-3)</p>
+</li>
+<li><p>nal_unit_type，NALU 的类型，NALU 一共有 19 个类型，我挑一些常用的来讲一下，详情见下表</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">nal_unit_type</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td>代表这个 NALU 是非 IDR 图像的数据，通常是 B 帧 或者 P 帧的数据。</td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td>代表这个 NALU 是 IDR 图像的数据。</td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td>代表这个 NALU 是 SEI 的数据。SEI 通常用来存用户自定义的数据，例如你可以把自己名字放到 SEI。</td>
+</tr>
+<tr>
+<td align="left">7</td>
+<td>代表这个 NALU 是 序列参数集（SPS）的数据。</td>
+</tr>
+<tr>
+<td align="left">8</td>
+<td>代表这个 NALU 是 图像参数集（PPS）的数据。</td>
+</tr>
+</tbody></table>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/NALU%E5%86%85%E5%AE%B9.jpg" alt="NALU"></p>
+<ul>
+<li>1-4：I&#x2F;P&#x2F;B帧，合起来介绍的原因是，他们是依据VLC的slice区分的，这块因为本文不涉及，一方面是这个太过于细节，真要展开篇幅太长；另一个原因是就算不了解slice、macroblock也不影响对H264格式的理解。</li>
+<li>5：IDR帧。I帧的一种，告诉解码器，之前依赖的解码参数集合（接下来要出现的SPS\PPS等）可以被刷新了。</li>
+<li>6：SEI，英文全称Supplemental Enhancement Information，翻译为“补充增强信息”，提供了向视频码流中加入额外信息的方法。</li>
+<li>7：SPS，全称Sequence Paramater Set，翻译为“序列参数集”。SPS中保存了一组编码视频序列(Coded Video Sequence)的全局参数。因此该类型保存的是和编码序列相关的参数。</li>
+<li>8: PPS，全称Picture Paramater Set，翻译为“图像参数集”。该类型保存了整体图像相关的参数。</li>
+<li>9：AU分隔符，AU全称Access Unit，它是一个或者多个NALU的集合，代表了一个完整的帧。</li>
+</ul>
+<h5 id="特殊的NALU类型：SPS和PPS"><a href="#特殊的NALU类型：SPS和PPS" class="headerlink" title="特殊的NALU类型：SPS和PPS"></a>特殊的NALU类型：SPS和PPS</h5><p>0x67  SPS，Sequence Paramater Set，保存了一组编码后的图像序列所依赖的全局参数。</p>
+<p>0x68  PPS，Picture Paramater Set，保存了每一帧编码后的图像所依赖的参数。</p>
+<table>
+<thead>
+<tr>
+<th align="left">0x</th>
+<th>0b</th>
+<th>类型</th>
+<th>重要程度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">0x67</td>
+<td>0 11 00111</td>
+<td>SPS</td>
+<td>非常重要</td>
+</tr>
+<tr>
+<td align="left">0x68</td>
+<td>0 11 01000</td>
+<td>PPS</td>
+<td>非常重要</td>
+</tr>
+<tr>
+<td align="left">0x65</td>
+<td>0 11 00101</td>
+<td>IDR帧</td>
+<td>非常重要</td>
+</tr>
+<tr>
+<td align="left">0x61</td>
+<td>0 11 00001</td>
+<td>I帧</td>
+<td>重要</td>
+</tr>
+<tr>
+<td align="left">0x41</td>
+<td>0 10 00001</td>
+<td>P帧</td>
+<td>重要</td>
+</tr>
+<tr>
+<td align="left">0x01</td>
+<td>0 00 00001</td>
+<td>B帧</td>
+<td>不重要</td>
+</tr>
+<tr>
+<td align="left">0x06</td>
+<td>0 00 00110</td>
+<td>SEI</td>
+<td>不重要</td>
+</tr>
+</tbody></table>
+<p>在SPS序列参数集中可以解析出图像的宽，高和帧率等信息。而在h264文件中，最开始的两帧数据就是SPS和PPS，这个h264文件只存在一个SPS帧和一个PPS帧。</p>
+<p>从<a target="_blank" rel="noopener" href="https://www.quora.com/What-are-SPS-and-PPS-in-video-codecs">What are SPS and PPS in video codecs?</a>回答中来说:</p>
+<p><strong>在之前的协议中，发现实际网络传输编码好的数据流的时候会出现丢包，而如果丢包数据为图像头等关键信息的时候甚至会导致后续解码失败。在H264之前，为了应对图像头关键信息被丢失的做法是在很多包（也有说法是每一个包）都会携带图像头关键信息（冗余做灾备的思想）。但是，在H264中，为了提高网络传输鲁棒性，重新设计出SPS和PPS。</strong></p>
+<p><strong>SPS和PPS较之前的做法优越在哪里？</strong> 是因为SPS和PPS存储的仅仅是一个GOP的信息，而之前的头信息存储的是整个视频关键信息嘛？</p>
+<p>在实际生产环境中遇到过用RTSP连接一款摄像头有问题，会提示“no-existing PPS 0 referenced”</p>
+<p>这个<strong>错误在用h264_qsv解码插件的时候出现</strong>，但是切换到用<strong>cpu做解码的时候就正常</strong>了。后来定位到问题出现在视频流本身上：</p>
+<p>对于一些解码器，如h264_qsv，必须要有sps和pps才能解码，这是因为很多<strong>硬解码插件依赖PPS信息</strong>。解决方案是：把摄像头的PPS选项调整到enable就可以了。</p>
+<h5 id="特殊的NALU类型：SEI"><a href="#特殊的NALU类型：SEI" class="headerlink" title="特殊的NALU类型：SEI"></a>特殊的NALU类型：SEI</h5><p>发现了这个有趣的SEI，似乎可以存放用户自定义的数据，<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/33720871">SEI那些事儿</a>。【挖个坑】</p>
+<p><strong>SEI每一帧都可以添加，而且可以添加多个。</strong></p>
+<h5 id="AU分隔符引发的故事"><a href="#AU分隔符引发的故事" class="headerlink" title="AU分隔符引发的故事"></a>AU分隔符引发的故事</h5><p><strong>NALU是H264编码的基本单元，NALU是不是代表了一个完整帧？</strong></p>
+<p>答案是<strong>未知，或者有时候否定的</strong>。解释这个问题前，引入一个新概念『<strong>AU</strong>』：H.264 将构成一帧图像所有<strong>NALU</strong>的集合称为一个『<strong>AU</strong>』，英文全称<strong>Access Unit</strong>。『<strong>AU</strong>』在H264中被提到频率不高，但是这是一个非常重要的概念，特别是在解码中要识别帧边界，这就是『<strong>AU分隔符</strong>』，英文全称<strong>Access unit Delimiter</strong>，然而实际解码器只有在解码的过程中，通过更多语法元素的组合才能判断一帧图像是否结束。</p>
+<h5 id="NALU-Payload"><a href="#NALU-Payload" class="headerlink" title="NALU Payload"></a>NALU Payload</h5><p>很少有资料会称身体部分为Payload，绝大部分资料对NALU组成的定义是这样子的：</p>
+<p>NALU &#x3D; NALU Header + SODB &#x2F;&#x2F; 定义1<br>NALU &#x3D; NALU Header + RBSP &#x2F;&#x2F; 定义2<br>NALU &#x3D; NALU Header + EBSP &#x2F;&#x2F; 定义3<br>SODB，RBSP和EBSP都是什么东西呢？这块概念，在博客<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5f89ea2c3a28">NALU详解二（EBSP、RBSP与SODB）</a>中介绍得非常清楚，</p>
+<p><strong>SODB</strong><br>英文全称<strong>String Of Data Bits</strong>，称<strong>原始数据比特流</strong>，就是最原始的编码&#x2F;压缩得到的数据。</p>
+<p><strong>RBSP</strong><br>全称<strong>Raw Byte Sequence Payload</strong>，又称原始字节序列载荷。和SODB关系如下：</p>
+<p><strong>RBSP &#x3D; SODB + RBSP Trailing Bits（RBSP尾部补齐字节）</strong><br>引入<strong>RBSP Trailing Bits</strong>做8位字节补齐。</p>
+<p><strong>EBSP</strong><br>全称<strong>Encapsulated Byte Sequence Payload</strong>，称为<strong>扩展字节序列载荷</strong>。和RBSP关系如下：</p>
+<blockquote>
+<p>EBSP ：RBSP插入防竞争字节（0x03）</p>
+</blockquote>
+<p>这里说明下<strong>防止竞争字节（0x03）</strong>：因为讲解顺序的问题，H264 Annex-B格式的<strong>StartCode（0x000001或0x00000001）</strong>将在下一章才讲解到。读者可以先认为H264会插入一个叫做StartCode的字节串来分割NALU，于是问题来了，如果<strong>RBSP</strong>种也包括了<strong>StartCode（0x000001或0x00000001）</strong>怎么办呢？所以，就有了<strong>防止竞争字节（0x03）</strong>：</p>
+<blockquote>
+<p>编码时，扫描RBSP，如果遇到连续两个0x00字节，就在后面添加防止竞争字节（0x03）；解码时，同样扫描EBSP，进行逆向操作即可。</p>
+</blockquote>
+<p>最后，以一幅图总结本章节：</p>
+<p><strong>EBSP包含RBSP，RBSP包含SODB。</strong> 其中SODB就是最原始的编码数据。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/NALU%E6%A0%BC%E5%BC%8F.png" alt="NALU格式"></p>
+<h5 id="IV-H264其他概念"><a href="#IV-H264其他概念" class="headerlink" title="IV. H264其他概念"></a>IV. H264其他概念</h5><p>了解了<strong>NALU</strong>之后，关于H264格式，还有一个问题：<strong>解码器怎么知道一个NALU要结束了？或者说它怎么区分NALU的边界？</strong></p>
+<ul>
+<li><p><strong>Annex-B</strong>：本文关于NALU的很多细节介绍都是<strong>Annex-B</strong>，它依靠前文提到的<strong>Start Code</strong>来分隔<strong>NALU</strong>，打包方式如下：<br>[start code]–[NALU]–[start code]–[NALU]…</p>
+</li>
+<li><p><strong>AVCC</strong>：笔者对这个格式了解的不多，从网上找到很多资料知道以下几点：</p>
+</li>
+<li><p>由<strong>NALU</strong>和<strong>extradata&#x2F;sequence header</strong>组成，由于在<strong>extradata&#x2F;sequence header</strong>中存储了NALU的长度，因此<strong>NALU Payload</strong>不需要做字节对齐，不过防竞争字节还是有的；</p>
+</li>
+<li><p><strong>SPS</strong>和<strong>PPS</strong>被放在了<strong>extradata&#x2F;sequence header</strong>。</p>
+</li>
+<li><p>打包方式：<br>[SIZE (4 bytes)]–[NAL]–[SIZE (4 bytes)]–[NAL]… &#x2F;&#x2F;请注意，SIZE一般为4字节，但是具体以实际为准</p>
+</li>
+</ul>
+<h5 id="Start-Code"><a href="#Start-Code" class="headerlink" title="Start Code"></a>Start Code</h5><p><strong>Start Code</strong>是<strong>Annex-B</strong>分隔<strong>NALU</strong>的办法，一般采用0x000001或0x00000001。</p>
+<h3 id="防竞争字节（Emulation-Prevention-Bytes）"><a href="#防竞争字节（Emulation-Prevention-Bytes）" class="headerlink" title="防竞争字节（Emulation Prevention Bytes）"></a>防竞争字节（Emulation Prevention Bytes）</h3><p>EBSP相较于RBSP，多了防止竞争的一个字节：0x03。</p>
+<p>我们知道，NALU的起始码为0x000001或0x00000001，同时H264规定，当检测到0x000000时，也可以表示当前NALU的结束。那这样就会产生一个问题，就是如果在NALU的内部，出现了0x000001或0x000000时该怎么办？</p>
+<p>所以H264就提出了“防止竞争”这样一种机制，当编码器编码完一个NAL时，应该检测NALU内部，是否出现如下左侧的四个序列。当检测到它们存在时，编码器就在最后一个字节前，插入一个新的字节：0x03。</p>
+<p>这样一来，当我们拿到EBSP时，就需要检测EBSP内是否有序列：0x000003，如果有，则去掉其中的0x03。这样一来，我们就能得到原始字节序列载荷：RBSP。</p>
+<h4 id="RBSP和SODB"><a href="#RBSP和SODB" class="headerlink" title="RBSP和SODB"></a>RBSP和SODB</h4><p>得到RBSP之后，我们迫切想做的，就是从RBSP中，提取出原始编码数据SODB（String Of Data Bits）。这就涉及到RBSP与SODB的关系：</p>
+<p>RBSP &#x3D; SODB + RBSP尾部<br>而且RBSP的尾部，在规定中有两种，我们分别介绍。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/RBSP.png" alt="alt text"></p>
+<p>其中：</p>
+<p>rbsp_stop_one_bit 占1个比特位，值为1</p>
+<p>rbsp_alignment_zero_bit 值为0，目的是为了进行字节对齐，占据若干比特位</p>
+<p>所以RBSP就等于，SODB在它的最后一个字节的最后一个比特后，紧跟值为1的1个比特，然后增加若干比特的0，以补齐这个字节。</p>
+<h4 id="条带RBSP尾部"><a href="#条带RBSP尾部" class="headerlink" title="条带RBSP尾部"></a>条带RBSP尾部</h4><p>另一种尾部，就是当NALU类型为条带时，也即nal_unit_type等于1~5时，这时RBSP使用下面这种尾部：</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/%E6%9D%A1%E5%B8%A6RBSP%E5%B0%BE%E9%83%A8.png" alt="alt text"></p>
+<p>可以看到，rbsp_slice_trailing_bits()默认情况下，就是2.1介绍的第一种尾部。只是当entropy_coding_mode_flag值为1，也即当前采用的熵编码为CABAC，而且more_rbsp_trailing_data()返回为true，也即RBSP中有更多数据时，添加一个或多个0x0000。</p>
+<p>所以我们拿到RBSP，只需要按照上述语法，去掉RBSP的尾部，就可以得到SODB。然后就可以对照对应类型的NALU的句法，解析出语法元素的值。</p>
+<p>可以看到，rbsp_slice_trailing_bits()默认情况下，就是2.1介绍的第一种尾部。只是当entropy_coding_mode_flag值为1，也即当前采用的熵编码为CABAC，而且more_rbsp_trailing_data()返回为true，也即RBSP中有更多数据时，添加一个或多个0x0000。</p>
+<p>所以我们拿到RBSP，只需要按照上述语法，去掉RBSP的尾部，就可以得到SODB。然后就可以对照对应类型的NALU的句法，解析出语法元素的值。</p>
+<p>总结上篇和这篇，H264的码流结构如下：<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/H264%E7%A0%81%E6%B5%81%E7%BB%93%E6%9E%84.png" alt="h264"></p>
+<h4 id="H264句法元素解析流程"><a href="#H264句法元素解析流程" class="headerlink" title="H264句法元素解析流程"></a>H264句法元素解析流程</h4><p>而当我们拿到RBSP或SODB之后，就可以对照各类型的NALU，去解析它们的语法元素，进而再根据语法元素，重建图像。其中解析语法元素的框图如下：</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/H264%E5%8F%A5%E6%B3%95%E5%85%83%E7%B4%A0%E8%A7%A3%E6%9E%90%E6%B5%81%E7%A8%8B.png" alt="h264"></p>
+<p>由图可见，解析NALU的各个句法元素并不难，只要根据h264文档对应章节的句法，并配合相应的编解码算法解析即可。而相应的编解码算法如指数哥伦布编码、CAVLC、CABAC、算术编码，我们会一步步涉猎。</p>
+<p>参考：<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/71928833">https://zhuanlan.zhihu.com/p/71928833</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5f89ea2c3a28">https://www.jianshu.com/p/5f89ea2c3a28</a></p>
+<hr>
+<h2 id="部分概念"><a href="#部分概念" class="headerlink" title="部分概念"></a>部分概念</h2><h3 id="熵编码"><a href="#熵编码" class="headerlink" title="熵编码"></a>熵编码</h3><p>熵（shang）编码属于无损编码，它听着很高大上，其实简单来说，就是代表了一类编码方法。熵编码包括的编码方法有：香农-范诺编码、霍夫曼编码、算术编码、指数哥伦布编码、CAVLC、CABAC等，这一类编码方法的宗旨，就是找到一种编码，使得码字的平均码长达到熵极限。</p>
+<p>具体实施起来就是，<strong>对出现概率较大的符号，取较短的码长，而对出现概率较小的符号取较大的码长</strong>。这就是熵编码的中心思想，只要我们记住这一点，即使不了解“熵”是指啥，也能掌握上述几种熵编码。</p>
+<h4 id="哥伦布编码"><a href="#哥伦布编码" class="headerlink" title="哥伦布编码"></a>哥伦布编码</h4><p>编码实现<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/%E5%93%A5%E4%BC%A6%E5%B8%83%E7%BC%96%E7%A0%81%E6%B5%81%E7%A8%8B.png" alt="alt text"></p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/h264bianma.png" alt="alt text"><br>图中应该写的很清楚，我们以待编码码号code_num &#x3D; 3为例：</p>
+<p>第一步：将code_num +1, 即3+1 &#x3D; 4</p>
+<p>第二步：将4写为二进制的形式：100</p>
+<p>第三步：计算100的比特个数为3，在100前面写（3-1）个0，得到编码码字：00100<br>解码实现</p>
+<ul>
+<li><p>ue(v)</p>
+<ul>
+<li>codeNum &#x3D; 2^leadingzerobits − 1 + read_bits( leadingZeroBits )</li>
+<li><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/ue(v).png" alt="alt text"></li>
+</ul>
+</li>
+<li><p>se(v)</p>
+<ul>
+<li><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/se(v).png" alt="alt text"></li>
+<li>式中Ceil为向上取整，k为codeNum的值，代入即可计算出语法元素的值。</li>
+</ul>
+</li>
+<li><p>me(v)</p>
+<ul>
+<li>查表</li>
+</ul>
+</li>
+<li><p>te(v)。</p>
+<ul>
+<li><p>编码时：</p>
+</li>
+<li><p>如果语法元素的值为0，则编码为1，如果语法元素值为1，则编码为0，此时占用1个比特位。</p>
+</li>
+<li><p>如果语法元素的值大于1，则使用ue(v)进行编码。</p>
+</li>
+<li><p>te(v)解码过程</p>
+</li>
+<li><p>解码时，需要先判断语法元素值的取值范围的上限，其中取值范围为[0，x]。</p>
+</li>
+<li><p>如果上限值x大于1，那么te(v)的输出，也即语法元素的值，和ue(v)的输出相同。</p>
+</li>
+<li><p>否则上限值x等于1，那么te(v)的输出，也即语法元素的值，等于读入下一位比特值的取反，也即：</p>
+</li>
+<li><p>b &#x3D; read_bits( 1 )</p>
+</li>
+<li><p>codeNum &#x3D; !b</p>
+</li>
+<li><p>其中codeNum为te(v)输出值，也即语法元素值。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/06e7c742de44">https://www.jianshu.com/p/06e7c742de44</a></p>
+<h4 id=""><a href="#" class="headerlink" title=""></a></h4>
+        
+        <br />
+        <div id="comment-container">
+        </div>
+        <div id="disqus_thread"></div>
+        <div id="lv-container"></div>
+        <div class="giscus"></div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
+
+        
+
+        
+
+        
+        <li>
+            <a target="_blank"  href="https://github.com/lyt-s">
+                            <span class="fa-stack fa-lg">
+                                <i class="iconfont icon-github"></i>
+                            </span>
+            </a>
+        </li>
+        
+
+        
+
+    </ul>
+    
+    <p>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+        <span><a href="https://lyt-s.github.io/">Z</a></span>
+        <span>/</span>
+        
+        <span><a href="#">It helps SEO</a></span>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+    </p>
+    
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
+</footer>
+
+
+
+
+</body>
+
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = true
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+    <script src="https://giscus.app/client.js"
+    data-repo="aircloud/hexo-aircloud-blog"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkxMjkwNDgyNjg="
+    data-category="Announcements"
+    data-category-id="DIC_kwDOB7EezM4COhKJ"
+    data-mapping="title"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="light"
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async>
+</script>
+
+
+
+
+</html>
