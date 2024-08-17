@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang=zh-CN>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+    <meta name="description" content="">
+    <meta name="keyword"  content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+        mp4封装格式 - undefined
+        
+    </title>
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/aircloud.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <!--<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">-->
+    <link href="//at.alicdn.com/t/font_620856_28hi1hpxx24.css" rel="stylesheet" type="text/css">
+    <!-- ga & ba script hoook -->
+    <script></script>
+
+    
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+
+<div class="site-nav-toggle" id="site-nav-toggle">
+    <button>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+        <span class="btn-bar"></span>
+    </button>
+</div>
+
+<div class="index-about">
+    <i>  </i>
+</div>
+
+<div class="index-container">
+    
+    <div class="index-left">
+        
+<div class="nav" id="nav">
+    <div class="avatar-name">
+        <div class="avatar ">
+            <img src="/img/avatar.jpg" />
+        </div>
+        <div class="name">
+            <i>Z</i>
+        </div>
+    </div>
+    <div class="contents" id="nav-content">
+        <ul>
+            <li >
+                <a href="/">
+                    <i class="iconfont icon-shouye1"></i>
+                    <span>主页</span>
+                </a>
+            </li>
+            <li >
+                <a href="/tags">
+                    <i class="iconfont icon-biaoqian1"></i>
+                    <span>标签</span>
+                </a>
+            </li>
+            <li >
+                <a href="/archives">
+                    <i class="iconfont icon-guidang2"></i>
+                    <span>存档</span>
+                </a>
+            </li>
+            <li >
+                <a href="/collect/">
+                    <i class="iconfont icon-shoucang1"></i>
+                    <span>收藏</span>
+                </a>
+            </li>
+            <li >
+                <a href="/about/">
+                    <i class="iconfont icon-guanyu2"></i>
+                    <span>关于</span>
+                </a>
+            </li>
+            
+            <li>
+                <a id="search">
+                    <i class="iconfont icon-sousuo1"></i>
+                    <span>搜索</span>
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+    
+        <div id="toc" class="toc-article">
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%81%E8%A3%85%E6%A0%BC%E5%BC%8F%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5"><span class="toc-text">封装格式重要概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90mp4"><span class="toc-text">分析mp4</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#moov%E5%88%86%E6%9E%90"><span class="toc-text">moov分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Movie-Header-Box%EF%BC%88mvhd%EF%BC%89"><span class="toc-text">Movie Header Box（mvhd）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Track-Box%EF%BC%88trak%EF%BC%89"><span class="toc-text">Track Box（trak）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Sample-Table-Box%EF%BC%88stbl%EF%BC%89"><span class="toc-text">Sample Table Box（stbl）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#stsd-%E5%85%A8%E7%A7%B0-Sample-Description-Box"><span class="toc-text">stsd(全称 Sample Description Box)</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Decoding-Time-to-Sample-Box%EF%BC%88stts%EF%BC%89"><span class="toc-text">Decoding Time to Sample Box（stts）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#sync-sample-box-stss"><span class="toc-text">sync sample box(stss)</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#composition-time-to-sample-box%EF%BC%88ctts%EF%BC%89"><span class="toc-text">composition time to sample box（ctts）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Sample-Size-Box%EF%BC%88stsz-stz2%EF%BC%89"><span class="toc-text">Sample Size Box（stsz&#x2F;stz2）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Sample-To-Chunk-Box%EF%BC%88stsc%EF%BC%89"><span class="toc-text">Sample To Chunk Box（stsc）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Chunk-Offset-Box%EF%BC%88stco-co64%EF%BC%89"><span class="toc-text">Chunk Offset Box（stco&#x2F;co64）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#File-Type-Box-ftyp"><span class="toc-text">File Type Box(ftyp)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol>
+</div>
+    
+</div>
+
+
+<div class="search-field" id="search-field">
+    <div class="search-bg" id="search-bg"></div>
+    <div class="search-container">
+        <div class="search-input">
+            <span id="esc-search"> <i class="icon-fanhui iconfont"></i></span>
+            <input id="search-input"/>
+            <span id="begin-search">搜索</span>
+        </div>
+        <div class="search-result-container" id="search-result-container">
+
+        </div>
+    </div>
+</div>
+
+        <div class="index-about-mobile">
+            <i>  </i>
+        </div>
+    </div>
+    
+    <div class="index-middle">
+        <!-- Main Content -->
+        
+
+
+<div class="post-container">
+    <div class="post-title">
+        mp4封装格式
+    </div>
+
+    <div class="post-meta">
+        <span class="attr">发布于：<span>2024-08-17 13:31:40</span></span>
+        
+        <span class="attr">标签：/
+        
+        <a class="tag" href="/tags/#音视频基础知识" title="音视频基础知识">音视频基础知识</a>
+        <span>/</span>
+        
+        
+        </span>
+        <span class="attr">访问：<span id="busuanzi_value_page_pv"></span>
+</span>
+</span>
+    </div>
+    <div class="post-content no-indent">
+        <h2 id="封装格式重要概念"><a href="#封装格式重要概念" class="headerlink" title="封装格式重要概念"></a>封装格式重要概念</h2><p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/mp4.png" alt="mp4"></p>
+<ul>
+<li>box分为两种，Box和Fullbox。MP4 文件由许多个Box与 FullBox组成</li>
+<li>每个Box 由 Header 和 Data两部分组成</li>
+<li>FullBox 是 Box 的扩展，其在 Box结构的基础上，在Header 中增加 8位version标<br>志和24位的flags 标志</li>
+<li>Header 包含了整个 Box 的长度的大小（ size）和类型（type），当 size等于0 时，代表这个Box是文件的最后一个Box。 当 size等于 1 时，说明Box长度需要更多的位来描述，在后面会定义一个64位的largesize用来描述Box 的长度。 当 Type为uuid 时，说明这个Box 中的数据是用户自定义扩展类型</li>
+<li>Data 为 Box 的实际数据，可以是纯数据，也可以是更多的子Box</li>
+<li>当一个Box 中Data是一系列的子Box时，这个Box又可以称为Container （容器）Box</li>
+</ul>
+<p>MP4 的标准中描述的moov与mdat 的存放位置前后并没有进行强制要求，所以有些时候moov 这个 Box在 mdat 的后面，有些时候moov被存放在mdat 的前面。</p>
+<p><strong>在互联网的视频点播中，如果希望MP4文件被快速打开，则需要将moov存放在mdat的前面；如果放在后面， 则需要将MP4文件下载完成后才可以进行播放。</strong></p>
+<h2 id="分析mp4"><a href="#分析mp4" class="headerlink" title="分析mp4"></a>分析mp4</h2><p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/%E5%88%86%E6%9E%90mp4.png" alt="Alt text"></p>
+<ul>
+<li><p><strong>ftyp</strong> 全称 <strong>File Type Box</strong>。ftyp 前面的 4个字节是 0x20（16进制）。也就说，这个 ftyp box 是 32 字节的长度，32字节是包含 size 的4个字节的。ftyp 是一级 box，里面没有子box了。如下图所示<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/ftyp.png" alt="Alt text"></p>
+</li>
+<li><p>free，只有 8个字节大小，size 占 4个字节，type 占4个字节。如下图所示<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/free.png" alt="Alt text"></p>
+</li>
+<li><p><strong>mdata</strong>，全称 <strong>Media Data</strong>，这个box 是最重要的， ffmpeg 封装的 AVPacket 数据就存放在这个box 里面。mdata 前面 4个字节是大小，00 0b 5c 63 , 也就是 这个 mdata 数据有 0x0b5c63个字节。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/mdata.png" alt="Alt text"></p>
+</li>
+</ul>
+<p>mp4 的box结构就比较清晰了，很简单，前面4个字节是 size （大小），后4字节是 type （类型），box 里面的数据按照类型继续解析即可。不过 size 有两个特殊值 0 和 1，看最上面的图。</p>
+<ul>
+<li>当size等于0时，代表这个Box是文件的最后一个Box。</li>
+<li>当size等于1时，说明Box长度需要更多的位来描述，在后面会定义一个64位的 largesize 用来描述Box的长度。</li>
+</ul>
+<h3 id="moov分析"><a href="#moov分析" class="headerlink" title="moov分析"></a>moov分析</h3><p> moov容器定义了一个MP4文件中的数据信息，类型是moov,是一个容器Atom，其至少必须包含以下三种Atom 中的一种：</p>
+<ul>
+<li>mvhd 标签， Movie Header Atom，存放未压缩过的影片信息的头容器</li>
+<li>cmov 标签， Compressed Movie Atom， 压缩过的电影信息容器，此容器不常用</li>
+<li>rmra 标签， Reference Movie Atom， 参考电影信息容器，此容器不常用<br>也可以包含其他容器信息，例如影片剪辑信息Clipping atom( clip）、一个或几个<br>trakAtom(trak）、 一个 Color Table Atom( ctab）和一个 User Data Atom(udta）。</li>
+</ul>
+<p>其中， mvhd 中定义了多媒体文件的<strong>time scale</strong>、 <strong>duration</strong> 以及 <strong>display characteristics</strong>。</p>
+<p>而<strong>trak 中定义了多媒体文件中的一个track 的信息， track是多媒体文件中可以独立操作的媒体单位</strong>，例如<strong>一个音频流就是一个track、一个视频流就是一个track。</strong></p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/moov.png" alt="Alt text"><br>上图中有三个重点：</p>
+<ul>
+<li><strong>mvhd</strong> ，全称 Movie Header Box。存储文件的 <strong>时长</strong> 等基本信息。</li>
+<li>trak，全称 Track Box，通常一个音频流 或者视频流 对应一个 trak box。</li>
+<li>stbl，全称 Sample Table Box ，</li>
+</ul>
+<h4 id="Movie-Header-Box（mvhd）"><a href="#Movie-Header-Box（mvhd）" class="headerlink" title="Movie Header Box（mvhd）"></a>Movie Header Box（mvhd）</h4><ul>
+<li>version : box版本，0或1，一般为0。</li>
+<li>creation time : 创建时间（相对于UTC时间1904-01-01零点的秒数）。</li>
+<li>modification time : 修改时间 。</li>
+<li>timescale : 文件媒体在1秒时间内的刻度值，可理解为1秒长度的时间单元数。</li>
+<li>duration : 该track的时间长度，用duration和time scale值可以计算track时长，比如audio track的time scale &#x3D; 8000, duration &#x3D; 560128，时长为70.016，video track的time scale &#x3D; 600, duration &#x3D; 42000，时长为70。</li>
+<li>rate : 推荐播放速率，高16位和低16位分别为小数点整数部分和小数部分，即[16.16] 格式，该值为1.0（0x00010000）表示正常前向播放。</li>
+<li>volume : 推荐播放音量，[8.8] 格式，1.0（0x0100）表示最大音量。</li>
+</ul>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/mvhd%E5%8F%82%E6%95%B0%E8%A1%A8.png" alt="alt text"></p>
+<h4 id="Track-Box（trak）"><a href="#Track-Box（trak）" class="headerlink" title="Track Box（trak）"></a>Track Box（trak）</h4><p>trak 容器中定义了媒体文件中的一个track的信息， 一个媒体文件中可以包含多个trak，每个 trak 都是独立的，具有自己的时间和空间占用的信息，每个trak容器都有与它关联的media容器描述信息。 trak容器的主要使用目的具体如下。</p>
+<ul>
+<li>包含媒体数据的引用和描述（mediatrack)</li>
+<li>包含modifier track 信息</li>
+<li>流媒体协议的打包信息（hint track), hint track 可以引用或者复制对应的媒体采样数据</li>
+</ul>
+<p>hint track 和 modifier track 必须保证完整性，同时要与至少一个 media track 一起存在。<br>一个trak容器中要求必须要有一个Track Header Atom(tkhd)、一个 Media Atom(mdia),<br>其他的Atom都是可选的，例如如下的atom选项。</p>
+<p>• Track 剪辑容器： Track Clipping Atom( clip)<br>• Track 画板容器： Track Matte Atom( matt)<br>• Edit 容器： EditAtom( edts)<br>• Track 参考容器： Track Reference Atom(tret)<br>• Track 配置加载容器： Track Load Settings Atom(load)<br>• Track 输出映射容器： Track Input Map Atom(imap)<br>• 用户数据容器： UserData Atom(udta)</p>
+<h4 id="Sample-Table-Box（stbl）"><a href="#Sample-Table-Box（stbl）" class="headerlink" title="Sample Table Box（stbl）"></a>Sample Table Box（stbl）</h4><p>MP4 最重要的就是 <strong>stbl</strong>，上图的 stbl 里面有一个 box <strong>stsd</strong>，剩下的 6 个 东西，stts，stss，ctts，stsc，stsz，stco 都是数据表。</p>
+<ul>
+<li>stsd：sample description box，样本的描述信息。</li>
+<li>stts：time to sample box，sample解码时间的压缩表。</li>
+<li>ctts：composition time to sample box，sample的CTS与DTS的时间差的压缩表。</li>
+<li>stss：sync sample box，针对视频，关键帧的序号。</li>
+<li>stsz&#x2F;stz2：sample size box，每个sample的字节大小。</li>
+<li>stsc：sample to chunk box，sample-chunk映射表。</li>
+<li>stco&#x2F;co64：chunk offset box，chunk在文件中的偏移。</li>
+</ul>
+<p>sample是媒体数据存储的单位，存储在media的chunk中，chunk和sample的长度均可互不相同，如下图所示。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/data_stream.png" alt="Alt text"></p>
+<h5 id="stsd-全称-Sample-Description-Box"><a href="#stsd-全称-Sample-Description-Box" class="headerlink" title="stsd(全称 Sample Description Box)"></a>stsd(全称 Sample Description Box)</h5><p>存储了编码类型和初始化解码器需要的信息。</p>
+<p>有与特定的track-type相关的信息，相同的track-type也会存在不同信息的情况如使用不一样的编码标准。</p>
+<p>stsd box 里面存储的是编码的信息，我们这个文件是 H264 的，<strong>H264 也叫 AVC 编码</strong>。如下图所示<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stsd.png" alt="Alt text"></p>
+<h5 id="Decoding-Time-to-Sample-Box（stts）"><a href="#Decoding-Time-to-Sample-Box（stts）" class="headerlink" title="Decoding Time to Sample Box（stts）"></a>Decoding Time to Sample Box（stts）</h5><p>包含了一个压缩版本的表，通过这个表可以从解码时间映射到sample序号。表中的每一项是连续相同的编码时间增量(Decode Delta)的个数和编码时间增量。通过把时间增量累加就可以建立一个完整的time to sample表。</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stts.png" alt="Alt text"></p>
+<p>从上图看出，<strong>Sample count</strong> 跟 <strong>Sample delta</strong> 。这里 Sample delta 的单位是 12288，就是 1秒钟分成 12288 份， Sample delta 占了 512 份，所以是 41 毫秒。12288 这个时间度量 定义在 <strong>mdhd box</strong> 里面，如下：<br><strong>timescale</strong><br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/mdhd.png" alt="Alt text"></p>
+<h5 id="sync-sample-box-stss"><a href="#sync-sample-box-stss" class="headerlink" title="sync sample box(stss)"></a>sync sample box(stss)</h5><p>叫关键帧表，也叫同步表，因为关键帧可以独立解码，通常用来同步。</p>
+<p>它包含media中的关键帧的sample表。如果此表不存在，说明每一个sample都是一个关键帧。</p>
+<p>从下图可以看出， walking-dead.mp4 <strong>有 3 个关键帧</strong>，分别是 第 <strong>1</strong>帧，第 <strong>35</strong> 帧，第 <strong>152</strong> 帧。关键帧占的字节 都是比较大的。<br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stss.png" alt="Alt text"></p>
+<h5 id="composition-time-to-sample-box（ctts）"><a href="#composition-time-to-sample-box（ctts）" class="headerlink" title="composition time to sample box（ctts）"></a>composition time to sample box（ctts）</h5><ul>
+<li>entry_count：表中条目的个数(下图中sample_count数目)。</li>
+<li>sample_count: 连续相同时间长度的sample个数。</li>
+<li>sample_delta：以timescale为单位的时间长度。</li>
+<li>Composition offset：显示时间同解码时间的差值，等于CT - DT。</li>
+<li>DT(decoding time)：编码时间。</li>
+<li>CT(composition time)：创作时间。</li>
+</ul>
+<p>这个box提供了decoding time到composition time的offset的表，用于计算pts。</p>
+<p>这个表在Decoding time和composition time不一样的情况 下时必须的。<br>如果box的version等于0，decoding time必须小于等于composition time，因而差值用一个无符号的数字表示。<br>有以下公式：</p>
+<p>时间补偿表，因为 <strong>stts 里面存储的是解码的时间</strong>，不是播放的时间，有 B 帧的时候，<strong>解码时间跟播放时间有差距</strong>。ctts 表就是记录这个差距的。如下图：</p>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/ctts.png" alt="Alt text"></p>
+<p>ctts 表也是只有两列，跟 stts 表一样的套路，如果两行数据一样，就会压缩，只保留最后一个。 PTS &#x3D; DTS + Sample offset，所以 第 四 行才是播放的第二帧。</p>
+<h5 id="Sample-Size-Box（stsz-stz2）"><a href="#Sample-Size-Box（stsz-stz2）" class="headerlink" title="Sample Size Box（stsz&#x2F;stz2）"></a>Sample Size Box（stsz&#x2F;stz2）</h5><p>包含sample的数量和每个sample的字节大小，这个box相对来说 体积比较大的。</p>
+<p>采样大小表，代表各帧数据的大小。<br><strong>注意，第 1 帧 第35 帧数据都比较大，因为他们是关键帧。</strong><br><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stsz.png" alt="Alt text"></p>
+<h5 id="Sample-To-Chunk-Box（stsc）"><a href="#Sample-To-Chunk-Box（stsc）" class="headerlink" title="Sample To Chunk Box（stsc）"></a>Sample To Chunk Box（stsc）</h5><p><strong>现在我们已经通过 stts 表 了解到 各帧的解码时间，通过 stsz 表知道 各帧的大小，还差 位置就能定位找到各个帧的，位置的信息存储在 stsc 跟 stco 这两个表里面。</strong></p>
+<p>media中的sample被分为组成chunk。chunk可以有不同的大小，chunk内的sample可以有不同的大小。</p>
+<p>通过stsc中的sample-chunk映射表可以找到包含指定sample的chunk，从而找到这个sample。结构相同的chunk可以聚集在一起形成一个entry，这个entry就是stsc映射表的表项。</p>
+<ol>
+<li>第一个例子</li>
+</ol>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stsc.png" alt="Alt text"></p>
+<p><strong>上图中 第一行 的First Chunk 是 1，Samples per chunk 等于 2，Sample description index 等于 1，意思是 第一个chunk 里面有 两个视频帧。</strong></p>
+<p>最后的 Sample description index 字段是指 第几个 Sample Description Box， 也就是 stsd 表，本文件只有 1个 Sample Description Box， Sample Description Box 有可能会有多个。</p>
+<p><strong>stsc 后面是省略的了，代表从 第二个 chunk 起，后面的每个chunk 都是只有一个视频帧。因为本视频流一共240帧，第一个chunk里面有2帧，后面的都是1帧，所以计算出来只有239个chunk。</strong></p>
+<p>chunk 跟 sample 这个概念比较重要，MP4 索引定位找到某一帧，就是先找到chunk，再找到sample。</p>
+<ol start="2">
+<li>第二个例子</li>
+</ol>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stsc2.png" alt="Alt text"></p>
+<ul>
+<li><p>第一组chunk的first_chunk序号为1，每个chunk的sample个数为1，因为第二组chunk的first_chunk序号为2，可知第一组chunk中只有一个chunk。</p>
+</li>
+<li><p>第二组chunk的first_chunk序号为2，每个chunk的sample个数为2，因为第三组chunk的first_chunk序号为24，可知第二组chunk中有22个chunk，有44个sample。</p>
+</li>
+</ul>
+<p><strong>MP4 索引定位找到某一帧，就是先找到chunk，再找到sample。</strong></p>
+<h5 id="Chunk-Offset-Box（stco-co64）"><a href="#Chunk-Offset-Box（stco-co64）" class="headerlink" title="Chunk Offset Box（stco&#x2F;co64）"></a>Chunk Offset Box（stco&#x2F;co64）</h5><p>Chunk Offset表存储了每个chunk在文件中的位置，这样就可以直接在文件中找到媒体数据，而不用解析box。如下图</p>
+<ul>
+<li><strong>需要注意的是一旦前面的box有了任何改变，这张表都要重新建立。</strong></li>
+<li>chunk_offset：chunk在文件中的位置。</li>
+<li>stco 有两种形式，如果你的视频过大的话，就有可能造成 chunkoffset 超过 32bit 的限制。所以，这里针对大 Video 额外创建了一个 co64 的 Box。它的功效等价于 stco，也是用来表示 sample 在 mdat box 中的位置。只是，里面 chunk_offset 是 64bit 的。</li>
+</ul>
+<p><img src="/../../../images/%E9%9F%B3%E8%A7%86%E9%A2%91/mp4/assets/stco.png" alt="Alt text"></p>
+<h3 id="File-Type-Box-ftyp"><a href="#File-Type-Box-ftyp" class="headerlink" title="File Type Box(ftyp)"></a>File Type Box(ftyp)</h3><p>File Type Box一般在文件的开头，用来指示该 mp4文件使用的标准规范。为了早期规范版本兼容，允许不包含ftyp box</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/529c3729f357">https://www.jianshu.com/p/529c3729f357</a><br>《FFmpeg 从入门到精通》第 3.1章节 “音视频文件转MP4格式”</p>
+
+        
+        <br />
+        <div id="comment-container">
+        </div>
+        <div id="disqus_thread"></div>
+        <div id="lv-container"></div>
+        <div class="giscus"></div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+
+<footer class="footer">
+    <ul class="list-inline text-center">
+        
+        
+
+        
+
+        
+
+        
+        <li>
+            <a target="_blank"  href="https://github.com/lyt-s">
+                            <span class="fa-stack fa-lg">
+                                <i class="iconfont icon-github"></i>
+                            </span>
+            </a>
+        </li>
+        
+
+        
+
+    </ul>
+    
+    <p>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+        <span><a href="https://lyt-s.github.io/">Z</a></span>
+        <span>/</span>
+        
+        <span><a href="#">It helps SEO</a></span>
+        <span>/</span>
+        
+        <span><a href=""></a></span>
+        <span>/</span>
+        
+    </p>
+    
+    <p>
+        <span id="busuanzi_container_site_pv">
+            <span id="busuanzi_value_site_pv"></span>PV
+        </span>
+        <span id="busuanzi_container_site_uv">
+            <span id="busuanzi_value_site_uv"></span>UV
+        </span>
+        Created By <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>  Theme <a target="_blank" rel="noopener" href="https://github.com/aircloud/hexo-theme-aircloud">AirCloud</a></p>
+</footer>
+
+
+
+
+</body>
+
+<script>
+    // We expose some of the variables needed by the front end
+    window.hexo_search_path = "search.json"
+    window.hexo_root = "/"
+    window.isPost = true
+</script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+    <script src="https://giscus.app/client.js"
+    data-repo="aircloud/hexo-aircloud-blog"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkxMjkwNDgyNjg="
+    data-category="Announcements"
+    data-category-id="DIC_kwDOB7EezM4COhKJ"
+    data-mapping="title"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="light"
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async>
+</script>
+
+
+
+
+</html>
